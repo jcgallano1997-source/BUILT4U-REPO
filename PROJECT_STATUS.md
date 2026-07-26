@@ -4,7 +4,7 @@
 > the checkboxes as phases complete. Committed to git so it survives across sessions
 > (if the chat/token context is lost, read this first).
 >
-> Last updated: **2026-07-26** · Current position: **Phase 7 complete → Phase 8 next**
+> Last updated: **2026-07-26** · Current position: **Phase 8 complete → Phase 9 next**
 
 ---
 
@@ -138,9 +138,15 @@ runs the real server locally for HTTP smoke tests.
 - [ ] **Your smoke test:** add a customer + a payment mode; ring a sale in POS with a customer + non-cash mode
 - [ ] *(deferred)* surcharge application at checkout; AR/CHARGE credit (Phase 9)
 
-### ⬜ Phase 8 — Procurement
-- [ ] Purchase orders (draft→approved→received) + PO approver routing
-- [ ] Goods receipts
+### ✅ Phase 8 — Procurement  *(DONE)*
+- [x] Flyway **V6**: pos_purchase_order / pos_goods_receipt (line-per-row, header denormalized) + pos_po_approver (business-wide creator→approver map) + pos_po_approval (approval sidecar)
+- [x] Purchase orders: create (auto-approve when creator has no approver) → approve → cancel; PO# `PO-YYYY-NNNN`; status DRAFT→APPROVED→PARTIALLY_RECEIVED→RECEIVED / CANCELLED aggregated from line rows
+- [x] Goods receipts: receive against a PO (remaining-qty guard, falls back to PO price) or **direct** (no PO); bumps item stock + refreshes cost price + writes STOCK_IN_GR log; GR# `GR-YYYY-NNNN`; recomputes PO status
+- [x] PO approver routing: per-user creator→approver map (ADMIN admin page); DRAFT until designated approver / ADMIN approves; "pending my approval"
+- [x] Frontend: PurchaseOrdersPage (list/filter/create+line builder/detail approve+cancel), GoodsReceiptsPage (PO-based or direct receive), PoApproversPage + nav/routes
+- [x] `ProcurementFlowIT` green (auto-approve→receive→RECEIVED, over-receive→400, approver routing DRAFT→approve, direct GR, cancel blocks receiving); `npm run build` green
+- [ ] **Your smoke test:** create a PO → receive part of it in Receiving (stock rises) → receive the rest (PO shows Received)
+- [ ] *(deferred to Phase 9)* AP payable auto-creation on receipt for AP-flagged suppliers
 
 ### ⬜ Phase 9 — Accounts Receivable / Payable
 - [ ] AR: customer credit, receivables, payments

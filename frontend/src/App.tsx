@@ -18,6 +18,9 @@ import ShiftsPage from '@/pages/ShiftsPage'
 import CustomersPage from '@/pages/CustomersPage'
 import SuppliersPage from '@/pages/SuppliersPage'
 import PaymentModesPage from '@/pages/PaymentModesPage'
+import PurchaseOrdersPage from '@/pages/PurchaseOrdersPage'
+import GoodsReceiptsPage from '@/pages/GoodsReceiptsPage'
+import PoApproversPage from '@/pages/PoApproversPage'
 
 function Protected({ children }: { children: ReactNode }) {
   return (
@@ -43,6 +46,9 @@ export default function App() {
       <Route path="/units" element={<Protected><UomsPage /></Protected>} />
       <Route path="/customers" element={<Protected><CustomersPage /></Protected>} />
       <Route path="/suppliers" element={<Protected><SuppliersPage /></Protected>} />
+      <Route path="/purchase-orders" element={<Protected><PurchaseOrdersPage /></Protected>} />
+      <Route path="/goods-receipts" element={<Protected><GoodsReceiptsPage /></Protected>} />
+      <Route path="/admin/po-approvers" element={<Protected><PoApproversPage /></Protected>} />
       <Route path="/admin/payment-modes" element={<Protected><PaymentModesPage /></Protected>} />
       <Route path="/admin/sites" element={<Protected><SitesPage /></Protected>} />
       <Route path="/admin/users" element={<Protected><UsersPage /></Protected>} />
