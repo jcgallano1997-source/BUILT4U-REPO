@@ -4,7 +4,7 @@
 > the checkboxes as phases complete. Committed to git so it survives across sessions
 > (if the chat/token context is lost, read this first).
 >
-> Last updated: **2026-07-26** · Current position: **Phase 2 complete → Phase 3 next**
+> Last updated: **2026-07-26** · Current position: **Phase 3 complete → Phase 4 next**
 
 ---
 
@@ -38,6 +38,12 @@ and **`site_id` is the top data-isolation key**. Same tech stack (Java 21 / Spri
 ```powershell
 cd "C:\CLAUDE CODE\NEW_POS\backend"; .\run-local.ps1
 ```
+
+**Run the frontend (separate terminal; proxies /api → :8083):**
+```powershell
+cd "C:\CLAUDE CODE\NEW_POS\frontend"; .\run-frontend.ps1
+```
+Then open http://localhost:5173 and log in. (First install uses `npm install --legacy-peer-deps`.)
 
 **Run backend integration tests (works anywhere — MOCK web env, no Tomcat):**
 ```powershell
@@ -87,12 +93,13 @@ runs the real server locally for HTTP smoke tests.
 - [x] `AuthFlowIT` (login / me / refresh / 401) green
 - [x] Committed + pushed
 
-### ⬜ Phase 3 — Frontend login slice  *(NEXT)*
-- [ ] Vite + React 19 + TS scaffold, Tailwind, router
-- [ ] `authStore` (zustand persist), `api.ts` axios + single-flight refresh interceptor
-- [ ] Login page → stores JWT → one protected page reading `/api/auth/me`
-- [ ] Change-password screen (must-change flow)
-- [ ] End-to-end login working locally
+### ✅ Phase 3 — Frontend login slice  *(DONE)*
+- [x] Vite 8 + React 19 + TS scaffold, Tailwind 4, router
+- [x] `authStore` (zustand persist, key `built4u-pos-auth`), `api.ts` axios + single-flight refresh interceptor
+- [x] Login page (username + site-select + password) → stores JWT → protected Dashboard reading `/api/auth/me`
+- [x] Change-password screen (must-change flow, guarded redirect)
+- [x] `npm run build` green; login page render verified in browser
+- [ ] **Your smoke test:** run backend + `frontend/run-frontend.ps1`, log in `admin`/`admin123`/`MAIN`
 
 ### ⬜ Phase 4 — Admin: users / sites / roles
 - [ ] Site management (create/edit/activate branches)
