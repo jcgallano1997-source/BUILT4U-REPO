@@ -14,5 +14,6 @@ public record UpdateCustomerRequest(
     @Size(max = 200)           String address,
     @Email @Size(max = 120)    String email,
     @PositiveOrZero            BigDecimal points,
+    @PositiveOrZero            BigDecimal creditLimit,
     @NotNull                   Boolean active
 ) {}

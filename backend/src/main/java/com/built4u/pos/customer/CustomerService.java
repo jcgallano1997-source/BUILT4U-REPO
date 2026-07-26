@@ -49,6 +49,7 @@ public class CustomerService {
             .address(blankToNull(req.address()))
             .email(blankToNull(req.email()))
             .points(req.points() == null ? BigDecimal.ZERO : req.points())
+            .creditLimit(req.creditLimit() == null ? BigDecimal.ZERO : req.creditLimit())
             .active(true)
             .build();
         return CustomerDto.from(customerRepository.save(entity));
@@ -64,6 +65,7 @@ public class CustomerService {
         c.setAddress(blankToNull(req.address()));
         c.setEmail(blankToNull(req.email()));
         c.setPoints(req.points() == null ? BigDecimal.ZERO : req.points());
+        c.setCreditLimit(req.creditLimit() == null ? BigDecimal.ZERO : req.creditLimit());
         c.setActive(Boolean.TRUE.equals(req.active()));
         return CustomerDto.from(customerRepository.save(c));
     }

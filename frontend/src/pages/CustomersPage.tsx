@@ -80,7 +80,8 @@ function CustForm({ cust, onClose, onSaved }: { cust: Customer | null; onClose: 
   const isNew = cust === null
   const [f, setF] = useState({
     name: cust?.name ?? '', contact: cust?.contact ?? '', address: cust?.address ?? '',
-    email: cust?.email ?? '', points: cust ? String(cust.points) : '0', active: cust?.active ?? true,
+    email: cust?.email ?? '', points: cust ? String(cust.points) : '0',
+    creditLimit: cust ? String(cust.creditLimit) : '0', active: cust?.active ?? true,
   })
   const [saving, setSaving] = useState(false)
   const s = (k: keyof typeof f, v: string | boolean) => setF((p) => ({ ...p, [k]: v }))
@@ -88,8 +89,8 @@ function CustForm({ cust, onClose, onSaved }: { cust: Customer | null; onClose: 
   async function save() {
     setSaving(true)
     try {
-      if (isNew) await createCustomer({ name: f.name.trim(), contact: f.contact.trim() || undefined, address: f.address.trim() || undefined, email: f.email.trim() || undefined })
-      else await updateCustomer(cust!.id, { name: f.name.trim(), contact: f.contact.trim() || undefined, address: f.address.trim() || undefined, email: f.email.trim() || undefined, points: Number(f.points || 0), active: f.active })
+      if (isNew) await createCustomer({ name: f.name.trim(), contact: f.contact.trim() || undefined, address: f.address.trim() || undefined, email: f.email.trim() || undefined, creditLimit: Number(f.creditLimit || 0) })
+      else await updateCustomer(cust!.id, { name: f.name.trim(), contact: f.contact.trim() || undefined, address: f.address.trim() || undefined, email: f.email.trim() || undefined, points: Number(f.points || 0), creditLimit: Number(f.creditLimit || 0), active: f.active })
       toast.success('Saved'); onSaved()
     } catch (e) { toast.error(err(e, 'Save failed')) } finally { setSaving(false) }
   }
@@ -101,6 +102,7 @@ function CustForm({ cust, onClose, onSaved }: { cust: Customer | null; onClose: 
         <F label="Contact"><input className={inputCls} value={f.contact} onChange={(e) => s('contact', e.target.value)} /></F>
         <F label="Email"><input className={inputCls} value={f.email} onChange={(e) => s('email', e.target.value)} /></F>
         <F label="Address"><input className={inputCls} value={f.address} onChange={(e) => s('address', e.target.value)} /></F>
+        <F label="Credit limit (₱ — 0 = no limit)"><input className={inputCls} type="number" min={0} value={f.creditLimit} onChange={(e) => s('creditLimit', e.target.value)} /></F>
         {!isNew && <label className="flex items-center gap-2 text-sm text-slate-700"><input type="checkbox" checked={f.active} onChange={(e) => s('active', e.target.checked)} /> Active</label>}
         <div className="flex justify-end gap-2 pt-2">
           <button className={btnGhost} onClick={onClose}>Cancel</button>

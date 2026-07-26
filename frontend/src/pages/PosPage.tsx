@@ -19,7 +19,8 @@ export default function PosPage() {
   const [paid, setPaid] = useState('')
   const [placing, setPlacing] = useState(false)
   const [lastSale, setLastSale] = useState<{ num: string; change: number } | null>(null)
-  const [modes, setModes] = useState<{ code: string; label: string }[]>(PAYMENT_MODES.map((c) => ({ code: c, label: c })))
+  const [modes, setModes] = useState<{ code: string; label: string; accountsReceivable: boolean; customerRequired: boolean }[]>(
+    PAYMENT_MODES.map((c) => ({ code: c, label: c, accountsReceivable: false, customerRequired: false })))
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [custQuery, setCustQuery] = useState('')
   const [custResults, setCustResults] = useState<Customer[]>([])
@@ -27,7 +28,7 @@ export default function PosPage() {
   useEffect(() => { getCurrentShift().then(setShift).catch(() => setShift(null)) }, [])
   useEffect(() => {
     listActivePaymentModes()
-      .then((ms) => { if (ms.length) { setModes(ms.map((m) => ({ code: m.code, label: m.label }))); setMode(ms[0].code) } })
+      .then((ms) => { if (ms.length) { setModes(ms.map((m) => ({ code: m.code, label: m.label, accountsReceivable: m.accountsReceivable, customerRequired: m.customerRequired }))); setMode(ms[0].code) } })
       .catch(() => {})
   }, [])
   useEffect(() => {
@@ -47,7 +48,10 @@ export default function PosPage() {
     () => cart.reduce((s, l) => s + Number(l.item.sellingPrice) * l.qty, 0),
     [cart],
   )
+  const selMode = modes.find((m) => m.code === mode)
+  const isAr = !!selMode?.accountsReceivable
   const change = Math.max(0, (Number(paid) || 0) - grandTotal)
+  const onAccount = isAr ? Math.max(0, grandTotal - (Number(paid) || 0)) : 0
 
   function addToCart(item: Item) {
     setCart((prev) => {
@@ -63,8 +67,17 @@ export default function PosPage() {
 
   async function pay() {
     if (cart.length === 0) { toast.error('Cart is empty'); return }
-    const payment = mode === 'CASH' ? Number(paid) : grandTotal
-    if (mode === 'CASH' && payment < grandTotal) { toast.error('Cash tendered is less than the total'); return }
+    let payment: number
+    if (isAr) {
+      if (!customer) { toast.error('A customer is required for a credit sale'); return }
+      payment = Number(paid) || 0   // down-payment (optional); remainder goes on account
+    } else if (mode === 'CASH') {
+      payment = Number(paid)
+      if (payment < grandTotal) { toast.error('Cash tendered is less than the total'); return }
+    } else {
+      payment = grandTotal
+    }
+    if (selMode?.customerRequired && !customer) { toast.error('This payment mode requires a customer'); return }
     setPlacing(true)
     try {
       const sale = await checkout({
@@ -177,10 +190,20 @@ export default function PosPage() {
               </div>
             </>
           )}
+          {isAr && (
+            <>
+              <input className={inputCls} type="number" placeholder="Amount paid now (optional)" value={paid}
+                onChange={(e) => setPaid(e.target.value)} />
+              <div className="flex justify-between text-sm text-amber-700">
+                <span>On account</span><span className="font-medium">{peso(onAccount)}</span>
+              </div>
+              {!customer && <p className="text-xs text-amber-600">Attach a customer above to sell on credit.</p>}
+            </>
+          )}
         </div>
 
-        <button className={`${btnPrimary} w-full`} disabled={placing || cart.length === 0} onClick={pay}>
-          {placing ? 'Processing…' : `Charge ${peso(grandTotal)}`}
+        <button className={`${btnPrimary} w-full`} disabled={placing || cart.length === 0 || (isAr && !customer)} onClick={pay}>
+          {placing ? 'Processing…' : isAr && onAccount > 0 ? `Charge ${peso(onAccount)} to account` : `Charge ${peso(grandTotal)}`}
         </button>
 
         {lastSale && (

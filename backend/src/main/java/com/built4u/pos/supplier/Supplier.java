@@ -45,6 +45,16 @@ public class Supplier {
     @Column(length = 100)
     private String contact;
 
+    /** When true, a goods receipt from this supplier auto-creates an AP payable. */
+    @Column(name = "ap_enabled", nullable = false)
+    @Builder.Default
+    private boolean apEnabled = false;
+
+    /** Net terms (days) used for the auto-created payable's due date. */
+    @Column(name = "payable_days", nullable = false)
+    @Builder.Default
+    private int payableDays = 30;
+
     @Column(nullable = false, length = 1)
     @Convert(converter = YesNoConverter.class)
     @Builder.Default

@@ -47,6 +47,11 @@ public class Customer {
     @Builder.Default
     private BigDecimal points = BigDecimal.ZERO;
 
+    /** Max outstanding credit allowed on account. 0 = no limit. */
+    @Column(name = "credit_limit", nullable = false)
+    @Builder.Default
+    private BigDecimal creditLimit = BigDecimal.ZERO;
+
     @Column(nullable = false, length = 1)
     @Convert(converter = YesNoConverter.class)
     @Builder.Default

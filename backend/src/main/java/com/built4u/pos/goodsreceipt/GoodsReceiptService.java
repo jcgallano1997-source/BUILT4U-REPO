@@ -7,10 +7,16 @@ import com.built4u.pos.goodsreceipt.dto.CreateGoodsReceiptRequest;
 import com.built4u.pos.goodsreceipt.dto.GoodsReceiptDto;
 import com.built4u.pos.item.Item;
 import com.built4u.pos.item.ItemRepository;
+import com.built4u.pos.payable.Payable;
+import com.built4u.pos.payable.PayableRepository;
+import com.built4u.pos.payable.PayableSource;
+import com.built4u.pos.payable.PayableStatus;
 import com.built4u.pos.purchaseorder.PurchaseOrderItem;
 import com.built4u.pos.purchaseorder.PurchaseOrderRepository;
 import com.built4u.pos.purchaseorder.PurchaseOrderService;
 import com.built4u.pos.purchaseorder.PurchaseOrderStatus;
+import com.built4u.pos.supplier.Supplier;
+import com.built4u.pos.supplier.SupplierRepository;
 import com.built4u.pos.transactionlog.TransactionLog;
 import com.built4u.pos.transactionlog.TransactionLogRepository;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +49,8 @@ public class GoodsReceiptService {
     private final PurchaseOrderService poService;
     private final ItemRepository itemRepository;
     private final TransactionLogRepository txnLogRepository;
+    private final SupplierRepository supplierRepository;
+    private final PayableRepository payableRepository;
 
     @Transactional(readOnly = true)
     public List<GoodsReceiptDto> listForPo(String poNumber) {
@@ -209,6 +217,33 @@ public class GoodsReceiptService {
         // 4. Recompute PO status if applicable.
         if (poNumber != null) {
             poService.refreshStatusAfterReceiving(poNumber);
+        }
+
+        // 5. Auto-create an AP payable when the supplier is AP-enabled. Gated
+        //    entirely behind ap_enabled — non-AP suppliers are unaffected. The
+        //    GR stores the supplier as a name string, so resolve it by name.
+        if (supplier != null) {
+            Supplier sup = supplierRepository.findBySiteIdAndSupplierName(siteId, supplier).orElse(null);
+            if (sup != null && sup.isApEnabled()) {
+                LocalDate due = LocalDate.now().plusDays(sup.getPayableDays());
+                payableRepository.save(Payable.builder()
+                    .siteId(siteId)
+                    .source(PayableSource.PURCHASE.name())
+                    .poNumber(poNumber)
+                    .grNumber(grNumber)
+                    .supplierId(sup.getSupplierId())
+                    .payeeName(supplier)
+                    .description("Goods receipt " + grNumber
+                        + (poNumber == null ? "" : " / PO " + poNumber))
+                    .originalAmount(grand)
+                    .amountPaid(BigDecimal.ZERO)
+                    .balance(grand)
+                    .dueDate(due)
+                    .status(PayableStatus.OPEN.name())
+                    .build());
+                log.info("GR {} auto-created AP payable for supplier {} (₱{} due {})",
+                    grNumber, sup.getSupplierId(), grand, due);
+            }
         }
 
         log.info("GR {} created with {} lines, grand_total={}", grNumber, req.lines().size(), grand);

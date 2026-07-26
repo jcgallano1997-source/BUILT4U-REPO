@@ -12,5 +12,6 @@ public record CreateCustomerRequest(
     @Size(max = 50)            String contact,
     @Size(max = 200)           String address,
     @Email @Size(max = 120)    String email,
-    @PositiveOrZero            BigDecimal points
+    @PositiveOrZero            BigDecimal points,
+    @PositiveOrZero            BigDecimal creditLimit
 ) {}

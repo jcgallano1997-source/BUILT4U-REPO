@@ -4,7 +4,7 @@
 > the checkboxes as phases complete. Committed to git so it survives across sessions
 > (if the chat/token context is lost, read this first).
 >
-> Last updated: **2026-07-26** · Current position: **Phase 8 complete → Phase 9 next**
+> Last updated: **2026-07-26** · Current position: **Phase 9 complete → Phase 10 next**
 
 ---
 
@@ -148,9 +148,14 @@ runs the real server locally for HTTP smoke tests.
 - [ ] **Your smoke test:** create a PO → receive part of it in Receiving (stock rises) → receive the rest (PO shows Received)
 - [ ] *(deferred to Phase 9)* AP payable auto-creation on receipt for AP-flagged suppliers
 
-### ⬜ Phase 9 — Accounts Receivable / Payable
-- [ ] AR: customer credit, receivables, payments
-- [ ] AP: supplier payable config, payables, payments
+### ✅ Phase 9 — Accounts Receivable / Payable  *(DONE)*
+- [x] Flyway **V7**: pos_receivable / pos_receivable_payment, pos_payable / pos_payable_payment; + credit_limit on pos_customer; + ap_enabled/payable_days on pos_supplier
+- [x] AR: a credit sale (checkout on an `accounts_receivable` payment mode) opens a receivable for the unpaid balance; per-customer credit limit blocks oversized credit; collections (OPEN→PARTIAL→PAID); voiding the sale cancels the receivable
+- [x] AP: goods receipt from an AP-enabled supplier auto-creates a PURCHASE payable (the hook deferred from Phase 8; non-AP suppliers unaffected); manual EXPENSE payables; disbursements (OPEN→PARTIAL→PAID)
+- [x] Customer form gains a credit limit; supplier form gains AP tracking + terms; POS supports credit checkout (customer-gated, partial down-payment, "on account" shown)
+- [x] `ArApFlowIT` green (5 tests: credit sale→collect→paid, credit-limit block, void→cancel, GR→payable→pay, non-AP no-payable + expense); PosFlowIT/CustomerSupplierPaymentIT still green; `npm run build` green
+- [ ] **Your smoke test:** set a customer credit limit + an AR payment mode → sell on credit in POS → collect in Receivables; flag a supplier AP + receive a PO → pay it in Payables
+- [ ] *(deferred to Phase 12)* AR/AP report exports (PDF/xlsx)
 
 ### ⬜ Phase 10 — Stock transfers (cross-site)
 - [ ] Transfer ship/receive + line items + allow-list policy

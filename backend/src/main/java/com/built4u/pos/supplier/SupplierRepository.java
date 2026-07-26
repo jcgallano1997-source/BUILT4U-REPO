@@ -13,6 +13,8 @@ public interface SupplierRepository extends JpaRepository<Supplier, SupplierId> 
 
     Optional<Supplier> findBySiteIdAndSupplierId(Long siteId, Long supplierId);
 
+    Optional<Supplier> findBySiteIdAndSupplierName(Long siteId, String supplierName);
+
     List<Supplier> findBySiteIdOrderBySupplierNameAsc(Long siteId);
 
     @Query("""

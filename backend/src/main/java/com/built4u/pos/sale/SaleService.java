@@ -7,6 +7,11 @@ import com.built4u.pos.customer.Customer;
 import com.built4u.pos.customer.CustomerRepository;
 import com.built4u.pos.item.Item;
 import com.built4u.pos.item.ItemRepository;
+import com.built4u.pos.payment.PaymentMode;
+import com.built4u.pos.payment.PaymentModeRepository;
+import com.built4u.pos.receivable.Receivable;
+import com.built4u.pos.receivable.ReceivableRepository;
+import com.built4u.pos.receivable.ReceivableStatus;
 import com.built4u.pos.sale.dto.*;
 import com.built4u.pos.transactionlog.TransactionLog;
 import com.built4u.pos.transactionlog.TransactionLogRepository;
@@ -42,6 +47,8 @@ public class SaleService {
     private final ItemRepository itemRepository;
     private final TransactionLogRepository txnLogRepository;
     private final CustomerRepository customerRepository;
+    private final PaymentModeRepository paymentModeRepository;
+    private final ReceivableRepository receivableRepository;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -108,30 +115,73 @@ public class SaleService {
         if (grandTotal.signum() < 0) {
             throw new BadRequestException("Discounts exceed the sale total");
         }
-        if (req.payment().compareTo(grandTotal) < 0) {
-            throw new BadRequestException("Payment " + req.payment().toPlainString()
-                + " is less than the amount due " + grandTotal.toPlainString());
-        }
-        BigDecimal change = req.payment().subtract(grandTotal);
 
-        Long customerId = null;
+        // Resolve the customer up front (a credit sale needs it).
+        Customer customer = null;
         if (req.customerId() != null) {
-            Customer c = customerRepository.findBySiteIdAndCustomerId(siteId, req.customerId())
+            customer = customerRepository.findBySiteIdAndCustomerId(siteId, req.customerId())
                 .filter(cc -> Boolean.TRUE.equals(cc.getActive()))
                 .orElseThrow(() -> new BadRequestException("Customer " + req.customerId() + " not found or inactive"));
-            customerId = c.getCustomerId();
+        }
+        Long customerId = customer == null ? null : customer.getCustomerId();
+
+        // An accounts-receivable payment mode lets the sale go out on credit: the
+        // unpaid remainder becomes a receivable, so payment may be < grand total.
+        String modeCode = req.modeOfPayment().trim();
+        PaymentMode mode = paymentModeRepository.findBySiteIdAndCode(siteId, modeCode).orElse(null);
+        boolean isAr = mode != null && mode.isAccountsReceivable();
+        BigDecimal payment = req.payment();
+
+        BigDecimal change;
+        BigDecimal arBalance = BigDecimal.ZERO;
+        if (isAr) {
+            if (customer == null) {
+                throw new BadRequestException("A customer is required for a credit (accounts-receivable) sale");
+            }
+            if (payment.signum() < 0) {
+                throw new BadRequestException("Payment can't be negative");
+            }
+            arBalance = grandTotal.subtract(payment).max(BigDecimal.ZERO);   // unpaid → on account
+            change = payment.subtract(grandTotal).max(BigDecimal.ZERO);      // no change on credit
+            if (arBalance.signum() > 0 && customer.getCreditLimit() != null
+                    && customer.getCreditLimit().signum() > 0) {
+                BigDecimal outstanding = nz(receivableRepository.sumOpenBalanceByCustomer(siteId, customerId));
+                if (outstanding.add(arBalance).compareTo(customer.getCreditLimit()) > 0) {
+                    throw new BadRequestException("Credit limit ₱" + customer.getCreditLimit().toPlainString()
+                        + " exceeded — outstanding ₱" + outstanding.toPlainString()
+                        + " + this ₱" + arBalance.toPlainString());
+                }
+            }
+        } else {
+            if (payment.compareTo(grandTotal) < 0) {
+                throw new BadRequestException("Payment " + payment.toPlainString()
+                    + " is less than the amount due " + grandTotal.toPlainString());
+            }
+            change = payment.subtract(grandTotal);
         }
 
         Sale sale = Sale.builder()
             .siteId(siteId).salesNumber(salesNumber)
             .total(total).discountAll(discountAll).totalDiscItem(totalDiscItem).grandTotal(grandTotal)
-            .payment(req.payment()).changeDue(change)
-            .modeOfPayment(req.modeOfPayment().trim()).customerId(customerId).reference(blankToNull(req.reference()))
+            .payment(payment).changeDue(change)
+            .modeOfPayment(modeCode).customerId(customerId).reference(blankToNull(req.reference()))
             .status(SaleStatus.COMPLETED.name())
             .build();
         saleRepository.save(sale);
         saleItemRepository.saveAll(saleItems);
         txnLogRepository.saveAll(logs);
+
+        // Credit sale → open a receivable for the unpaid balance.
+        if (isAr && arBalance.signum() > 0) {
+            LocalDate due = LocalDate.now().plusDays(mode.getArDueDays());
+            receivableRepository.save(Receivable.builder()
+                .siteId(siteId).salesNumber(salesNumber).customerId(customerId)
+                .modeCode(mode.getCode()).originalAmount(arBalance)
+                .amountPaid(BigDecimal.ZERO).balance(arBalance).dueDate(due)
+                .status(ReceivableStatus.OPEN.name()).build());
+            log.info("Sale {} opened a receivable of {} for customer {} (due {})",
+                salesNumber, arBalance, customerId, due);
+        }
 
         log.info("Sale {} completed at site {}: {} line(s), grand total {}", salesNumber, siteId, saleItems.size(), grandTotal);
         return reload(siteId, salesNumber);
@@ -156,6 +206,17 @@ public class SaleService {
         }
         sale.setStatus(SaleStatus.VOIDED.name());
         saleRepository.save(sale);
+
+        // A credit sale's receivable is written off when the sale is voided.
+        receivableRepository.findBySiteIdAndSalesNumber(siteId, salesNumber)
+            .filter(r -> !ReceivableStatus.CANCELLED.name().equals(r.getStatus()))
+            .ifPresent(r -> {
+                r.setStatus(ReceivableStatus.CANCELLED.name());
+                r.setClosedAt(LocalDateTime.now());
+                receivableRepository.save(r);
+                log.info("Sale {} void → receivable {} CANCELLED", salesNumber, r.getId());
+            });
+
         log.info("Sale {} voided at site {}", salesNumber, siteId);
         return reload(siteId, salesNumber);
     }

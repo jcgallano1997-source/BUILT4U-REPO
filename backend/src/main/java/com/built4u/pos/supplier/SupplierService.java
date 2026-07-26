@@ -49,7 +49,10 @@ public class SupplierService {
         Supplier entity = Supplier.builder()
             .siteId(siteId).supplierCode(code).supplierName(req.name().trim())
             .supplierAddress(blankToNull(req.address())).agentName(blankToNull(req.agentName()))
-            .contact(blankToNull(req.contact())).active(true).build();
+            .contact(blankToNull(req.contact()))
+            .apEnabled(req.apEnabled())
+            .payableDays(req.payableDays() == null ? 30 : req.payableDays())
+            .active(true).build();
         return SupplierDto.from(supplierRepository.save(entity));
     }
 
@@ -67,6 +70,8 @@ public class SupplierService {
         s.setSupplierAddress(blankToNull(req.address()));
         s.setAgentName(blankToNull(req.agentName()));
         s.setContact(blankToNull(req.contact()));
+        s.setApEnabled(req.apEnabled());
+        s.setPayableDays(req.payableDays() == null ? 30 : req.payableDays());
         s.setActive(Boolean.TRUE.equals(req.active()));
         return SupplierDto.from(supplierRepository.save(s));
     }

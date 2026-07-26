@@ -73,7 +73,9 @@ function SupForm({ sup, onClose, onSaved }: { sup: Supplier | null; onClose: () 
   const isNew = sup === null
   const [f, setF] = useState({
     code: sup?.code ?? '', name: sup?.name ?? '', address: sup?.address ?? '',
-    agentName: sup?.agentName ?? '', contact: sup?.contact ?? '', active: sup?.active ?? true,
+    agentName: sup?.agentName ?? '', contact: sup?.contact ?? '',
+    apEnabled: sup?.apEnabled ?? false, payableDays: sup ? String(sup.payableDays) : '30',
+    active: sup?.active ?? true,
   })
   const [saving, setSaving] = useState(false)
   const s = (k: keyof typeof f, v: string | boolean) => setF((p) => ({ ...p, [k]: v }))
@@ -81,7 +83,7 @@ function SupForm({ sup, onClose, onSaved }: { sup: Supplier | null; onClose: () 
   async function save() {
     setSaving(true)
     try {
-      const base = { code: f.code.trim(), name: f.name.trim(), address: f.address.trim() || undefined, agentName: f.agentName.trim() || undefined, contact: f.contact.trim() || undefined }
+      const base = { code: f.code.trim(), name: f.name.trim(), address: f.address.trim() || undefined, agentName: f.agentName.trim() || undefined, contact: f.contact.trim() || undefined, apEnabled: f.apEnabled, payableDays: Number(f.payableDays || 30) }
       if (isNew) await createSupplier(base)
       else await updateSupplier(sup!.id, { ...base, active: f.active })
       toast.success('Saved'); onSaved()
@@ -96,6 +98,8 @@ function SupForm({ sup, onClose, onSaved }: { sup: Supplier | null; onClose: () 
         <F label="Agent"><input className={inputCls} value={f.agentName} onChange={(e) => s('agentName', e.target.value)} /></F>
         <F label="Contact"><input className={inputCls} value={f.contact} onChange={(e) => s('contact', e.target.value)} /></F>
         <F label="Address"><input className={inputCls} value={f.address} onChange={(e) => s('address', e.target.value)} /></F>
+        <label className="flex items-center gap-2 text-sm text-slate-700"><input type="checkbox" checked={f.apEnabled} onChange={(e) => s('apEnabled', e.target.checked)} /> Track payables (auto-create AP on goods receipt)</label>
+        {f.apEnabled && <F label="Payment terms (days)"><input className={inputCls} type="number" min={0} value={f.payableDays} onChange={(e) => s('payableDays', e.target.value)} /></F>}
         {!isNew && <label className="flex items-center gap-2 text-sm text-slate-700"><input type="checkbox" checked={f.active} onChange={(e) => s('active', e.target.checked)} /> Active</label>}
         <div className="flex justify-end gap-2 pt-2">
           <button className={btnGhost} onClick={onClose}>Cancel</button>

@@ -10,12 +10,14 @@ public record CustomerDto(
     String address,
     String email,
     BigDecimal points,
+    BigDecimal creditLimit,
     boolean active,
     LocalDateTime createdAt,
     String createdBy
 ) {
     public static CustomerDto from(Customer c) {
         return new CustomerDto(c.getCustomerId(), c.getCustomerName(), c.getContact(), c.getAddress(),
-            c.getEmail(), c.getPoints(), Boolean.TRUE.equals(c.getActive()), c.getCreationDate(), c.getCreatedBy());
+            c.getEmail(), c.getPoints(), c.getCreditLimit(), Boolean.TRUE.equals(c.getActive()),
+            c.getCreationDate(), c.getCreatedBy());
     }
 }

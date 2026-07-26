@@ -8,19 +8,20 @@ export interface Customer {
   address: string | null
   email: string | null
   points: number
+  creditLimit: number
   active: boolean
 }
 export async function listCustomers(search?: string, includeInactive = false): Promise<Customer[]> {
   const { data } = await api.get<Customer[]>('/customers', { params: { search: search || undefined, includeInactive } })
   return data
 }
-export async function createCustomer(body: { name: string; contact?: string; address?: string; email?: string }): Promise<Customer> {
+export async function createCustomer(body: { name: string; contact?: string; address?: string; email?: string; creditLimit?: number }): Promise<Customer> {
   const { data } = await api.post<Customer>('/customers', body)
   return data
 }
 export async function updateCustomer(
   id: number,
-  body: { name: string; contact?: string; address?: string; email?: string; points: number; active: boolean },
+  body: { name: string; contact?: string; address?: string; email?: string; points: number; creditLimit: number; active: boolean },
 ): Promise<Customer> {
   const { data } = await api.put<Customer>(`/customers/${id}`, body)
   return data
@@ -35,19 +36,21 @@ export interface Supplier {
   address: string | null
   agentName: string | null
   contact: string | null
+  apEnabled: boolean
+  payableDays: number
   active: boolean
 }
 export async function listSuppliers(search?: string, includeInactive = false): Promise<Supplier[]> {
   const { data } = await api.get<Supplier[]>('/suppliers', { params: { search: search || undefined, includeInactive } })
   return data
 }
-export async function createSupplier(body: { code: string; name: string; address?: string; agentName?: string; contact?: string }): Promise<Supplier> {
+export async function createSupplier(body: { code: string; name: string; address?: string; agentName?: string; contact?: string; apEnabled: boolean; payableDays: number }): Promise<Supplier> {
   const { data } = await api.post<Supplier>('/suppliers', body)
   return data
 }
 export async function updateSupplier(
   id: number,
-  body: { code: string; name: string; address?: string; agentName?: string; contact?: string; active: boolean },
+  body: { code: string; name: string; address?: string; agentName?: string; contact?: string; apEnabled: boolean; payableDays: number; active: boolean },
 ): Promise<Supplier> {
   const { data } = await api.put<Supplier>(`/suppliers/${id}`, body)
   return data

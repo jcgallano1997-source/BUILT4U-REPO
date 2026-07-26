@@ -9,12 +9,15 @@ public record SupplierDto(
     String address,
     String agentName,
     String contact,
+    boolean apEnabled,
+    int payableDays,
     boolean active,
     LocalDateTime createdAt,
     String createdBy
 ) {
     public static SupplierDto from(Supplier s) {
         return new SupplierDto(s.getSupplierId(), s.getSupplierCode(), s.getSupplierName(), s.getSupplierAddress(),
-            s.getAgentName(), s.getContact(), Boolean.TRUE.equals(s.getActive()), s.getCreationDate(), s.getCreatedBy());
+            s.getAgentName(), s.getContact(), s.isApEnabled(), s.getPayableDays(),
+            Boolean.TRUE.equals(s.getActive()), s.getCreationDate(), s.getCreatedBy());
     }
 }

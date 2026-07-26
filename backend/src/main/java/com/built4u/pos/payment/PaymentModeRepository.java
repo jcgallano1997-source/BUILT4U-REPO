@@ -13,6 +13,8 @@ public interface PaymentModeRepository extends JpaRepository<PaymentMode, Long> 
 
     Optional<PaymentMode> findBySiteIdAndId(Long siteId, Long id);
 
+    Optional<PaymentMode> findBySiteIdAndCode(Long siteId, String code);
+
     List<PaymentMode> findBySiteIdOrderBySortOrderAscCodeAsc(Long siteId);
 
     List<PaymentMode> findBySiteIdAndActiveTrueOrderBySortOrderAscCodeAsc(Long siteId);
