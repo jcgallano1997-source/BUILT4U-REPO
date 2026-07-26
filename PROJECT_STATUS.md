@@ -4,7 +4,7 @@
 > the checkboxes as phases complete. Committed to git so it survives across sessions
 > (if the chat/token context is lost, read this first).
 >
-> Last updated: **2026-07-27** · Current position: **Phase 13 in progress — audit log DONE; templates/email/docs remaining**
+> Last updated: **2026-07-27** · Current position: **Phase 13 in progress — audit log + error log DONE; templates/email/docs remaining**
 
 ---
 
@@ -193,8 +193,8 @@ runs the real server locally for HTTP smoke tests.
 ### 🔄 Phase 13 — Config, docs & audit  *(IN PROGRESS)*
 - [x] **Business audit log** — Flyway **V10** `pos_audit_log`; a universal Hibernate post-insert/update/delete listener writes one row per business change via JDBC (joins the tx, rolls back with it, never re-triggers). Captures JWT user + site + before→after field changes; redacts sensitive fields; **skips** high-volume internal logs (transaction log, loyalty ledger, auth tokens). Filter/paginate API + pdf/xlsx export (`MOD_AUDIT_LOG`); AuditLogPage with a change-diff modal + nav/route
 - [x] `AuditLogFlowIT` green (capture with user + readable entity id, skip-list, xlsx export); Pos/Admin ITs still green; `npm run build` green
+- [x] **Persistent error log** — Flyway **V11** `pos_error_log`; the global exception handler records every unhandled 5xx in a `REQUIRES_NEW` tx (commits even as the request rolls back), redacting credential-like fragments; read API + detail (`MOD_AUDIT_LOG`); ErrorLogPage (list + stack-trace modal) + nav/route. `ErrorLogFlowIT` green (record → read-back → redaction, self-cleaning; redact unit test)
 - [ ] PDF template / receipt template / doc settings / report-email config (the branding + email-delivery layer deferred from Phase 12)
-- [ ] Persistent error log
 - [ ] Bundled User Guide PDF (help endpoint)
 - [ ] *(optional)* stamp `AuditContext` module/reference on key flows (checkout, transfers) for richer "why"
 

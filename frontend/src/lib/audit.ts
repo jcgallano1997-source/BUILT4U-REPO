@@ -43,6 +43,29 @@ export async function listAudit(f: AuditFilters): Promise<AuditPage> {
   return data
 }
 
+// ── Error log ────────────────────────────────────────────────────────────────
+export interface ErrorEntry {
+  id: number
+  ref: string
+  occurredAt: string
+  siteCode: string | null
+  siteName: string | null
+  username: string | null
+  httpMethod: string | null
+  requestPath: string | null
+  exceptionClass: string | null
+  message: string | null
+  stackTrace: string | null
+}
+export async function listErrors(limit = 100): Promise<ErrorEntry[]> {
+  const { data } = await api.get<ErrorEntry[]>('/admin/error-logs', { params: { limit } })
+  return data
+}
+export async function getError(id: number): Promise<ErrorEntry> {
+  const { data } = await api.get<ErrorEntry>(`/admin/error-logs/${id}`)
+  return data
+}
+
 export async function downloadAudit(format: 'pdf' | 'xlsx', f: AuditFilters): Promise<void> {
   const res = await api.get('/admin/audit-log', {
     params: {

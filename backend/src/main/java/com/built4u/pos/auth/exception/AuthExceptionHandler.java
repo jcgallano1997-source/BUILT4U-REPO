@@ -1,10 +1,15 @@
 package com.built4u.pos.auth.exception;
 
+import com.built4u.pos.common.error.ErrorLogService;
 import com.built4u.pos.common.exception.BadRequestException;
 import com.built4u.pos.common.exception.ConflictException;
 import com.built4u.pos.common.exception.NotFoundException;
+import com.built4u.pos.common.tenant.TenantContext;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -25,7 +30,10 @@ import java.util.stream.Collectors;
 /** Global error handler — maps exceptions to consistent JSON bodies. */
 @RestControllerAdvice
 @Slf4j
+@RequiredArgsConstructor
 public class AuthExceptionHandler {
+
+    private final ErrorLogService errorLogService;
 
     @ExceptionHandler(AuthException.class)
     public ResponseEntity<Map<String, Object>> handleAuth(AuthException ex) {
@@ -90,8 +98,20 @@ public class AuthExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleUnexpected(Exception ex, HttpServletRequest req) {
         String ref = UUID.randomUUID().toString().substring(0, 8);
         log.error("[{}] Unhandled exception on {} {}", ref, req.getMethod(), req.getRequestURI(), ex);
+        try {
+            errorLogService.record(ref, req.getMethod(), req.getRequestURI(),
+                currentUsername(), TenantContext.getSiteCode(), TenantContext.getSiteName(), ex);
+        } catch (Exception ignore) {
+            // persisting the error must never mask the original response
+        }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
             .body(body(500, "Internal Server Error", "Something went wrong. Reference: " + ref));
+    }
+
+    private static String currentUsername() {
+        Authentication a = SecurityContextHolder.getContext().getAuthentication();
+        if (a == null || !a.isAuthenticated() || "anonymousUser".equals(a.getPrincipal())) return null;
+        return a.getName();
     }
 
     private Map<String, Object> body(int status, String error, String message) {

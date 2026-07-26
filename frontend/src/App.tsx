@@ -30,6 +30,7 @@ import LoyaltyConfigPage from '@/pages/LoyaltyConfigPage'
 import LoyaltyRewardsPage from '@/pages/LoyaltyRewardsPage'
 import ReportsPage from '@/pages/ReportsPage'
 import AuditLogPage from '@/pages/AuditLogPage'
+import ErrorLogPage from '@/pages/ErrorLogPage'
 
 function Protected({ children }: { children: ReactNode }) {
   return (
@@ -66,6 +67,7 @@ export default function App() {
       <Route path="/admin/loyalty-rewards" element={<Protected><LoyaltyRewardsPage /></Protected>} />
       <Route path="/reports" element={<Protected><ReportsPage /></Protected>} />
       <Route path="/admin/audit-log" element={<Protected><AuditLogPage /></Protected>} />
+      <Route path="/admin/error-log" element={<Protected><ErrorLogPage /></Protected>} />
       <Route path="/admin/po-approvers" element={<Protected><PoApproversPage /></Protected>} />
       <Route path="/admin/payment-modes" element={<Protected><PaymentModesPage /></Protected>} />
       <Route path="/admin/sites" element={<Protected><SitesPage /></Protected>} />
