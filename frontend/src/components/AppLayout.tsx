@@ -1,9 +1,16 @@
 import type { ReactNode } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { LogOut, Store } from 'lucide-react'
+import { NavLink, useNavigate } from 'react-router-dom'
+import { LayoutDashboard, LogOut, Shield, Store, Users } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/store/authStore'
 import { logout as apiLogout } from '@/lib/auth'
+
+const NAV = [
+  { to: '/', label: 'Dashboard', icon: LayoutDashboard, module: null },
+  { to: '/admin/sites', label: 'Sites', icon: Store, module: 'SITES' },
+  { to: '/admin/users', label: 'Users', icon: Users, module: 'USERS' },
+  { to: '/admin/roles', label: 'Roles', icon: Shield, module: 'ROLES' },
+] as const
 
 /** Minimal authenticated shell: a header with the business/site + a logout button. */
 export default function AppLayout({ children }: { children: ReactNode }) {
@@ -20,6 +27,9 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     toast.success('Signed out')
     navigate('/login', { replace: true })
   }
+
+  const modules = user?.modules ?? []
+  const navItems = NAV.filter((n) => n.module === null || modules.includes(n.module))
 
   return (
     <div className="min-h-full flex flex-col">
@@ -40,6 +50,27 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             </button>
           </div>
         </div>
+        <nav className="mx-auto max-w-5xl px-2 flex gap-1 overflow-x-auto">
+          {navItems.map((n) => {
+            const Icon = n.icon
+            return (
+              <NavLink
+                key={n.to}
+                to={n.to}
+                end={n.to === '/'}
+                className={({ isActive }) =>
+                  `inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm ${
+                    isActive
+                      ? 'border-indigo-600 text-indigo-700'
+                      : 'border-transparent text-slate-500 hover:text-slate-700'
+                  }`
+                }
+              >
+                <Icon size={15} /> {n.label}
+              </NavLink>
+            )
+          })}
+        </nav>
       </header>
       <main className="flex-1 mx-auto w-full max-w-5xl px-4 py-6">{children}</main>
     </div>

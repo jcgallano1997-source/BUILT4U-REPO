@@ -4,7 +4,7 @@
 > the checkboxes as phases complete. Committed to git so it survives across sessions
 > (if the chat/token context is lost, read this first).
 >
-> Last updated: **2026-07-26** · Current position: **Phase 3 complete → Phase 4 next**
+> Last updated: **2026-07-26** · Current position: **Phase 4 complete → Phase 5 next**
 
 ---
 
@@ -101,11 +101,13 @@ runs the real server locally for HTTP smoke tests.
 - [x] `npm run build` green; login page render verified in browser
 - [ ] **Your smoke test:** run backend + `frontend/run-frontend.ps1`, log in `admin`/`admin123`/`MAIN`
 
-### ⬜ Phase 4 — Admin: users / sites / roles
-- [ ] Site management (create/edit/activate branches)
-- [ ] User management (create users, assign roles + site access)
-- [ ] Role management (custom roles + module grants)
-- [ ] Backend services/controllers + frontend pages
+### ✅ Phase 4 — Admin: users / sites / roles  *(DONE)*
+- [x] Site management (create/edit/activate branches) — `/api/admin/sites`, SitesPage
+- [x] User management (create/edit, assign roles + site access, reset password) — `/api/admin/users`, UsersPage
+- [x] Role management (custom roles + module-grant grid; built-in/last-admin guards) — `/api/admin/roles`, RolesPage
+- [x] Module-filtered nav in AppLayout; `@PreAuthorize(MOD_SITES/USERS/ROLES)`
+- [x] `AdminFlowIT` green (create site/role/user, pickers, 409 on dup); `npm run build` green
+- [ ] **Your smoke test:** log in as admin → Sites/Users/Roles tabs; create a branch + a cashier user
 
 ### ⬜ Phase 5 — Reference data + inventory
 - [ ] Migration for categories / locations / uoms / inventory (+ 5 sequences)

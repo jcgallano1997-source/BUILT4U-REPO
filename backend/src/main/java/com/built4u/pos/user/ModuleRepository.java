@@ -5,4 +5,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ModuleRepository extends JpaRepository<Module, String> {
+    java.util.List<Module> findAllByOrderBySortOrderAsc();
 }
