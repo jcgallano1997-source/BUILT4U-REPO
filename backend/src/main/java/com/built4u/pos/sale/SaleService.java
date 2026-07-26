@@ -7,12 +7,22 @@ import com.built4u.pos.customer.Customer;
 import com.built4u.pos.customer.CustomerRepository;
 import com.built4u.pos.item.Item;
 import com.built4u.pos.item.ItemRepository;
+import com.built4u.pos.loyalty.LoyaltyConfigService;
+import com.built4u.pos.loyalty.LoyaltyLedger;
+import com.built4u.pos.loyalty.LoyaltyLedgerRepository;
+import com.built4u.pos.loyalty.LoyaltyLedgerService;
 import com.built4u.pos.payment.PaymentMode;
 import com.built4u.pos.payment.PaymentModeRepository;
 import com.built4u.pos.receivable.Receivable;
 import com.built4u.pos.receivable.ReceivableRepository;
 import com.built4u.pos.receivable.ReceivableStatus;
 import com.built4u.pos.sale.dto.*;
+import com.built4u.pos.voucher.Voucher;
+import com.built4u.pos.voucher.VoucherRedeemService;
+import com.built4u.pos.voucher.VoucherRedemption;
+import com.built4u.pos.voucher.VoucherRedemptionRepository;
+import com.built4u.pos.voucher.VoucherRepository;
+import com.built4u.pos.voucher.dto.VoucherEvaluation;
 import com.built4u.pos.transactionlog.TransactionLog;
 import com.built4u.pos.transactionlog.TransactionLogRepository;
 import jakarta.persistence.EntityManager;
@@ -49,6 +59,12 @@ public class SaleService {
     private final CustomerRepository customerRepository;
     private final PaymentModeRepository paymentModeRepository;
     private final ReceivableRepository receivableRepository;
+    private final VoucherRepository voucherRepository;
+    private final VoucherRedeemService voucherRedeemService;
+    private final VoucherRedemptionRepository voucherRedemptionRepository;
+    private final LoyaltyConfigService loyaltyConfigService;
+    private final LoyaltyLedgerService loyaltyLedgerService;
+    private final LoyaltyLedgerRepository loyaltyLedgerRepository;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -110,11 +126,32 @@ public class SaleService {
                 .attribute3(newQty.toPlainString()).build());
         }
 
-        BigDecimal discountAll = req.discountAll() == null ? BigDecimal.ZERO : req.discountAll();
-        BigDecimal grandTotal = total.subtract(totalDiscItem).subtract(discountAll);
-        if (grandTotal.signum() < 0) {
+        BigDecimal userDiscountAll = req.discountAll() == null ? BigDecimal.ZERO : req.discountAll();
+        BigDecimal subtotalForVoucher = total.subtract(totalDiscItem).subtract(userDiscountAll);
+        if (subtotalForVoucher.signum() < 0) {
             throw new BadRequestException("Discounts exceed the sale total");
         }
+
+        // Voucher (optional): evaluate against the post-line/post-manual-discount
+        // subtotal, then atomically consume. The discount folds into discountAll
+        // so the stored totals stay consistent; a redemption row is the audit link.
+        BigDecimal voucherDiscount = BigDecimal.ZERO;
+        Voucher appliedVoucher = null;
+        String voucherCode = blankToNull(req.voucherCode());
+        if (voucherCode != null) {
+            VoucherEvaluation ev = voucherRedeemService.evaluate(siteId, voucherCode, subtotalForVoucher, req.customerId());
+            if (!ev.valid()) throw new BadRequestException(ev.message());
+            appliedVoucher = voucherRepository.findBySiteIdAndCodeIgnoreCase(siteId, voucherCode)
+                .orElseThrow(() -> new BadRequestException("Voucher '" + voucherCode + "' not found."));
+            if (voucherRepository.tryConsume(appliedVoucher.getId()) == 0) {
+                throw new BadRequestException("This voucher has reached its usage limit.");
+            }
+            voucherDiscount = ev.discountAmount();
+        }
+
+        BigDecimal discountAll = userDiscountAll.add(voucherDiscount);
+        BigDecimal grandTotal = total.subtract(totalDiscItem).subtract(discountAll);
+        if (grandTotal.signum() < 0) grandTotal = BigDecimal.ZERO;
 
         // Resolve the customer up front (a credit sale needs it).
         Customer customer = null;
@@ -183,6 +220,27 @@ public class SaleService {
                 salesNumber, arBalance, customerId, due);
         }
 
+        // Voucher redemption record (the sale↔voucher audit link).
+        if (appliedVoucher != null) {
+            voucherRedemptionRepository.save(VoucherRedemption.builder()
+                .siteId(siteId).voucherId(appliedVoucher.getId()).salesNumber(salesNumber)
+                .customerId(customerId).discountAmount(voucherDiscount).build());
+            log.info("Sale {} redeemed voucher {} (−{})", salesNumber, appliedVoucher.getCode(), voucherDiscount);
+        }
+
+        // Loyalty: earn whole points on the grand total when a customer is attached.
+        if (customer != null) {
+            BigDecimal earned = grandTotal.multiply(loyaltyConfigService.resolveRate())
+                .setScale(0, java.math.RoundingMode.FLOOR);
+            if (earned.signum() > 0) {
+                customer.setPoints(nz(customer.getPoints()).add(earned));
+                customerRepository.save(customer);
+                loyaltyLedgerService.post(siteId, customerId, "EARN", earned, salesNumber,
+                    "Earned on sale " + salesNumber, null);
+                log.info("Sale {} earned {} loyalty points for customer {}", salesNumber, earned, customerId);
+            }
+        }
+
         log.info("Sale {} completed at site {}: {} line(s), grand total {}", salesNumber, siteId, saleItems.size(), grandTotal);
         return reload(siteId, salesNumber);
     }
@@ -216,6 +274,34 @@ public class SaleService {
                 receivableRepository.save(r);
                 log.info("Sale {} void → receivable {} CANCELLED", salesNumber, r.getId());
             });
+
+        // Release any voucher redeemed on this sale (frees a usage).
+        voucherRedemptionRepository.findBySiteIdAndSalesNumberAndReversedFalse(siteId, salesNumber)
+            .ifPresent(vr -> {
+                vr.setReversed(true);
+                vr.setReversedAt(LocalDateTime.now());
+                voucherRedemptionRepository.save(vr);
+                voucherRepository.release(vr.getVoucherId());
+                log.info("Sale {} void → voucher redemption {} reversed", salesNumber, vr.getId());
+            });
+
+        // Claw back loyalty points earned on this sale.
+        List<LoyaltyLedger> earns =
+            loyaltyLedgerRepository.findBySiteIdAndSalesNumberAndEntryType(siteId, salesNumber, "EARN");
+        if (!earns.isEmpty() && sale.getCustomerId() != null) {
+            BigDecimal earned = earns.stream().map(LoyaltyLedger::getPoints)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+            if (earned.signum() > 0) {
+                Long custId = sale.getCustomerId();
+                customerRepository.findBySiteIdAndCustomerId(siteId, custId).ifPresent(c -> {
+                    c.setPoints(nz(c.getPoints()).subtract(earned).max(BigDecimal.ZERO));
+                    customerRepository.save(c);
+                });
+                loyaltyLedgerService.post(siteId, custId, "ADJUST", earned.negate(), salesNumber,
+                    "Reversed on void of " + salesNumber, null);
+                log.info("Sale {} void → clawed back {} loyalty points", salesNumber, earned);
+            }
+        }
 
         log.info("Sale {} voided at site {}", salesNumber, siteId);
         return reload(siteId, salesNumber);

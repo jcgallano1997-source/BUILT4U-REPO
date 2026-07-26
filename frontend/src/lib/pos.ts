@@ -108,6 +108,7 @@ export interface CheckoutPayload {
   modeOfPayment: string
   payment: number
   discountAll?: number
+  voucherCode?: string
   reference?: string
   lines: { itemId: number; quantity: number; adjustment?: number }[]
 }

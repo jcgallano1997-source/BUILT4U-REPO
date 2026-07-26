@@ -4,7 +4,7 @@
 > the checkboxes as phases complete. Committed to git so it survives across sessions
 > (if the chat/token context is lost, read this first).
 >
-> Last updated: **2026-07-27** · Current position: **Phase 10 complete → Phase 11 next**
+> Last updated: **2026-07-27** · Current position: **Phase 11 complete → Phase 12 next**
 
 ---
 
@@ -168,9 +168,15 @@ runs the real server locally for HTTP smoke tests.
 - [ ] **Your smoke test:** create a 2nd site + give admin access to it; at MAIN ship an item to it; log into the 2nd site and Receive (stock lands there)
 - [ ] *(deferred to Phase 12)* stock-transfer report export (PDF/xlsx)
 
-### ⬜ Phase 11 — Vouchers & loyalty
-- [ ] Vouchers + redemptions
-- [ ] Loyalty config / ledger / rewards / redemptions
+### ✅ Phase 11 — Vouchers & loyalty  *(DONE)*
+- [x] Flyway **V9**: pos_voucher / pos_voucher_redemption, pos_loyalty_config / pos_loyalty_ledger / pos_loyalty_reward / pos_loyalty_redemption
+- [x] Vouchers: admin CRUD (FIXED/PERCENT, min-spend, validity, usage limit); POS `/vouchers/validate`; checkout applies + **atomically consumes** (single-use guard), folds into discountAll, records a redemption; **void releases** the voucher
+- [x] Loyalty: per-site earn-% config; **earn points on checkout** (floored) when a customer is attached, with a ledger EARN entry; **void claws points back** (ADJUST)
+- [x] Reward catalog (ITEM decrements stock / FREETEXT); redeem points for a reward (locks customer+reward, REDEEM ledger); customer points ledger view
+- [x] Frontend: VouchersPage, LoyaltyConfigPage, LoyaltyRewardsPage (admin); POS voucher field (validate→discount→checkout); Customers "Points" panel (balance + ledger + redeem) + nav/routes
+- [x] `VoucherLoyaltyFlowIT` green (3 tests: voucher apply/single-use/void-release, earn+reward-redeem, void claw-back); Pos/CustomerSupplierPayment/ArAp ITs still green; `npm run build` green
+- [ ] **Your smoke test:** make a % voucher + set loyalty % + a reward; ring a sale with a customer + the voucher (discount applies, points earned); open the customer's Points panel and redeem the reward
+- [ ] *(deferred)* points expiry (scheduled sweep) and points→voucher conversion
 
 ### ⬜ Phase 12 — Reports + exports
 - [ ] Sales / inventory / AR / AP / procurement / shift-history reports

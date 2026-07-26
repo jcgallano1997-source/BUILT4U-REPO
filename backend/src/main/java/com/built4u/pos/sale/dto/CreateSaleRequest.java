@@ -17,6 +17,7 @@ public record CreateSaleRequest(
     @NotBlank @Size(max = 50) String modeOfPayment,
     @NotNull @PositiveOrZero BigDecimal payment,
     @PositiveOrZero BigDecimal discountAll,
+    @Size(max = 40) String voucherCode,
     @Size(max = 200) String reference,
     @NotEmpty @Valid List<Line> lines
 ) {

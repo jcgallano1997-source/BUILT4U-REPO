@@ -7,6 +7,7 @@ import { btnGhost, btnPrimary, inputCls } from '@/components/Modal'
 import { listItems, type Item } from '@/lib/inventory'
 import { checkout, getCurrentShift, PAYMENT_MODES, peso, posErr, type Shift } from '@/lib/pos'
 import { listActivePaymentModes, listCustomers, type Customer } from '@/lib/parties'
+import { validateVoucher } from '@/lib/promo'
 
 interface CartLine { item: Item; qty: number }
 
@@ -24,6 +25,9 @@ export default function PosPage() {
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [custQuery, setCustQuery] = useState('')
   const [custResults, setCustResults] = useState<Customer[]>([])
+  const [voucherInput, setVoucherInput] = useState('')
+  const [voucher, setVoucher] = useState<{ code: string; discount: number } | null>(null)
+  const [checkingVoucher, setCheckingVoucher] = useState(false)
 
   useEffect(() => { getCurrentShift().then(setShift).catch(() => setShift(null)) }, [])
   useEffect(() => {
@@ -50,8 +54,22 @@ export default function PosPage() {
   )
   const selMode = modes.find((m) => m.code === mode)
   const isAr = !!selMode?.accountsReceivable
-  const change = Math.max(0, (Number(paid) || 0) - grandTotal)
-  const onAccount = isAr ? Math.max(0, grandTotal - (Number(paid) || 0)) : 0
+  const netTotal = Math.max(0, grandTotal - (voucher?.discount ?? 0))
+  const change = Math.max(0, (Number(paid) || 0) - netTotal)
+  const onAccount = isAr ? Math.max(0, netTotal - (Number(paid) || 0)) : 0
+
+  async function applyVoucher() {
+    const code = voucherInput.trim()
+    if (!code) return
+    if (grandTotal <= 0) { toast.error('Add items first'); return }
+    setCheckingVoucher(true)
+    try {
+      const ev = await validateVoucher(code, grandTotal, customer?.id)
+      if (!ev.valid) { toast.error(ev.message ?? 'Voucher not valid'); setVoucher(null); return }
+      setVoucher({ code: ev.code, discount: ev.discountAmount })
+      toast.success(`Voucher ${ev.code} — ${peso(ev.discountAmount)} off`)
+    } catch (e) { toast.error(posErr(e, 'Could not check voucher')) } finally { setCheckingVoucher(false) }
+  }
 
   function addToCart(item: Item) {
     setCart((prev) => {
@@ -73,9 +91,9 @@ export default function PosPage() {
       payment = Number(paid) || 0   // down-payment (optional); remainder goes on account
     } else if (mode === 'CASH') {
       payment = Number(paid)
-      if (payment < grandTotal) { toast.error('Cash tendered is less than the total'); return }
+      if (payment < netTotal) { toast.error('Cash tendered is less than the total'); return }
     } else {
-      payment = grandTotal
+      payment = netTotal
     }
     if (selMode?.customerRequired && !customer) { toast.error('This payment mode requires a customer'); return }
     setPlacing(true)
@@ -84,11 +102,12 @@ export default function PosPage() {
         modeOfPayment: mode,
         payment,
         customerId: customer?.id,
+        voucherCode: voucher?.code,
         lines: cart.map((l) => ({ itemId: l.item.id, quantity: l.qty })),
       })
       setLastSale({ num: sale.salesNumber, change: sale.change })
       toast.success(`Sale ${sale.salesNumber} completed`)
-      setCart([]); setPaid('')
+      setCart([]); setPaid(''); setVoucher(null); setVoucherInput('')
     } catch (e) { toast.error(posErr(e, 'Checkout failed')) } finally { setPlacing(false) }
   }
 
@@ -150,8 +169,26 @@ export default function PosPage() {
             ))}
         </div>
 
-        <div className="flex items-center justify-between border-t border-slate-100 pt-2 text-lg font-semibold text-slate-800">
-          <span>Total</span><span>{peso(grandTotal)}</span>
+        <div className="flex items-center justify-between border-t border-slate-100 pt-2 text-sm text-slate-600">
+          <span>Subtotal</span><span>{peso(grandTotal)}</span>
+        </div>
+
+        {/* Voucher */}
+        {voucher ? (
+          <div className="flex items-center justify-between rounded-md bg-emerald-50 px-2 py-1.5 text-sm">
+            <span className="text-emerald-800">{voucher.code} · −{peso(voucher.discount)}</span>
+            <button className="text-slate-400 hover:text-slate-600" onClick={() => { setVoucher(null); setVoucherInput('') }}><X size={14} /></button>
+          </div>
+        ) : (
+          <div className="flex gap-2">
+            <input className={inputCls} placeholder="Voucher code" value={voucherInput}
+              onChange={(e) => setVoucherInput(e.target.value.toUpperCase())} onKeyDown={(e) => { if (e.key === 'Enter') applyVoucher() }} />
+            <button className={btnGhost} disabled={checkingVoucher || !voucherInput.trim()} onClick={applyVoucher}>Apply</button>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between text-lg font-semibold text-slate-800">
+          <span>Total</span><span>{peso(netTotal)}</span>
         </div>
 
         <div className="space-y-2">
@@ -203,7 +240,7 @@ export default function PosPage() {
         </div>
 
         <button className={`${btnPrimary} w-full`} disabled={placing || cart.length === 0 || (isAr && !customer)} onClick={pay}>
-          {placing ? 'Processing…' : isAr && onAccount > 0 ? `Charge ${peso(onAccount)} to account` : `Charge ${peso(grandTotal)}`}
+          {placing ? 'Processing…' : isAr && onAccount > 0 ? `Charge ${peso(onAccount)} to account` : `Charge ${peso(netTotal)}`}
         </button>
 
         {lastSale && (

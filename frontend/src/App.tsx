@@ -25,6 +25,9 @@ import ReceivablesPage from '@/pages/ReceivablesPage'
 import PayablesPage from '@/pages/PayablesPage'
 import StockTransfersPage from '@/pages/StockTransfersPage'
 import StockTransferPolicyPage from '@/pages/StockTransferPolicyPage'
+import VouchersPage from '@/pages/VouchersPage'
+import LoyaltyConfigPage from '@/pages/LoyaltyConfigPage'
+import LoyaltyRewardsPage from '@/pages/LoyaltyRewardsPage'
 
 function Protected({ children }: { children: ReactNode }) {
   return (
@@ -56,6 +59,9 @@ export default function App() {
       <Route path="/payables" element={<Protected><PayablesPage /></Protected>} />
       <Route path="/stock-transfers" element={<Protected><StockTransfersPage /></Protected>} />
       <Route path="/admin/stock-transfer-policy" element={<Protected><StockTransferPolicyPage /></Protected>} />
+      <Route path="/admin/vouchers" element={<Protected><VouchersPage /></Protected>} />
+      <Route path="/admin/loyalty-config" element={<Protected><LoyaltyConfigPage /></Protected>} />
+      <Route path="/admin/loyalty-rewards" element={<Protected><LoyaltyRewardsPage /></Protected>} />
       <Route path="/admin/po-approvers" element={<Protected><PoApproversPage /></Protected>} />
       <Route path="/admin/payment-modes" element={<Protected><PaymentModesPage /></Protected>} />
       <Route path="/admin/sites" element={<Protected><SitesPage /></Protected>} />
