@@ -7,11 +7,14 @@ import com.built4u.pos.sale.dto.SaleDto;
 import com.built4u.pos.sale.dto.SaleSummaryDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -20,6 +23,7 @@ import java.util.List;
 public class SaleController {
 
     private final SaleService saleService;
+    private final SaleReceiptPdfService receiptPdfService;
 
     @PostMapping
     @PreAuthorize("hasAuthority('MOD_POS')")
@@ -52,6 +56,17 @@ public class SaleController {
     public ResponseEntity<ReturnDto> refund(@PathVariable("salesNumber") String salesNumber,
                                             @Valid @RequestBody RefundRequest req) {
         return ResponseEntity.ok(saleService.refund(salesNumber, req));
+    }
+
+    /** Printable PDF receipt for a sale (uses the site's document branding). */
+    @GetMapping(value = "/{salesNumber}/receipt", produces = MediaType.APPLICATION_PDF_VALUE)
+    @PreAuthorize("hasAnyAuthority('MOD_SALES','MOD_POS')")
+    public ResponseEntity<byte[]> receipt(@PathVariable("salesNumber") String salesNumber) throws IOException {
+        byte[] body = receiptPdfService.generate(salesNumber);
+        return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PDF_VALUE)
+            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"receipt-" + salesNumber + ".pdf\"")
+            .body(body);
     }
 
     @GetMapping("/returns/{returnNumber}")

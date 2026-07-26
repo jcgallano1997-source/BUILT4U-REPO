@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { AlertTriangle, ArrowLeftRight, BarChart3, ClipboardCheck, ClipboardList, CreditCard, Gift, GitBranch, History, Landmark, LayoutDashboard, LogOut, MapPin, Package, PackagePlus, Receipt, Route, Ruler, Shield, ShoppingCart, Sparkles, Store, Tags, Ticket, Truck, UserRound, Users, Wallet } from 'lucide-react'
+import { AlertTriangle, ArrowLeftRight, BarChart3, ClipboardCheck, ClipboardList, CreditCard, FileBadge, Gift, GitBranch, History, Landmark, LayoutDashboard, LogOut, MapPin, Package, PackagePlus, Receipt, Route, Ruler, Shield, ShoppingCart, Sparkles, Store, Tags, Ticket, Truck, UserRound, Users, Wallet } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/store/authStore'
 import { logout as apiLogout } from '@/lib/auth'
@@ -28,6 +28,7 @@ const NAV = [
   { to: '/admin/vouchers', label: 'Vouchers', icon: Ticket, module: 'VOUCHERS' },
   { to: '/admin/loyalty-config', label: 'Loyalty', icon: Sparkles, module: 'LOYALTY_CONFIG' },
   { to: '/admin/loyalty-rewards', label: 'Rewards', icon: Gift, module: 'LOYALTY_REWARDS' },
+  { to: '/admin/doc-settings', label: 'Documents', icon: FileBadge, module: 'DOC_SETTINGS' },
   { to: '/admin/sites', label: 'Sites', icon: Store, module: 'SITES' },
   { to: '/admin/users', label: 'Users', icon: Users, module: 'USERS' },
   { to: '/admin/roles', label: 'Roles', icon: Shield, module: 'ROLES' },

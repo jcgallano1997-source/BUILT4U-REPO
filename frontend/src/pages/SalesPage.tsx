@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
-import { Ban, Receipt, RotateCcw } from 'lucide-react'
+import { Ban, Printer, Receipt, RotateCcw } from 'lucide-react'
 import { toast } from 'sonner'
 import Modal, { btnGhost, btnPrimary, inputCls } from '@/components/Modal'
 import {
   getSale, listSales, peso, posErr, refundSale, voidSale,
   type Sale, type SaleStatus, type SaleSummary,
 } from '@/lib/pos'
+import { docErr, openReceipt } from '@/lib/docsettings'
 
 const statusColor: Record<SaleStatus, string> = {
   COMPLETED: 'text-emerald-600',
@@ -36,6 +37,9 @@ export default function SalesPage() {
     if (!confirm(`Void sale ${num}? This restores stock and cannot be undone.`)) return
     try { await voidSale(num); toast.success('Sale voided'); setDetail(null); reload() }
     catch (e) { toast.error(posErr(e, 'Void failed')) }
+  }
+  async function printReceipt(num: string) {
+    try { await openReceipt(num) } catch (e) { toast.error(docErr(e, 'Could not open receipt')) }
   }
 
   return (
@@ -114,12 +118,15 @@ export default function SalesPage() {
               <Row label="Paid" value={peso(detail.payment)} />
               <Row label="Change" value={peso(detail.change)} />
             </div>
-            {detail.status === 'COMPLETED' && (
-              <div className="flex justify-end gap-2 pt-2">
-                <button className={`${btnGhost} text-red-600`} onClick={() => doVoid(detail.salesNumber)}><Ban size={14} /> Void</button>
-                <button className={btnPrimary} onClick={() => { setRefunding(detail); setDetail(null) }}><RotateCcw size={14} /> Refund</button>
-              </div>
-            )}
+            <div className="flex items-center justify-between pt-2">
+              <button className={btnGhost} onClick={() => printReceipt(detail.salesNumber)}><Printer size={14} /> Receipt</button>
+              {detail.status === 'COMPLETED' && (
+                <div className="flex gap-2">
+                  <button className={`${btnGhost} text-red-600`} onClick={() => doVoid(detail.salesNumber)}><Ban size={14} /> Void</button>
+                  <button className={btnPrimary} onClick={() => { setRefunding(detail); setDetail(null) }}><RotateCcw size={14} /> Refund</button>
+                </div>
+              )}
+            </div>
           </div>
         </Modal>
       )}
