@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { ArrowLeftRight, BarChart3, ClipboardCheck, ClipboardList, CreditCard, Gift, GitBranch, Landmark, LayoutDashboard, LogOut, MapPin, Package, PackagePlus, Receipt, Route, Ruler, Shield, ShoppingCart, Sparkles, Store, Tags, Ticket, Truck, UserRound, Users, Wallet } from 'lucide-react'
+import { ArrowLeftRight, BarChart3, ClipboardCheck, ClipboardList, CreditCard, Gift, GitBranch, History, Landmark, LayoutDashboard, LogOut, MapPin, Package, PackagePlus, Receipt, Route, Ruler, Shield, ShoppingCart, Sparkles, Store, Tags, Ticket, Truck, UserRound, Users, Wallet } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/store/authStore'
 import { logout as apiLogout } from '@/lib/auth'
@@ -31,6 +31,7 @@ const NAV = [
   { to: '/admin/sites', label: 'Sites', icon: Store, module: 'SITES' },
   { to: '/admin/users', label: 'Users', icon: Users, module: 'USERS' },
   { to: '/admin/roles', label: 'Roles', icon: Shield, module: 'ROLES' },
+  { to: '/admin/audit-log', label: 'Audit log', icon: History, module: 'AUDIT_LOG' },
 ] as const
 
 /** Minimal authenticated shell: a header with the business/site + a logout button. */

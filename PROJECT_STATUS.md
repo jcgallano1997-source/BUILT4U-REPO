@@ -4,7 +4,7 @@
 > the checkboxes as phases complete. Committed to git so it survives across sessions
 > (if the chat/token context is lost, read this first).
 >
-> Last updated: **2026-07-27** · Current position: **Phase 12 complete → Phase 13 next**
+> Last updated: **2026-07-27** · Current position: **Phase 13 in progress — audit log DONE; templates/email/docs remaining**
 
 ---
 
@@ -190,10 +190,13 @@ runs the real server locally for HTTP smoke tests.
 > **Build note:** Phase 12 added Maven deps (Apache POI, OpenPDF) — the first
 > `run-local.ps1` / `mvnw` after pulling needs network access to download them.
 
-### ⬜ Phase 13 — Config, docs & audit
-- [ ] PDF template / receipt template / doc settings / report-email config
-- [ ] Business audit log + persistent error log
+### 🔄 Phase 13 — Config, docs & audit  *(IN PROGRESS)*
+- [x] **Business audit log** — Flyway **V10** `pos_audit_log`; a universal Hibernate post-insert/update/delete listener writes one row per business change via JDBC (joins the tx, rolls back with it, never re-triggers). Captures JWT user + site + before→after field changes; redacts sensitive fields; **skips** high-volume internal logs (transaction log, loyalty ledger, auth tokens). Filter/paginate API + pdf/xlsx export (`MOD_AUDIT_LOG`); AuditLogPage with a change-diff modal + nav/route
+- [x] `AuditLogFlowIT` green (capture with user + readable entity id, skip-list, xlsx export); Pos/Admin ITs still green; `npm run build` green
+- [ ] PDF template / receipt template / doc settings / report-email config (the branding + email-delivery layer deferred from Phase 12)
+- [ ] Persistent error log
 - [ ] Bundled User Guide PDF (help endpoint)
+- [ ] *(optional)* stamp `AuditContext` module/reference on key flows (checkout, transfers) for richer "why"
 
 ### ⬜ Phase 14 — Hardening + deployment
 - [ ] Per-IP auth rate limiter, prod CSP/headers, `include-message: never`

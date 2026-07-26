@@ -1,5 +1,6 @@
 package com.built4u.pos.report.export;
 
+import com.built4u.pos.common.audit.dto.AuditLogDto;
 import com.built4u.pos.goodsreceipt.dto.GoodsReceiptDto;
 import com.built4u.pos.item.ItemDto;
 import com.built4u.pos.payable.dto.PayableDto;
@@ -122,6 +123,17 @@ public final class ExportTableBuilders {
         return new ExportTable("Stock Transfers", List.of(),
             List.of("Transfer #", "From", "To", "Lines", "Status", "Shipped", "By"),
             rows, List.of(list.size() + " transfer(s)"));
+    }
+
+    public static ExportTable auditLog(List<AuditLogDto> list) {
+        List<List<Object>> rows = new ArrayList<>();
+        for (AuditLogDto a : list) {
+            rows.add(row(a.occurredAt(), a.username(), a.action(), a.entityName(),
+                a.entityId(), a.reference(), a.changes()));
+        }
+        return new ExportTable("Audit Log", List.of(),
+            List.of("When", "User", "Action", "Entity", "Entity id", "Reference", "Changes"),
+            rows, List.of(list.size() + " change(s)"));
     }
 
     private static BigDecimal nz(BigDecimal v) { return v == null ? BigDecimal.ZERO : v; }
