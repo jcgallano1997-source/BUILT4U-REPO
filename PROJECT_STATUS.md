@@ -4,7 +4,7 @@
 > the checkboxes as phases complete. Committed to git so it survives across sessions
 > (if the chat/token context is lost, read this first).
 >
-> Last updated: **2026-07-26** · Current position: **Phase 5 complete → Phase 6 next**
+> Last updated: **2026-07-26** · Current position: **Phase 6 complete → Phase 7 next**
 
 ---
 
@@ -119,11 +119,15 @@ runs the real server locally for HTTP smoke tests.
 - [ ] **Your smoke test:** create a category+location+unit, then an item; use Adjust to change stock
 - [ ] *(deferred to backlog)* Inventory bulk import (xlsx) — needs POI + the report/export layer
 
-### ⬜ Phase 6 — Sales + shifts (the POS core)
-- [ ] Shifts (open/close reconciliation, one-open-per-cashier)
-- [ ] Sale header / line items / returns / surcharge lines
-- [ ] Universal transaction (stock-movement) log
-- [ ] POS screen + cart (`posCart` store)
+### ✅ Phase 6 — Sales + shifts (the POS core)  *(DONE)*
+- [x] Flyway **V4**: pos_shift / pos_sale_header / pos_sale_item / pos_return_item (one-open-shift-per-cashier functional index)
+- [x] Shifts: open/current/close with cash reconciliation (expected = float + cash sales − refunds; snapshot at close)
+- [x] Checkout: stock decrement (FOR UPDATE lock, ascending itemId) + STOCK_OUT_SALE log; price snapshot; discounts
+- [x] Void (restore all stock) + partial Refund (returns, restore stock, REFUNDED when fully returned)
+- [x] Frontend: POS (shift-gated cart→checkout), Shifts (open/close + history), Sales (list + detail + void + refund) + nav
+- [x] `PosFlowIT` green (checkout→refund→void→reconciliation, variance 0; insufficient-stock→400); `npm run build` green
+- [ ] **Your smoke test:** open a shift → ring a sale in POS → refund/void it in Sales → close the shift
+- [ ] *(deferred to later phases)* surcharges, AR/CHARGE credit, loyalty, vouchers, receipt PDF/email
 
 ### ⬜ Phase 7 — Customers & suppliers
 - [ ] Customer + supplier records

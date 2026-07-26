@@ -12,6 +12,9 @@ import InventoryPage from '@/pages/InventoryPage'
 import CategoriesPage from '@/pages/CategoriesPage'
 import LocationsPage from '@/pages/LocationsPage'
 import UomsPage from '@/pages/UomsPage'
+import PosPage from '@/pages/PosPage'
+import SalesPage from '@/pages/SalesPage'
+import ShiftsPage from '@/pages/ShiftsPage'
 
 function Protected({ children }: { children: ReactNode }) {
   return (
@@ -28,6 +31,9 @@ export default function App() {
 
       <Route path="/change-password" element={<Protected><ChangePasswordPage /></Protected>} />
       <Route path="/" element={<Protected><DashboardPage /></Protected>} />
+      <Route path="/pos" element={<Protected><PosPage /></Protected>} />
+      <Route path="/sales" element={<Protected><SalesPage /></Protected>} />
+      <Route path="/shifts" element={<Protected><ShiftsPage /></Protected>} />
       <Route path="/inventory" element={<Protected><InventoryPage /></Protected>} />
       <Route path="/categories" element={<Protected><CategoriesPage /></Protected>} />
       <Route path="/locations" element={<Protected><LocationsPage /></Protected>} />

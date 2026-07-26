@@ -1,0 +1,313 @@
+package com.built4u.pos.sale;
+
+import com.built4u.pos.common.exception.BadRequestException;
+import com.built4u.pos.common.exception.NotFoundException;
+import com.built4u.pos.common.tenant.TenantContext;
+import com.built4u.pos.item.Item;
+import com.built4u.pos.item.ItemRepository;
+import com.built4u.pos.sale.dto.*;
+import com.built4u.pos.transactionlog.TransactionLog;
+import com.built4u.pos.transactionlog.TransactionLogRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
+
+/**
+ * POS core: checkout (stock-decrementing sale), void (restore stock), refund
+ * (partial returns), and read/list. Everything is scoped by site_id from the JWT.
+ *
+ * <p>Deferred to later phases: payment-mode surcharges, accounts-receivable
+ * (CHARGE credit), loyalty points, vouchers, receipt PDF/email. In this phase all
+ * modes require full payment and mode_of_payment is a free string.
+ */
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class SaleService {
+
+    private final SaleRepository saleRepository;
+    private final SaleItemRepository saleItemRepository;
+    private final ReturnItemRepository returnItemRepository;
+    private final ItemRepository itemRepository;
+    private final TransactionLogRepository txnLogRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    // ── Checkout ─────────────────────────────────────────────────────────────
+
+    @Transactional
+    public SaleDto checkout(CreateSaleRequest req) {
+        Long siteId = TenantContext.requireSiteId();
+
+        // Reject duplicate item lines (composite PK would collide) and lock items
+        // in ascending itemId order to avoid deadlocks across concurrent checkouts.
+        Set<Long> seen = new HashSet<>();
+        for (CreateSaleRequest.Line l : req.lines()) {
+            if (!seen.add(l.itemId())) {
+                throw new BadRequestException("Item " + l.itemId() + " appears more than once in the cart");
+            }
+        }
+        List<CreateSaleRequest.Line> ordered = req.lines().stream()
+            .sorted(Comparator.comparing(CreateSaleRequest.Line::itemId)).toList();
+
+        String salesNumber = nextSalesNumber(siteId);
+        BigDecimal total = BigDecimal.ZERO;
+        BigDecimal totalDiscItem = BigDecimal.ZERO;
+        List<SaleItem> saleItems = new ArrayList<>();
+        List<TransactionLog> logs = new ArrayList<>();
+
+        for (CreateSaleRequest.Line l : ordered) {
+            Item item = itemRepository.findBySiteIdAndItemIdForUpdate(siteId, l.itemId())
+                .orElseThrow(() -> new NotFoundException("Item " + l.itemId() + " not found"));
+            if (!Boolean.TRUE.equals(item.getActive())) {
+                throw new BadRequestException("Item '" + item.getItemCode() + "' is inactive and can't be sold");
+            }
+            BigDecimal qty = l.quantity();
+            BigDecimal adj = l.adjustment() == null ? BigDecimal.ZERO : l.adjustment();
+            BigDecimal price = item.getSellingPrice();
+            BigDecimal gross = price.multiply(qty);
+            BigDecimal sub = gross.subtract(adj);
+            if (sub.signum() < 0) {
+                throw new BadRequestException("Line discount exceeds the line total for '" + item.getItemCode() + "'");
+            }
+            BigDecimal newQty = nz(item.getQuantity()).subtract(qty);
+            if (newQty.signum() < 0) {
+                throw new BadRequestException("Insufficient stock for '" + item.getItemCode()
+                    + "' (have " + nz(item.getQuantity()).toPlainString() + ", need " + qty.toPlainString() + ")");
+            }
+            item.setQuantity(newQty);
+            total = total.add(gross);
+            totalDiscItem = totalDiscItem.add(adj);
+
+            saleItems.add(SaleItem.builder()
+                .siteId(siteId).salesNumber(salesNumber).itemId(item.getItemId())
+                .itemDesc(item.getItemName()).quantity(qty).uom(item.getUom())
+                .unitCost(price).adjustment(adj).subTotal(sub).build());
+            logs.add(TransactionLog.builder()
+                .siteId(siteId).itemId(item.getItemId()).catId(item.getCatId())
+                .transactionType(TransactionLog.TYPE_STOCK_OUT_SALE)
+                .attribute1(salesNumber).attribute2(qty.negate().toPlainString())
+                .attribute3(newQty.toPlainString()).build());
+        }
+
+        BigDecimal discountAll = req.discountAll() == null ? BigDecimal.ZERO : req.discountAll();
+        BigDecimal grandTotal = total.subtract(totalDiscItem).subtract(discountAll);
+        if (grandTotal.signum() < 0) {
+            throw new BadRequestException("Discounts exceed the sale total");
+        }
+        if (req.payment().compareTo(grandTotal) < 0) {
+            throw new BadRequestException("Payment " + req.payment().toPlainString()
+                + " is less than the amount due " + grandTotal.toPlainString());
+        }
+        BigDecimal change = req.payment().subtract(grandTotal);
+
+        Sale sale = Sale.builder()
+            .siteId(siteId).salesNumber(salesNumber)
+            .total(total).discountAll(discountAll).totalDiscItem(totalDiscItem).grandTotal(grandTotal)
+            .payment(req.payment()).changeDue(change)
+            .modeOfPayment(req.modeOfPayment().trim()).reference(blankToNull(req.reference()))
+            .status(SaleStatus.COMPLETED.name())
+            .build();
+        saleRepository.save(sale);
+        saleItemRepository.saveAll(saleItems);
+        txnLogRepository.saveAll(logs);
+
+        log.info("Sale {} completed at site {}: {} line(s), grand total {}", salesNumber, siteId, saleItems.size(), grandTotal);
+        return reload(siteId, salesNumber);
+    }
+
+    // ── Void (restore all stock) ─────────────────────────────────────────────
+
+    @Transactional
+    public SaleDto voidSale(String salesNumber) {
+        Long siteId = TenantContext.requireSiteId();
+        Sale sale = saleRepository.findBySiteIdAndSalesNumberForUpdate(siteId, salesNumber)
+            .orElseThrow(() -> new NotFoundException("Sale " + salesNumber + " not found"));
+        if (!SaleStatus.COMPLETED.name().equals(sale.getStatus())) {
+            throw new BadRequestException("Only a completed sale can be voided (this one is " + sale.getStatus() + ")");
+        }
+        if (!returnItemRepository.findBySiteIdAndSalesNumberOrderByCreationDateAscItemIdAsc(siteId, salesNumber).isEmpty()) {
+            throw new BadRequestException("Sale " + salesNumber + " has refunds and can't be voided");
+        }
+
+        for (SaleItem si : saleItemRepository.findBySiteIdAndSalesNumberOrderByItemIdAsc(siteId, salesNumber)) {
+            restoreStock(siteId, si.getItemId(), si.getQuantity(), salesNumber, TransactionLog.TYPE_STOCK_IN_VOID);
+        }
+        sale.setStatus(SaleStatus.VOIDED.name());
+        saleRepository.save(sale);
+        log.info("Sale {} voided at site {}", salesNumber, siteId);
+        return reload(siteId, salesNumber);
+    }
+
+    // ── Refund (partial returns) ─────────────────────────────────────────────
+
+    @Transactional
+    public ReturnDto refund(String salesNumber, RefundRequest req) {
+        Long siteId = TenantContext.requireSiteId();
+        Sale sale = saleRepository.findBySiteIdAndSalesNumberForUpdate(siteId, salesNumber)
+            .orElseThrow(() -> new NotFoundException("Sale " + salesNumber + " not found"));
+        if (SaleStatus.VOIDED.name().equals(sale.getStatus())) {
+            throw new BadRequestException("A voided sale can't be refunded");
+        }
+
+        Set<Long> seen = new HashSet<>();
+        for (RefundRequest.Line l : req.lines()) {
+            if (!seen.add(l.itemId())) {
+                throw new BadRequestException("Item " + l.itemId() + " appears more than once in the refund");
+            }
+        }
+
+        Map<Long, SaleItem> soldByItem = saleItemRepository
+            .findBySiteIdAndSalesNumberOrderByItemIdAsc(siteId, salesNumber).stream()
+            .collect(Collectors.toMap(SaleItem::getItemId, si -> si));
+
+        String returnNumber = nextReturnNumber(siteId);
+        String reason = blankToNull(req.reason());
+        List<ReturnItem> returns = new ArrayList<>();
+        BigDecimal totalRefunded = BigDecimal.ZERO;
+
+        List<RefundRequest.Line> ordered = req.lines().stream()
+            .sorted(Comparator.comparing(RefundRequest.Line::itemId)).toList();
+        for (RefundRequest.Line l : ordered) {
+            SaleItem orig = soldByItem.get(l.itemId());
+            if (orig == null) {
+                throw new BadRequestException("Item " + l.itemId() + " was not on sale " + salesNumber);
+            }
+            BigDecimal already = returnItemRepository.sumRefundedQuantity(siteId, salesNumber, l.itemId());
+            BigDecimal refundable = orig.getQuantity().subtract(nz(already));
+            if (l.quantity().compareTo(refundable) > 0) {
+                throw new BadRequestException("Can refund at most " + refundable.toPlainString()
+                    + " of item '" + (orig.getItemDesc() == null ? l.itemId() : orig.getItemDesc()) + "'");
+            }
+            BigDecimal sub = orig.getUnitCost().multiply(l.quantity());
+            restoreStock(siteId, l.itemId(), l.quantity(), salesNumber, TransactionLog.TYPE_STOCK_IN_REFUND);
+            returns.add(ReturnItem.builder()
+                .siteId(siteId).returnNumber(returnNumber).itemId(l.itemId()).salesNumber(salesNumber)
+                .itemDesc(orig.getItemDesc()).quantity(l.quantity()).uom(orig.getUom())
+                .unitCost(orig.getUnitCost()).subTotal(sub).reason(reason).build());
+            totalRefunded = totalRefunded.add(sub);
+        }
+        returnItemRepository.saveAll(returns);
+
+        // If every sale line is now fully refunded, mark the sale REFUNDED.
+        boolean fullyRefunded = soldByItem.values().stream().allMatch(si -> {
+            BigDecimal refunded = nz(returnItemRepository.sumRefundedQuantity(siteId, salesNumber, si.getItemId()));
+            return refunded.compareTo(si.getQuantity()) >= 0;
+        });
+        if (fullyRefunded && !SaleStatus.REFUNDED.name().equals(sale.getStatus())) {
+            sale.setStatus(SaleStatus.REFUNDED.name());
+            saleRepository.save(sale);
+        }
+
+        log.info("Refund {} against sale {} at site {}: {} line(s), {} refunded",
+            returnNumber, salesNumber, siteId, returns.size(), totalRefunded);
+
+        entityManager.flush();
+        entityManager.clear();
+        return buildReturnDto(siteId, returnNumber);
+    }
+
+    // ── Reads ────────────────────────────────────────────────────────────────
+
+    @Transactional(readOnly = true)
+    public List<SaleSummaryDto> list(String status) {
+        Long siteId = TenantContext.requireSiteId();
+        List<Sale> sales = (status == null || status.isBlank())
+            ? saleRepository.findTop200BySiteIdOrderByCreationDateDescSalesNumberDesc(siteId)
+            : saleRepository.findTop200BySiteIdAndStatusOrderByCreationDateDescSalesNumberDesc(siteId, status.trim().toUpperCase());
+        return sales.stream().map(s -> new SaleSummaryDto(
+            s.getSalesNumber(), s.getGrandTotal(), s.getModeOfPayment(),
+            saleItemRepository.findBySiteIdAndSalesNumberOrderByItemIdAsc(siteId, s.getSalesNumber()).size(),
+            s.getStatus(), s.getCreationDate(), s.getCreatedBy())).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public SaleDto get(String salesNumber) {
+        return toDto(TenantContext.requireSiteId(), salesNumber);
+    }
+
+    @Transactional(readOnly = true)
+    public ReturnDto getReturn(String returnNumber) {
+        return buildReturnDto(TenantContext.requireSiteId(), returnNumber);
+    }
+
+    // ── internals ────────────────────────────────────────────────────────────
+
+    private void restoreStock(Long siteId, Long itemId, BigDecimal qty, String salesNumber, String txnType) {
+        itemRepository.findBySiteIdAndItemIdForUpdate(siteId, itemId).ifPresentOrElse(item -> {
+            BigDecimal newQty = nz(item.getQuantity()).add(qty);
+            item.setQuantity(newQty);
+            txnLogRepository.save(TransactionLog.builder()
+                .siteId(siteId).itemId(itemId).catId(item.getCatId())
+                .transactionType(txnType).attribute1(salesNumber)
+                .attribute2(qty.toPlainString()).attribute3(newQty.toPlainString()).build());
+        }, () -> log.warn("Stock restore skipped — item {} no longer exists at site {}", itemId, siteId));
+    }
+
+    private SaleDto reload(Long siteId, String salesNumber) {
+        entityManager.flush();
+        entityManager.clear();
+        return toDto(siteId, salesNumber);
+    }
+
+    private SaleDto toDto(Long siteId, String salesNumber) {
+        Sale s = saleRepository.findBySiteIdAndSalesNumber(siteId, salesNumber)
+            .orElseThrow(() -> new NotFoundException("Sale " + salesNumber + " not found"));
+        List<SaleLineDto> lines = saleItemRepository.findBySiteIdAndSalesNumberOrderByItemIdAsc(siteId, salesNumber)
+            .stream().map(si -> {
+                BigDecimal refunded = nz(returnItemRepository.sumRefundedQuantity(siteId, salesNumber, si.getItemId()));
+                return new SaleLineDto(si.getItemId(), si.getItemDesc(), si.getUom(), si.getQuantity(),
+                    si.getAdjustment(), si.getUnitCost(), si.getSubTotal(), refunded, si.getQuantity().subtract(refunded));
+            }).toList();
+        return new SaleDto(s.getSalesNumber(), s.getTotal(), s.getDiscountAll(), s.getTotalDiscItem(),
+            s.getGrandTotal(), s.getPayment(), s.getChangeDue(), s.getModeOfPayment(), s.getReference(),
+            s.getStatus(), s.getReprintCount(), s.getCreationDate(), s.getCreatedBy(), lines);
+    }
+
+    private ReturnDto buildReturnDto(Long siteId, String returnNumber) {
+        List<ReturnItem> rows = returnItemRepository.findBySiteIdAndReturnNumberOrderByItemIdAsc(siteId, returnNumber);
+        if (rows.isEmpty()) throw new NotFoundException("Return " + returnNumber + " not found");
+        ReturnItem head = rows.get(0);
+        BigDecimal totalRefunded = rows.stream().map(ReturnItem::getSubTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
+        List<ReturnDto.Line> lines = rows.stream().map(r -> new ReturnDto.Line(
+            r.getItemId(), r.getItemDesc(), r.getUom(), r.getQuantity(), r.getUnitCost(), r.getSubTotal())).toList();
+        return new ReturnDto(returnNumber, head.getSalesNumber(), totalRefunded, head.getReason(),
+            head.getCreationDate(), head.getCreatedBy(), lines);
+    }
+
+    private String nextSalesNumber(Long siteId) {
+        return nextNumber("S-" + LocalDate.now().getYear() + "-",
+            saleRepository::findMaxSalesNumberWithPrefix, siteId);
+    }
+
+    private String nextReturnNumber(Long siteId) {
+        return nextNumber("R-" + LocalDate.now().getYear() + "-",
+            returnItemRepository::findMaxReturnNumberWithPrefix, siteId);
+    }
+
+    private interface MaxLookup { String max(Long siteId, String prefix); }
+
+    private String nextNumber(String prefix, MaxLookup lookup, Long siteId) {
+        String last = lookup.max(siteId, prefix + "%");
+        int next = 1;
+        if (last != null) {
+            try { next = Integer.parseInt(last.substring(prefix.length())) + 1; }
+            catch (NumberFormatException ignored) { }
+        }
+        return String.format("%s%04d", prefix, next);
+    }
+
+    private static BigDecimal nz(BigDecimal v) { return v == null ? BigDecimal.ZERO : v; }
+
+    private static String blankToNull(String s) { return s == null || s.isBlank() ? null : s.trim(); }
+}
