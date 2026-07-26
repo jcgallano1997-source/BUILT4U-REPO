@@ -2,9 +2,11 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Minus, Plus, ScanLine, ShoppingCart, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { X } from 'lucide-react'
 import { btnGhost, btnPrimary, inputCls } from '@/components/Modal'
 import { listItems, type Item } from '@/lib/inventory'
 import { checkout, getCurrentShift, PAYMENT_MODES, peso, posErr, type Shift } from '@/lib/pos'
+import { listActivePaymentModes, listCustomers, type Customer } from '@/lib/parties'
 
 interface CartLine { item: Item; qty: number }
 
@@ -17,8 +19,22 @@ export default function PosPage() {
   const [paid, setPaid] = useState('')
   const [placing, setPlacing] = useState(false)
   const [lastSale, setLastSale] = useState<{ num: string; change: number } | null>(null)
+  const [modes, setModes] = useState<{ code: string; label: string }[]>(PAYMENT_MODES.map((c) => ({ code: c, label: c })))
+  const [customer, setCustomer] = useState<Customer | null>(null)
+  const [custQuery, setCustQuery] = useState('')
+  const [custResults, setCustResults] = useState<Customer[]>([])
 
   useEffect(() => { getCurrentShift().then(setShift).catch(() => setShift(null)) }, [])
+  useEffect(() => {
+    listActivePaymentModes()
+      .then((ms) => { if (ms.length) { setModes(ms.map((m) => ({ code: m.code, label: m.label }))); setMode(ms[0].code) } })
+      .catch(() => {})
+  }, [])
+  useEffect(() => {
+    if (!custQuery.trim()) { setCustResults([]); return }
+    const t = setTimeout(() => { listCustomers(custQuery.trim()).then((r) => setCustResults(r.slice(0, 6))).catch(() => {}) }, 200)
+    return () => clearTimeout(t)
+  }, [custQuery])
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -54,6 +70,7 @@ export default function PosPage() {
       const sale = await checkout({
         modeOfPayment: mode,
         payment,
+        customerId: customer?.id,
         lines: cart.map((l) => ({ itemId: l.item.id, quantity: l.qty })),
       })
       setLastSale({ num: sale.salesNumber, change: sale.change })
@@ -125,8 +142,31 @@ export default function PosPage() {
         </div>
 
         <div className="space-y-2">
+          {/* Customer (optional) */}
+          {customer ? (
+            <div className="flex items-center justify-between rounded-md bg-slate-50 px-2 py-1.5 text-sm">
+              <span className="text-slate-700">{customer.name}</span>
+              <button className="text-slate-400 hover:text-slate-600" onClick={() => setCustomer(null)}><X size={14} /></button>
+            </div>
+          ) : (
+            <div className="relative">
+              <input className={inputCls} placeholder="Attach customer (optional)…" value={custQuery}
+                onChange={(e) => setCustQuery(e.target.value)} />
+              {custResults.length > 0 && (
+                <div className="absolute z-10 mt-1 w-full rounded-md border border-slate-200 bg-white shadow">
+                  {custResults.map((c) => (
+                    <button key={c.id} className="block w-full px-3 py-1.5 text-left text-sm hover:bg-slate-50"
+                      onClick={() => { setCustomer(c); setCustQuery(''); setCustResults([]) }}>
+                      {c.name} <span className="text-slate-400">{c.contact ?? ''}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           <select className={inputCls} value={mode} onChange={(e) => setMode(e.target.value)}>
-            {PAYMENT_MODES.map((m) => <option key={m} value={m}>{m}</option>)}
+            {modes.map((m) => <option key={m.code} value={m.code}>{m.label}</option>)}
           </select>
           {mode === 'CASH' && (
             <>

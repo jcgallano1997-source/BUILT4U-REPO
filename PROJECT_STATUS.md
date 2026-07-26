@@ -4,7 +4,7 @@
 > the checkboxes as phases complete. Committed to git so it survives across sessions
 > (if the chat/token context is lost, read this first).
 >
-> Last updated: **2026-07-26** · Current position: **Phase 6 complete → Phase 7 next**
+> Last updated: **2026-07-26** · Current position: **Phase 7 complete → Phase 8 next**
 
 ---
 
@@ -129,9 +129,14 @@ runs the real server locally for HTTP smoke tests.
 - [ ] **Your smoke test:** open a shift → ring a sale in POS → refund/void it in Sales → close the shift
 - [ ] *(deferred to later phases)* surcharges, AR/CHARGE credit, loyalty, vouchers, receipt PDF/email
 
-### ⬜ Phase 7 — Customers & suppliers
-- [ ] Customer + supplier records
-- [ ] Payment modes catalog (per-site, `site_id=0`-free — entity-free from the start)
+### ✅ Phase 7 — Customers & suppliers (+ payment modes)  *(DONE)*
+- [x] Flyway **V5**: pos_customer / pos_supplier (+ seqs), pos_payment_mode (seeded CASH/GCASH/PAYMAYA/CARD for MAIN)
+- [x] Customers CRUD (points column present, loyalty logic deferred) + Suppliers CRUD (unique code)
+- [x] Payment-mode catalog (per-site, entity-free): surcharge type/value + is_cash/AR/customer-required flags
+- [x] POS loads modes from the catalog + optional customer attach; Sales show the customer
+- [x] `CustomerSupplierPaymentIT` green (CRUD, dup→409, seeded modes, customer-attached checkout); `npm run build` green
+- [ ] **Your smoke test:** add a customer + a payment mode; ring a sale in POS with a customer + non-cash mode
+- [ ] *(deferred)* surcharge application at checkout; AR/CHARGE credit (Phase 9)
 
 ### ⬜ Phase 8 — Procurement
 - [ ] Purchase orders (draft→approved→received) + PO approver routing

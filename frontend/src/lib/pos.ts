@@ -84,6 +84,8 @@ export interface Sale {
   payment: number
   change: number
   modeOfPayment: string
+  customerId: number | null
+  customerName: string | null
   reference: string | null
   status: SaleStatus
   reprintCount: number
@@ -95,12 +97,14 @@ export interface SaleSummary {
   salesNumber: string
   grandTotal: number
   modeOfPayment: string
+  customerName: string | null
   lineCount: number
   status: SaleStatus
   creationDate: string
   createdBy: string
 }
 export interface CheckoutPayload {
+  customerId?: number
   modeOfPayment: string
   payment: number
   discountAll?: number

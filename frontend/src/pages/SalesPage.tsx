@@ -88,6 +88,7 @@ export default function SalesPage() {
               <span className={statusColor[detail.status]}>{detail.status}</span>
               <span className="text-slate-400">{new Date(detail.creationDate).toLocaleString()} · {detail.modeOfPayment}</span>
             </div>
+            {detail.customerName && <div className="text-sm text-slate-500">Customer: <span className="text-slate-700">{detail.customerName}</span></div>}
             <table className="w-full text-sm">
               <thead className="text-left text-slate-400">
                 <tr><th className="py-1">Item</th><th className="py-1 text-right">Qty</th><th className="py-1 text-right">Price</th><th className="py-1 text-right">Subtotal</th></tr>

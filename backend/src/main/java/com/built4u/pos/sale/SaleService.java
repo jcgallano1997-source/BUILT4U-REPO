@@ -3,6 +3,8 @@ package com.built4u.pos.sale;
 import com.built4u.pos.common.exception.BadRequestException;
 import com.built4u.pos.common.exception.NotFoundException;
 import com.built4u.pos.common.tenant.TenantContext;
+import com.built4u.pos.customer.Customer;
+import com.built4u.pos.customer.CustomerRepository;
 import com.built4u.pos.item.Item;
 import com.built4u.pos.item.ItemRepository;
 import com.built4u.pos.sale.dto.*;
@@ -39,6 +41,7 @@ public class SaleService {
     private final ReturnItemRepository returnItemRepository;
     private final ItemRepository itemRepository;
     private final TransactionLogRepository txnLogRepository;
+    private final CustomerRepository customerRepository;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -111,11 +114,19 @@ public class SaleService {
         }
         BigDecimal change = req.payment().subtract(grandTotal);
 
+        Long customerId = null;
+        if (req.customerId() != null) {
+            Customer c = customerRepository.findBySiteIdAndCustomerId(siteId, req.customerId())
+                .filter(cc -> Boolean.TRUE.equals(cc.getActive()))
+                .orElseThrow(() -> new BadRequestException("Customer " + req.customerId() + " not found or inactive"));
+            customerId = c.getCustomerId();
+        }
+
         Sale sale = Sale.builder()
             .siteId(siteId).salesNumber(salesNumber)
             .total(total).discountAll(discountAll).totalDiscItem(totalDiscItem).grandTotal(grandTotal)
             .payment(req.payment()).changeDue(change)
-            .modeOfPayment(req.modeOfPayment().trim()).reference(blankToNull(req.reference()))
+            .modeOfPayment(req.modeOfPayment().trim()).customerId(customerId).reference(blankToNull(req.reference()))
             .status(SaleStatus.COMPLETED.name())
             .build();
         saleRepository.save(sale);
@@ -226,7 +237,7 @@ public class SaleService {
             ? saleRepository.findTop200BySiteIdOrderByCreationDateDescSalesNumberDesc(siteId)
             : saleRepository.findTop200BySiteIdAndStatusOrderByCreationDateDescSalesNumberDesc(siteId, status.trim().toUpperCase());
         return sales.stream().map(s -> new SaleSummaryDto(
-            s.getSalesNumber(), s.getGrandTotal(), s.getModeOfPayment(),
+            s.getSalesNumber(), s.getGrandTotal(), s.getModeOfPayment(), customerName(siteId, s.getCustomerId()),
             saleItemRepository.findBySiteIdAndSalesNumberOrderByItemIdAsc(siteId, s.getSalesNumber()).size(),
             s.getStatus(), s.getCreationDate(), s.getCreatedBy())).toList();
     }
@@ -270,8 +281,15 @@ public class SaleService {
                     si.getAdjustment(), si.getUnitCost(), si.getSubTotal(), refunded, si.getQuantity().subtract(refunded));
             }).toList();
         return new SaleDto(s.getSalesNumber(), s.getTotal(), s.getDiscountAll(), s.getTotalDiscItem(),
-            s.getGrandTotal(), s.getPayment(), s.getChangeDue(), s.getModeOfPayment(), s.getReference(),
+            s.getGrandTotal(), s.getPayment(), s.getChangeDue(), s.getModeOfPayment(),
+            s.getCustomerId(), customerName(siteId, s.getCustomerId()), s.getReference(),
             s.getStatus(), s.getReprintCount(), s.getCreationDate(), s.getCreatedBy(), lines);
+    }
+
+    private String customerName(Long siteId, Long customerId) {
+        if (customerId == null) return null;
+        return customerRepository.findBySiteIdAndCustomerId(siteId, customerId)
+            .map(Customer::getCustomerName).orElse(null);
     }
 
     private ReturnDto buildReturnDto(Long siteId, String returnNumber) {

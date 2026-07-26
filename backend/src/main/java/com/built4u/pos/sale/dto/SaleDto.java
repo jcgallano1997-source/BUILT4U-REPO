@@ -13,6 +13,8 @@ public record SaleDto(
     BigDecimal payment,
     BigDecimal change,
     String modeOfPayment,
+    Long customerId,
+    String customerName,
     String reference,
     String status,
     int reprintCount,

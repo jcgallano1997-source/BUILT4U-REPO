@@ -13,6 +13,7 @@ import java.util.List;
  * phase (accounts-receivable / CHARGE credit arrives in a later phase).
  */
 public record CreateSaleRequest(
+    Long customerId,
     @NotBlank @Size(max = 50) String modeOfPayment,
     @NotNull @PositiveOrZero BigDecimal payment,
     @PositiveOrZero BigDecimal discountAll,

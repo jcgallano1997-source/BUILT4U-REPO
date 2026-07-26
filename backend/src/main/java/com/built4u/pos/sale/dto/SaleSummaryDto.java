@@ -7,6 +7,7 @@ public record SaleSummaryDto(
     String salesNumber,
     BigDecimal grandTotal,
     String modeOfPayment,
+    String customerName,
     int lineCount,
     String status,
     LocalDateTime creationDate,
