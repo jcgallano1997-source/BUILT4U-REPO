@@ -23,6 +23,8 @@ import GoodsReceiptsPage from '@/pages/GoodsReceiptsPage'
 import PoApproversPage from '@/pages/PoApproversPage'
 import ReceivablesPage from '@/pages/ReceivablesPage'
 import PayablesPage from '@/pages/PayablesPage'
+import StockTransfersPage from '@/pages/StockTransfersPage'
+import StockTransferPolicyPage from '@/pages/StockTransferPolicyPage'
 
 function Protected({ children }: { children: ReactNode }) {
   return (
@@ -52,6 +54,8 @@ export default function App() {
       <Route path="/goods-receipts" element={<Protected><GoodsReceiptsPage /></Protected>} />
       <Route path="/receivables" element={<Protected><ReceivablesPage /></Protected>} />
       <Route path="/payables" element={<Protected><PayablesPage /></Protected>} />
+      <Route path="/stock-transfers" element={<Protected><StockTransfersPage /></Protected>} />
+      <Route path="/admin/stock-transfer-policy" element={<Protected><StockTransferPolicyPage /></Protected>} />
       <Route path="/admin/po-approvers" element={<Protected><PoApproversPage /></Protected>} />
       <Route path="/admin/payment-modes" element={<Protected><PaymentModesPage /></Protected>} />
       <Route path="/admin/sites" element={<Protected><SitesPage /></Protected>} />

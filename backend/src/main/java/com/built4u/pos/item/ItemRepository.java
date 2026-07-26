@@ -15,6 +15,9 @@ public interface ItemRepository extends JpaRepository<Item, ItemId> {
 
     Optional<Item> findBySiteIdAndItemId(Long siteId, Long itemId);
 
+    /** Look up an item by its code at a site (case-insensitive) — used by stock-transfer receive. */
+    Optional<Item> findBySiteIdAndItemCodeIgnoreCase(Long siteId, String itemCode);
+
     /**
      * Pessimistic-write lock variant ({@code SELECT ... FOR UPDATE}). Use inside a
      * {@code @Transactional} method when decrementing quantity (POS checkout) to

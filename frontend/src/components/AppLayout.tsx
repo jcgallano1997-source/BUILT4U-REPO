@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { ClipboardCheck, ClipboardList, CreditCard, GitBranch, Landmark, LayoutDashboard, LogOut, MapPin, Package, PackagePlus, Receipt, Ruler, Shield, ShoppingCart, Store, Tags, Truck, UserRound, Users, Wallet } from 'lucide-react'
+import { ArrowLeftRight, ClipboardCheck, ClipboardList, CreditCard, GitBranch, Landmark, LayoutDashboard, LogOut, MapPin, Package, PackagePlus, Receipt, Route, Ruler, Shield, ShoppingCart, Store, Tags, Truck, UserRound, Users, Wallet } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/store/authStore'
 import { logout as apiLogout } from '@/lib/auth'
@@ -17,11 +17,13 @@ const NAV = [
   { to: '/goods-receipts', label: 'Receiving', icon: PackagePlus, module: 'GOODS_RECEIPTS' },
   { to: '/receivables', label: 'Receivables', icon: Wallet, module: 'RECEIVABLES' },
   { to: '/payables', label: 'Payables', icon: Landmark, module: 'PAYABLES' },
+  { to: '/stock-transfers', label: 'Transfers', icon: ArrowLeftRight, module: 'STOCK_TRANSFER' },
   { to: '/categories', label: 'Categories', icon: Tags, module: 'CATEGORIES' },
   { to: '/locations', label: 'Locations', icon: MapPin, module: 'LOCATIONS' },
   { to: '/units', label: 'Units', icon: Ruler, module: 'UOMS' },
   { to: '/admin/payment-modes', label: 'Payment modes', icon: CreditCard, module: 'PAYMENT_MODES' },
   { to: '/admin/po-approvers', label: 'PO approvers', icon: GitBranch, module: 'PO_APPROVERS' },
+  { to: '/admin/stock-transfer-policy', label: 'Transfer policy', icon: Route, module: 'STOCK_TRANSFER_POLICY' },
   { to: '/admin/sites', label: 'Sites', icon: Store, module: 'SITES' },
   { to: '/admin/users', label: 'Users', icon: Users, module: 'USERS' },
   { to: '/admin/roles', label: 'Roles', icon: Shield, module: 'ROLES' },

@@ -4,7 +4,7 @@
 > the checkboxes as phases complete. Committed to git so it survives across sessions
 > (if the chat/token context is lost, read this first).
 >
-> Last updated: **2026-07-26** · Current position: **Phase 9 complete → Phase 10 next**
+> Last updated: **2026-07-27** · Current position: **Phase 10 complete → Phase 11 next**
 
 ---
 
@@ -157,8 +157,16 @@ runs the real server locally for HTTP smoke tests.
 - [ ] **Your smoke test:** set a customer credit limit + an AR payment mode → sell on credit in POS → collect in Receivables; flag a supplier AP + receive a PO → pay it in Payables
 - [ ] *(deferred to Phase 12)* AR/AP report exports (PDF/xlsx)
 
-### ⬜ Phase 10 — Stock transfers (cross-site)
-- [ ] Transfer ship/receive + line items + allow-list policy
+### ✅ Phase 10 — Stock transfers (cross-site)  *(DONE)*
+- [x] Flyway **V8**: pos_stock_transfer / pos_stock_transfer_item (line snapshots) + pos_stock_transfer_policy (allow-list)
+- [x] Ship (source-site): locks + decrements source stock, STOCK_OUT_TRANSFER log, status IN_TRANSIT; `ST-YYYY-NNNN`
+- [x] Receive (dest-site): increments dest stock, **auto-creates the item** at the destination if its code is new (cat/loc = dest's first active), STOCK_IN_TRANSFER log, status RECEIVED
+- [x] Cancel (source-site, only while IN_TRANSIT): restores source stock, STOCK_IN_XFER_CANCEL log, status CANCELLED
+- [x] Allow-list **policy** (empty = OPEN, ≥1 row = ENFORCED); destination picker filtered by it; first module to span two site contexts
+- [x] Frontend: StockTransfersPage (list + direction/status filters + ship form + detail with site-gated receive/cancel), StockTransferPolicyPage (admin) + nav/routes
+- [x] `StockTransferFlowIT` green (3 tests: ship→receive across MAIN/BR2 with auto-create, cancel restores, policy blocks/permits); `npm run build` green
+- [ ] **Your smoke test:** create a 2nd site + give admin access to it; at MAIN ship an item to it; log into the 2nd site and Receive (stock lands there)
+- [ ] *(deferred to Phase 12)* stock-transfer report export (PDF/xlsx)
 
 ### ⬜ Phase 11 — Vouchers & loyalty
 - [ ] Vouchers + redemptions
