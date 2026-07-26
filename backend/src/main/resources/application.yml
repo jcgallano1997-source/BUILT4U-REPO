@@ -33,3 +33,15 @@ management:
   endpoint:
     health:
       show-details: when-authorized
+
+# Application config (no secrets here — those come from the profile/env)
+app:
+  jwt:
+    access-ttl-ms: 900000       # 15 min
+    refresh-ttl-ms: 604800000   # 7 days
+  security:
+    # Forces password rotation after N days (0 disables). Runtime check only.
+    password-max-age-days: ${APP_SECURITY_PASSWORD_MAX_AGE_DAYS:90}
+    # One-shot bootstrap password for the seeded 'admin' user (force-change on
+    # first login). MUST be overridden under the 'prod' profile (DataSeeder fails closed).
+    seed-admin-password: ${APP_SECURITY_SEED_ADMIN_PASSWORD:admin123}

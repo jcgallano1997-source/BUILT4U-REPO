@@ -29,4 +29,13 @@ spring:
 logging:
   level:
     com.built4u.pos: DEBUG
+    org.springframework.security: DEBUG
     org.flywaydb: INFO
+
+app:
+  jwt:
+    # HS512 needs a >= 64-byte key. This is a DEV-ONLY default; override with
+    # JWT_SECRET in any shared/hosted environment.
+    secret: ${JWT_SECRET:dev-local-only-secret-do-not-use-in-prod-0123456789-0123456789-abcdefgh}
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:5173}
