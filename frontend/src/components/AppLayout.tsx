@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { ArrowLeftRight, ClipboardCheck, ClipboardList, CreditCard, Gift, GitBranch, Landmark, LayoutDashboard, LogOut, MapPin, Package, PackagePlus, Receipt, Route, Ruler, Shield, ShoppingCart, Sparkles, Store, Tags, Ticket, Truck, UserRound, Users, Wallet } from 'lucide-react'
+import { ArrowLeftRight, BarChart3, ClipboardCheck, ClipboardList, CreditCard, Gift, GitBranch, Landmark, LayoutDashboard, LogOut, MapPin, Package, PackagePlus, Receipt, Route, Ruler, Shield, ShoppingCart, Sparkles, Store, Tags, Ticket, Truck, UserRound, Users, Wallet } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/store/authStore'
 import { logout as apiLogout } from '@/lib/auth'
@@ -18,6 +18,7 @@ const NAV = [
   { to: '/receivables', label: 'Receivables', icon: Wallet, module: 'RECEIVABLES' },
   { to: '/payables', label: 'Payables', icon: Landmark, module: 'PAYABLES' },
   { to: '/stock-transfers', label: 'Transfers', icon: ArrowLeftRight, module: 'STOCK_TRANSFER' },
+  { to: '/reports', label: 'Reports', icon: BarChart3, module: 'SALES_REPORTS' },
   { to: '/categories', label: 'Categories', icon: Tags, module: 'CATEGORIES' },
   { to: '/locations', label: 'Locations', icon: MapPin, module: 'LOCATIONS' },
   { to: '/units', label: 'Units', icon: Ruler, module: 'UOMS' },

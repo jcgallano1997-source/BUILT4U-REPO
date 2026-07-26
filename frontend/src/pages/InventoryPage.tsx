@@ -1,8 +1,10 @@
-import { useCallback, useEffect, useState, type ChangeEvent, type ReactNode } from 'react'
-import { Boxes, Package, Plus, SlidersHorizontal } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState, type ChangeEvent, type ReactNode } from 'react'
+import { Boxes, Package, Plus, SlidersHorizontal, Upload } from 'lucide-react'
 import { toast } from 'sonner'
 import type { AxiosError } from 'axios'
 import Modal, { btnGhost, btnPrimary, inputCls } from '@/components/Modal'
+import { importInventory } from '@/lib/reports'
+import { useAuthStore } from '@/store/authStore'
 import {
   adjustStock, createItem, listCategories, listItems, listLocations, listUoms, updateItem,
   type Category, type Item, type ItemPayload, type Location, type StockLevel, type Uom,
@@ -29,6 +31,8 @@ export default function InventoryPage() {
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState<Item | 'new' | null>(null)
   const [adjusting, setAdjusting] = useState<Item | null>(null)
+  const canImport = useAuthStore((s) => (s.user?.modules ?? []).includes('INVENTORY_IMPORT'))
+  const fileInput = useRef<HTMLInputElement>(null)
 
   const reload = useCallback(async () => {
     setLoading(true)
@@ -49,13 +53,34 @@ export default function InventoryPage() {
   }, [])
   useEffect(() => { reload() }, [reload])
 
+  async function onImportFile(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (file) {
+      try {
+        const r = await importInventory(file)
+        toast.success(`Imported: ${r.created} created, ${r.updated} updated${r.skipped ? `, ${r.skipped} skipped` : ''}`)
+        if (r.errors.length) toast.error(`${r.errors.length} row(s) had errors: ${r.errors[0]}${r.errors.length > 1 ? ' …' : ''}`)
+        reload()
+      } catch (err) { toast.error(apiErr(err, 'Import failed')) }
+    }
+    if (fileInput.current) fileInput.current.value = ''
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="flex items-center gap-2 text-xl font-semibold text-slate-800">
           <Package size={18} className="text-indigo-600" /> Inventory
         </h1>
-        <button className={btnPrimary} onClick={() => setEditing('new')}><Plus size={16} /> New item</button>
+        <div className="flex items-center gap-2">
+          {canImport && (
+            <>
+              <input ref={fileInput} type="file" accept=".xlsx" className="hidden" onChange={onImportFile} />
+              <button className={btnGhost} onClick={() => fileInput.current?.click()}><Upload size={15} /> Import xlsx</button>
+            </>
+          )}
+          <button className={btnPrimary} onClick={() => setEditing('new')}><Plus size={16} /> New item</button>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">

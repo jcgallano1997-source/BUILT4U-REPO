@@ -29,6 +29,17 @@ public interface SaleRepository extends JpaRepository<Sale, SaleId> {
     @Query("SELECT MAX(s.salesNumber) FROM Sale s WHERE s.siteId = :siteId AND s.salesNumber LIKE :prefix")
     String findMaxSalesNumberWithPrefix(@Param("siteId") Long siteId, @Param("prefix") String prefix);
 
+    /** COMPLETED sales in a half-open datetime window [from, to) — drives the sales report. */
+    @Query("""
+           SELECT s FROM Sale s
+           WHERE s.siteId = :siteId AND s.status = 'COMPLETED'
+             AND s.creationDate >= :from AND s.creationDate < :to
+           ORDER BY s.creationDate ASC
+           """)
+    List<Sale> findCompletedInRange(@Param("siteId") Long siteId,
+                                    @Param("from") java.time.LocalDateTime from,
+                                    @Param("to") java.time.LocalDateTime to);
+
     /** Sum of grand_total for a cashier's non-VOIDED sales of one mode in a window (shift reconc). */
     @Query("""
            SELECT COALESCE(SUM(s.grandTotal), 0) FROM Sale s

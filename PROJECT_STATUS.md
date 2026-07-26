@@ -4,7 +4,7 @@
 > the checkboxes as phases complete. Committed to git so it survives across sessions
 > (if the chat/token context is lost, read this first).
 >
-> Last updated: **2026-07-27** · Current position: **Phase 11 complete → Phase 12 next**
+> Last updated: **2026-07-27** · Current position: **Phase 12 complete → Phase 13 next**
 
 ---
 
@@ -178,9 +178,17 @@ runs the real server locally for HTTP smoke tests.
 - [ ] **Your smoke test:** make a % voucher + set loyalty % + a reward; ring a sale with a customer + the voucher (discount applies, points earned); open the customer's Points panel and redeem the reward
 - [ ] *(deferred)* points expiry (scheduled sweep) and points→voucher conversion
 
-### ⬜ Phase 12 — Reports + exports
-- [ ] Sales / inventory / AR / AP / procurement / shift-history reports
-- [ ] PDF (Flying Saucer) + xlsx (POI) export engine
+### ✅ Phase 12 — Reports + exports  *(DONE)*
+- [x] Export engine: format-neutral `ExportTable` + **POI xlsx** exporter + **self-contained OpenPDF** exporter (no Flying-Saucer/templating — per-doc branding deferred to Phase 13); new deps `poi-ooxml` + `openpdf`
+- [x] Reports hub `/api/reports/*` (JSON default, `?format=pdf|xlsx` download): sales-overview (new query: totals + by-mode + by-day), inventory-snapshot, inventory-valuation, receivables, payables, purchase-orders, goods-receipts, stock-transfers — each gated by its `*_REPORT` module
+- [x] **Inventory import**: POST `/api/items/import` reads an .xlsx (POI), matches category/location/uom by name, upserts items by code, returns created/updated/skipped + per-row errors
+- [x] Frontend: ReportsPage hub (sales-overview view + PDF/Excel download buttons per report), Inventory "Import xlsx" button + nav/route
+- [x] `ReportFlowIT` green (sales-overview JSON, xlsx `PK` + pdf `%PDF` binaries, snapshot, import create/update/error); no migration (no new tables)
+- [ ] **Your smoke test:** ring a sale, open **Reports** → Sales overview → View + Download; **Inventory → Import xlsx** with columns code,name,category,location,uom,quantity,sellingPrice,costPrice
+- [ ] *(deferred to Phase 13)* per-document PDF branding/templates; email delivery of reports; shift-history & inventory-movement reports
+
+> **Build note:** Phase 12 added Maven deps (Apache POI, OpenPDF) — the first
+> `run-local.ps1` / `mvnw` after pulling needs network access to download them.
 
 ### ⬜ Phase 13 — Config, docs & audit
 - [ ] PDF template / receipt template / doc settings / report-email config
