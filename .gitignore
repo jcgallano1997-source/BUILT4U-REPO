@@ -1,0 +1,35 @@
+# ---- Secrets / credentials (NEVER commit) ----
+# Oracle wallet (mTLS keystore for the ADB connection)
+backend/wallet/
+**/wallet/
+*.sso
+*.p12
+*.pem
+*.jks
+# Env files with DB_PASSWORD / JWT_SECRET etc.
+.env
+*.env
+backend/.env
+frontend/.env
+frontend/.env.local
+
+# ---- Reference docs that describe the LIVE product (keep local only) ----
+TECHNICAL_HANDOVER.md
+
+# ---- Java / Maven ----
+target/
+!.mvn/wrapper/maven-wrapper.jar
+*.class
+
+# ---- Node / Vite ----
+node_modules/
+dist/
+*.log
+npm-debug.log*
+
+# ---- IDE / OS ----
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db

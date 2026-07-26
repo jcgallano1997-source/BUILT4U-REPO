@@ -1,0 +1,32 @@
+# Local dev profile — connects to the BUILT4U schema on the Oracle ADB via wallet (mTLS).
+#
+# Required environment variables (set in your shell / run config, never commit):
+#   DB_USERNAME = built4u
+#   DB_PASSWORD = <the BUILT4U schema password>
+#   TNS_ADMIN   = C:\CLAUDE CODE\NEW_POS\backend\wallet   (folder holding tnsnames.ora + cwallet.sso)
+#
+# The Oracle thin driver auto-reads tnsnames.ora + ojdbc.properties from TNS_ADMIN,
+# and ojdbc.properties points oracle.net.wallet_location at ${TNS_ADMIN} — so the
+# SSO wallet is picked up with no extra config (oraclepki jars are on the classpath).
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:oracle:thin:@built4u_low}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: oracle.jdbc.OracleDriver
+    hikari:
+      pool-name: Built4uPos-HikariPool-Local
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      connection-test-query: SELECT 1 FROM DUAL
+
+  jpa:
+    show-sql: true
+
+logging:
+  level:
+    com.built4u.pos: DEBUG
+    org.flywaydb: INFO
