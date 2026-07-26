@@ -1,12 +1,16 @@
 import type { ReactNode } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, LogOut, Shield, Store, Users } from 'lucide-react'
+import { LayoutDashboard, LogOut, MapPin, Package, Ruler, Shield, Store, Tags, Users } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/store/authStore'
 import { logout as apiLogout } from '@/lib/auth'
 
 const NAV = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, module: null },
+  { to: '/inventory', label: 'Inventory', icon: Package, module: 'INVENTORY' },
+  { to: '/categories', label: 'Categories', icon: Tags, module: 'CATEGORIES' },
+  { to: '/locations', label: 'Locations', icon: MapPin, module: 'LOCATIONS' },
+  { to: '/units', label: 'Units', icon: Ruler, module: 'UOMS' },
   { to: '/admin/sites', label: 'Sites', icon: Store, module: 'SITES' },
   { to: '/admin/users', label: 'Users', icon: Users, module: 'USERS' },
   { to: '/admin/roles', label: 'Roles', icon: Shield, module: 'ROLES' },

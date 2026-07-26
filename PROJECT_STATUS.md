@@ -4,7 +4,7 @@
 > the checkboxes as phases complete. Committed to git so it survives across sessions
 > (if the chat/token context is lost, read this first).
 >
-> Last updated: **2026-07-26** · Current position: **Phase 4 complete → Phase 5 next**
+> Last updated: **2026-07-26** · Current position: **Phase 5 complete → Phase 6 next**
 
 ---
 
@@ -109,10 +109,15 @@ runs the real server locally for HTTP smoke tests.
 - [x] `AdminFlowIT` green (create site/role/user, pickers, 409 on dup); `npm run build` green
 - [ ] **Your smoke test:** log in as admin → Sites/Users/Roles tabs; create a branch + a cashier user
 
-### ⬜ Phase 5 — Reference data + inventory
-- [ ] Migration for categories / locations / uoms / inventory (+ 5 sequences)
-- [ ] Item master (selling price, cost price, barcode, thresholds), category/location/uom lookups
-- [ ] Inventory bulk import (xlsx)
+### ✅ Phase 5 — Reference data + inventory  *(DONE)*
+- [x] Flyway **V3**: pos_category / pos_location / pos_uom / pos_inventory / pos_transaction_log (+ 3 sequences)
+- [x] Site-scoped composite-key entities (@IdClass + sequence); JPA auditing (AuditorAware)
+- [x] Item master (selling vs cost price, barcode, warning/critical thresholds, stock-level compute)
+- [x] Category / Location / UOM lookups; stock **adjust** writes a transaction-log row
+- [x] Backend CRUD scoped by `TenantContext.getSiteId()`; frontend Inventory/Categories/Locations/Units pages + nav
+- [x] `InventoryFlowIT` green (create chain, stock adjust→CRITICAL, dup→409, unknown-ref→404); `npm run build` green
+- [ ] **Your smoke test:** create a category+location+unit, then an item; use Adjust to change stock
+- [ ] *(deferred to backlog)* Inventory bulk import (xlsx) — needs POI + the report/export layer
 
 ### ⬜ Phase 6 — Sales + shifts (the POS core)
 - [ ] Shifts (open/close reconciliation, one-open-per-cashier)

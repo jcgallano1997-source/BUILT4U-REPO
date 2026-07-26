@@ -8,6 +8,10 @@ import ChangePasswordPage from '@/pages/ChangePasswordPage'
 import SitesPage from '@/pages/SitesPage'
 import UsersPage from '@/pages/UsersPage'
 import RolesPage from '@/pages/RolesPage'
+import InventoryPage from '@/pages/InventoryPage'
+import CategoriesPage from '@/pages/CategoriesPage'
+import LocationsPage from '@/pages/LocationsPage'
+import UomsPage from '@/pages/UomsPage'
 
 function Protected({ children }: { children: ReactNode }) {
   return (
@@ -24,6 +28,10 @@ export default function App() {
 
       <Route path="/change-password" element={<Protected><ChangePasswordPage /></Protected>} />
       <Route path="/" element={<Protected><DashboardPage /></Protected>} />
+      <Route path="/inventory" element={<Protected><InventoryPage /></Protected>} />
+      <Route path="/categories" element={<Protected><CategoriesPage /></Protected>} />
+      <Route path="/locations" element={<Protected><LocationsPage /></Protected>} />
+      <Route path="/units" element={<Protected><UomsPage /></Protected>} />
       <Route path="/admin/sites" element={<Protected><SitesPage /></Protected>} />
       <Route path="/admin/users" element={<Protected><UsersPage /></Protected>} />
       <Route path="/admin/roles" element={<Protected><RolesPage /></Protected>} />
