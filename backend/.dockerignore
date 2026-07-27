@@ -1,0 +1,8 @@
+target/
+wallet/
+*.sso
+*.p12
+*.pem
+*.jks
+.env
+*.log

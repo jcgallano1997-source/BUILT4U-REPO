@@ -4,15 +4,21 @@ import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
 
 // Content-Security-Policy for the production build ONLY (apply: 'build'), so the
-// dev server (inline scripts + ws:// HMR) is left untouched. connect-src is
-// same-origin here; when the API gets a public URL, add it here + to img-src.
+// dev server (inline scripts + ws:// HMR) is left untouched. When the API is on
+// a different origin (hosted), VITE_API_BASE_URL's origin is added to
+// connect-src so XHRs aren't blocked; unset (local, same-origin proxy) → 'self'.
+function apiOrigin(): string {
+  const raw = process.env.VITE_API_BASE_URL
+  if (!raw) return ''
+  try { return new URL(raw).origin } catch { return '' }
+}
 const PROD_CSP = [
   "default-src 'self'",
   "script-src 'self'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self' data:",
-  "connect-src 'self'",
+  `connect-src 'self'${apiOrigin() ? ' ' + apiOrigin() : ''}`,
   "worker-src 'self' blob:",
   "object-src 'none'",
   "base-uri 'self'",
