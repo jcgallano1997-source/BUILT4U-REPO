@@ -45,3 +45,9 @@ app:
     # One-shot bootstrap password for the seeded 'admin' user (force-change on
     # first login). MUST be overridden under the 'prod' profile (DataSeeder fails closed).
     seed-admin-password: ${APP_SECURITY_SEED_ADMIN_PASSWORD:admin123}
+    # Per-IP login rate limit (brute-force brake; complements per-account lockout).
+    login-rate:
+      max-attempts: ${APP_SECURITY_LOGIN_MAX_ATTEMPTS:10}
+      window-seconds: ${APP_SECURITY_LOGIN_WINDOW_SECONDS:900}
+    # HSTS is emitted only when true (HTTPS only) — off for local http.
+    hsts-enabled: ${APP_SECURITY_HSTS_ENABLED:false}

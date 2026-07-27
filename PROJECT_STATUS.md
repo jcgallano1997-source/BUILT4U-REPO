@@ -4,7 +4,7 @@
 > the checkboxes as phases complete. Committed to git so it survives across sessions
 > (if the chat/token context is lost, read this first).
 >
-> Last updated: **2026-07-27** · Current position: **Phase 13 complete → Phase 14 (final) next**
+> Last updated: **2026-07-27** · Current position: **Phase 14 in progress — hardening DONE; deployment pending your decisions**
 
 ---
 
@@ -201,10 +201,15 @@ runs the real server locally for HTTP smoke tests.
 - [ ] *(deferred to Phase 14)* report/receipt **email delivery** — needs SMTP config, which lands with deployment
 - [ ] *(backlog, low value)* bundled User-Guide PDF; logo-image upload on documents; `AuditContext` "why" stamping on key flows
 
-### ⬜ Phase 14 — Hardening + deployment
-- [ ] Per-IP auth rate limiter, prod CSP/headers, `include-message: never`
-- [ ] Prod profile + env vars; choose hosting (Render/other) + wallet deploy
-- [ ] Smoke harness; DataSeeder fail-closed verified in prod
+### 🔄 Phase 14 — Hardening + deployment  *(IN PROGRESS)*
+- [x] **Per-IP login rate limiter** (`LoginRateLimitFilter`, fixed window, 429 + Retry-After) on `POST /api/auth/login`; configurable, neutralised in the test suite; `RateLimitFlowIT` green
+- [x] **Security headers** — CSP (already), + frame-options DENY, permissions-policy, and HSTS (toggled by `app.security.hsts-enabled`, on in prod / off local http)
+- [x] **Prod profile** `application-prod.yml` — all secrets from env with NO defaults for JWT_SECRET / DB / CORS / seed-admin (fail-closed at startup); `server.error.include-message: never` (+stacktrace/binding/exception off); `forward-headers-strategy: framework`; quieter logging
+- [x] DataSeeder already **fails closed** on the weak default admin password under `prod` (verified)
+- [x] Full backend IT suite green with the hardening in place
+- [ ] Choose **hosting** + deploy (backend + static frontend), upload the Oracle wallet, set prod env vars — *needs your decisions*
+- [ ] SMTP config → wire the deferred **report/receipt email delivery**
+- [ ] Prod smoke check (health, login, one sale) after first deploy
 
 ---
 

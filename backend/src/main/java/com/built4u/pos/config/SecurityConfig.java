@@ -1,6 +1,7 @@
 package com.built4u.pos.config;
 
 import com.built4u.pos.auth.JwtAuthenticationFilter;
+import com.built4u.pos.auth.LoginRateLimitFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -28,9 +29,14 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtFilter;
+    private final LoginRateLimitFilter loginRateLimitFilter;
 
     @Value("${app.cors.allowed-origins}")
     private String allowedOrigins;
+
+    /** HSTS only makes sense over HTTPS — enabled in hosted profiles. */
+    @Value("${app.security.hsts-enabled:false}")
+    private boolean hstsEnabled;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -39,11 +45,20 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             // This API only ever returns JSON, so it never needs to load anything —
             // lock the CSP right down and drop the referrer.
-            .headers(headers -> headers
-                .contentSecurityPolicy(csp -> csp.policyDirectives(
-                    "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"))
-                .referrerPolicy(referrer -> referrer.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER))
-            )
+            .headers(headers -> {
+                headers
+                    .contentSecurityPolicy(csp -> csp.policyDirectives(
+                        "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"))
+                    .referrerPolicy(referrer -> referrer.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER))
+                    .frameOptions(frame -> frame.deny())
+                    .permissionsPolicyHeader(pp -> pp.policy("geolocation=(), microphone=(), camera=()"));
+                if (hstsEnabled) {
+                    headers.httpStrictTransportSecurity(hsts -> hsts
+                        .includeSubDomains(true).maxAgeInSeconds(31_536_000));
+                } else {
+                    headers.httpStrictTransportSecurity(hsts -> hsts.disable());
+                }
+            })
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/login", "/api/auth/refresh", "/api/auth/sites").permitAll()
@@ -52,6 +67,7 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .exceptionHandling(eh -> eh.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+            .addFilterBefore(loginRateLimitFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
