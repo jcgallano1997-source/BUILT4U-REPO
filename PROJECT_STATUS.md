@@ -4,7 +4,7 @@
 > the checkboxes as phases complete. Committed to git so it survives across sessions
 > (if the chat/token context is lost, read this first).
 >
-> Last updated: **2026-07-27** · Current position: **Phase 14 in progress — hardening DONE; deployment pending your decisions**
+> Last updated: **2026-07-27** · Current position: **Phase 14 — hardening + deploy artifacts DONE; awaiting owner to deploy on Render**
 
 ---
 
@@ -207,9 +207,10 @@ runs the real server locally for HTTP smoke tests.
 - [x] **Prod profile** `application-prod.yml` — all secrets from env with NO defaults for JWT_SECRET / DB / CORS / seed-admin (fail-closed at startup); `server.error.include-message: never` (+stacktrace/binding/exception off); `forward-headers-strategy: framework`; quieter logging
 - [x] DataSeeder already **fails closed** on the weak default admin password under `prod` (verified)
 - [x] Full backend IT suite green with the hardening in place
-- [ ] Choose **hosting** + deploy (backend + static frontend), upload the Oracle wallet, set prod env vars — *needs your decisions*
-- [ ] SMTP config → wire the deferred **report/receipt email delivery**
-- [ ] Prod smoke check (health, login, one sale) after first deploy
+- [x] **Deploy artifacts (Render)** — `backend/Dockerfile` (+`.dockerignore`), `render.yaml` (Dockerized API + static React site), prod CSP that whitelists the API origin, and `DEPLOYMENT.md` runbook (wallet upload, env-var table, CORS loop, smoke check). Frontend builds verified for both local (`connect-src 'self'`) and hosted (`+ API origin`)
+- [ ] **Owner action:** create the Render services, upload the wallet as Secret Files, set prod env vars (per DEPLOYMENT.md), deploy
+- [ ] **Owner+me:** prod smoke check (health → login → one sale) after first deploy
+- [ ] *(deferred)* SMTP config → wire report/receipt **email delivery**
 
 ---
 
