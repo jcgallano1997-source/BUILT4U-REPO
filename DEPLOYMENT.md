@@ -8,8 +8,9 @@ Two services deploy from this repo:
 | `built4u-pos-web` | Static site | `frontend/` | React build served as static files |
 
 The database is the **existing** Oracle ADB `BUILT4U` schema (unchanged from
-local). The live `FREEPOS` schema is never touched. Flyway runs V1–V12 on first
-boot against `BUILT4U` (already applied if you deployed after local testing).
+local). The live `FREEPOS` schema is never touched. Flyway runs **V1–V24** on
+first boot against `BUILT4U` (any already applied locally are skipped; new ones
+apply automatically on each deploy).
 
 You can deploy via the **Blueprint** (`render.yaml`) or the **dashboard**
 (steps below). Either way you provide the same env vars + wallet.
@@ -71,6 +72,12 @@ redeploy the API. (Multiple origins: comma-separated, no spaces.)
    you'll be forced to change the password.
 3. Ring one sale in POS; open **Reports** and download a PDF; open a sale
    **Receipt**. If those work, the DB, auth, exports, and branding are all live.
+4. Optional deeper check of the post-launch features: split-tender a sale;
+   record a mid-shift cash-out and close a shift with a denomination count;
+   receive stock twice at different costs and confirm the item's cost is a
+   moving average; open **Reports → Reorder suggestions** and **Discounts &
+   overrides**. (Their modules — `PRICE_OVERRIDE`, `DISCOUNTS_REPORT`,
+   `REORDER_REPORT` — are seeded by Flyway, granted to Owner/Manager by default.)
 
 ## Notes
 - **Free tier** spins the API down when idle → the first request after a lull is
