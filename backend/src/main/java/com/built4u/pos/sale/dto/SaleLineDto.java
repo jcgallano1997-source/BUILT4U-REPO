@@ -9,6 +9,10 @@ public record SaleLineDto(
     BigDecimal quantity,
     BigDecimal adjustment,
     BigDecimal unitCost,
+    BigDecimal listPrice,
+    BigDecimal unitCogs,
+    String overrideReason,
+    String approvedBy,
     BigDecimal subTotal,
     BigDecimal refundedQuantity,
     BigDecimal refundableQuantity

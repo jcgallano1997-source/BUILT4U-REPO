@@ -33,7 +33,7 @@ export default function GoodsReceiptsPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="flex items-center gap-2 text-xl font-semibold text-slate-800">
-          <Truck size={18} className="text-indigo-600" /> Goods receiving
+          <Truck size={18} className="text-blue-600" /> Goods receiving
         </h1>
         <div className="flex items-center gap-2">
           <select className={`${inputCls} max-w-[10rem]`} value={source} onChange={(e) => setSource(e.target.value as 'PO' | 'DIRECT' | '')}>
@@ -61,7 +61,7 @@ export default function GoodsReceiptsPage() {
               : rows.length === 0 ? <tr><td colSpan={5} className="px-4 py-6 text-center text-slate-400">No goods receipts</td></tr>
               : rows.map((g) => (
                 <tr key={g.grNumber} className="cursor-pointer hover:bg-slate-50" onClick={() => open(g.grNumber)}>
-                  <td className="px-4 py-2 font-medium text-indigo-700">{g.grNumber}</td>
+                  <td className="px-4 py-2 font-medium text-blue-700">{g.grNumber}</td>
                   <td className="px-4 py-2 text-slate-500">{g.poNumber ?? <span className="text-slate-400">direct</span>}</td>
                   <td className="px-4 py-2 text-slate-600">{g.supplier ?? '—'}</td>
                   <td className="px-4 py-2 text-slate-500">{new Date(g.creationDate).toLocaleString()}</td>
@@ -107,7 +107,10 @@ export default function GoodsReceiptsPage() {
   )
 }
 
-interface DraftLine { itemId: number; label: string; uom: string | null; quantity: string; unitCost: string; max?: number }
+interface DraftLine {
+  itemId: number; label: string; uom: string | null; quantity: string; unitCost: string; max?: number
+  purchaseUom?: string | null; packSize?: number | null; inPurchaseUnit?: boolean
+}
 
 function ReceiveForm({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
   const [mode, setMode] = useState<'PO' | 'DIRECT'>('PO')
@@ -154,16 +157,20 @@ function ReceiveForm({ onClose, onDone }: { onClose: () => void; onDone: () => v
 
   function addDirect(item: Item) {
     if (lines.some((l) => l.itemId === item.id)) { toast.error('Item already added'); return }
-    setLines((p) => [...p, { itemId: item.id, label: item.name, uom: item.uom, quantity: '1', unitCost: String(item.costPrice ?? 0) }])
+    setLines((p) => [...p, { itemId: item.id, label: item.name, uom: item.uom, quantity: '1',
+      unitCost: String(item.costPrice ?? 0), purchaseUom: item.purchaseUom, packSize: item.packSize }])
     setSearch(''); setResults([])
   }
   const setLine = (id: number, k: 'quantity' | 'unitCost', v: string) =>
     setLines((p) => p.map((l) => (l.itemId === id ? { ...l, [k]: v } : l)))
+  const toggleUnit = (id: number, inPurchaseUnit: boolean) =>
+    setLines((p) => p.map((l) => (l.itemId === id ? { ...l, inPurchaseUnit } : l)))
   const total = lines.reduce((s, l) => s + (Number(l.quantity) || 0) * (Number(l.unitCost) || 0), 0)
 
   async function save() {
     const payloadLines = lines
-      .map((l) => ({ itemId: l.itemId, quantity: Number(l.quantity), unitCost: Number(l.unitCost) }))
+      .map((l) => ({ itemId: l.itemId, quantity: Number(l.quantity), unitCost: Number(l.unitCost),
+        ...(l.inPurchaseUnit ? { inPurchaseUnit: true } : {}) }))
       .filter((l) => l.quantity > 0)
     if (payloadLines.length === 0) { toast.error('Enter a quantity to receive'); return }
     if (mode === 'PO' && !poNumber) { toast.error('Select a PO'); return }
@@ -181,9 +188,9 @@ function ReceiveForm({ onClose, onDone }: { onClose: () => void; onDone: () => v
     <Modal title="Receive stock" onClose={onClose} width="max-w-2xl">
       <div className="space-y-3">
         <div className="flex gap-2">
-          <button className={`flex-1 rounded-md border px-3 py-1.5 text-sm ${mode === 'PO' ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-slate-300 text-slate-500'}`}
+          <button className={`flex-1 rounded-md border px-3 py-1.5 text-sm ${mode === 'PO' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-300 text-slate-500'}`}
             onClick={() => { setMode('PO'); setLines([]) }}>Against a PO</button>
-          <button className={`flex-1 rounded-md border px-3 py-1.5 text-sm ${mode === 'DIRECT' ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-slate-300 text-slate-500'}`}
+          <button className={`flex-1 rounded-md border px-3 py-1.5 text-sm ${mode === 'DIRECT' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-300 text-slate-500'}`}
             onClick={() => { setMode('DIRECT'); setPo(null); setPoNumber(''); setLines([]) }}>Direct (no PO)</button>
         </div>
 
@@ -231,7 +238,20 @@ function ReceiveForm({ onClose, onDone }: { onClose: () => void; onDone: () => v
             <tbody className="divide-y divide-slate-100">
               {lines.map((l) => (
                 <tr key={l.itemId}>
-                  <td className="py-1 text-slate-700">{l.label}{l.max != null && <span className="ml-1 text-xs text-amber-600">(≤{l.max})</span>}</td>
+                  <td className="py-1 text-slate-700">
+                    {l.label}{l.max != null && <span className="ml-1 text-xs text-amber-600">(≤{l.max})</span>}
+                    {mode === 'DIRECT' && l.packSize != null && l.packSize > 0 && l.purchaseUom && (
+                      <div className="mt-0.5 flex items-center gap-1 text-xs text-slate-500">
+                        <span>Receive in</span>
+                        <select className="rounded border border-slate-300 px-1 py-0.5 text-xs"
+                          value={l.inPurchaseUnit ? 'P' : 'B'} onChange={(e) => toggleUnit(l.itemId, e.target.value === 'P')}>
+                          <option value="B">{l.uom}</option>
+                          <option value="P">{l.purchaseUom} (×{l.packSize})</option>
+                        </select>
+                        {l.inPurchaseUnit && <span className="text-slate-400">= {(Number(l.quantity) || 0) * l.packSize} {l.uom}</span>}
+                      </div>
+                    )}
+                  </td>
                   <td className="py-1 text-right"><input className="w-16 rounded border border-slate-300 px-1 py-0.5 text-right" type="number" min={0} max={l.max} value={l.quantity} onChange={(e) => setLine(l.itemId, 'quantity', e.target.value)} /></td>
                   <td className="py-1 text-right"><input className="w-20 rounded border border-slate-300 px-1 py-0.5 text-right" type="number" min={0} value={l.unitCost} onChange={(e) => setLine(l.itemId, 'unitCost', e.target.value)} /></td>
                   <td className="py-1 text-right">{peso((Number(l.quantity) || 0) * (Number(l.unitCost) || 0))}</td>

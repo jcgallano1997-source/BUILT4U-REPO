@@ -22,6 +22,8 @@ import java.time.LocalDateTime;
 @Builder
 public class TransactionLog {
 
+    public static final String TYPE_STOCK_IN_OPENING  = "STOCK_IN_OPENING";
+    public static final String TYPE_STOCK_EDIT        = "STOCK_EDIT";
     public static final String TYPE_STOCK_IN_GR       = "STOCK_IN_GR";
     public static final String TYPE_STOCK_OUT_SALE    = "STOCK_OUT_SALE";
     public static final String TYPE_STOCK_IN_VOID     = "STOCK_IN_VOID";

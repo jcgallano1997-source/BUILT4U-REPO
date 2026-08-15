@@ -33,7 +33,7 @@ export default function LoyaltyConfigPage() {
   return (
     <div className="max-w-lg space-y-4">
       <h1 className="flex items-center gap-2 text-xl font-semibold text-slate-800">
-        <Sparkles size={18} className="text-indigo-600" /> Loyalty points
+        <Sparkles size={18} className="text-blue-600" /> Loyalty points
       </h1>
       {loading ? <p className="text-slate-400">Loading…</p> : (
         <div className="space-y-4 rounded-lg border border-slate-200 bg-white p-4">

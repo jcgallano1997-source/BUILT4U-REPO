@@ -1,6 +1,7 @@
 package com.built4u.pos.item;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 public record ItemDto(
     Long id,
@@ -12,6 +13,8 @@ public record ItemDto(
     Long locId,
     String locationName,
     String uom,
+    String purchaseUom,
+    BigDecimal packSize,
     BigDecimal quantity,
     BigDecimal sellingPrice,
     BigDecimal costPrice,
@@ -19,9 +22,17 @@ public record ItemDto(
     BigDecimal critical,
     Long barcodeId,
     boolean active,
-    StockLevel stockLevel
+    StockLevel stockLevel,
+    LocalDateTime createdAt
 ) {
     public enum StockLevel { OK, WARNING, CRITICAL }
+
+    /** Copy with a different quantity — used by as-of reports to show reconstructed stock. */
+    public ItemDto withQuantity(BigDecimal newQuantity) {
+        return new ItemDto(id, code, name, description, catId, categoryName, locId, locationName,
+            uom, purchaseUom, packSize, newQuantity, sellingPrice, costPrice, warning, critical, barcodeId, active,
+            computeStockLevel(newQuantity, warning, critical), createdAt);
+    }
 
     public static ItemDto from(Item i) {
         StockLevel level = computeStockLevel(i.getQuantity(), i.getWarning(), i.getCritical());
@@ -35,6 +46,8 @@ public record ItemDto(
             i.getLocId(),
             i.getLocation() == null ? null : i.getLocation().getLocation(),
             i.getUom(),
+            i.getPurchaseUom(),
+            i.getPackSize(),
             i.getQuantity(),
             i.getSellingPrice(),
             i.getCostPrice(),
@@ -42,7 +55,8 @@ public record ItemDto(
             i.getCritical(),
             i.getBarcodeId(),
             Boolean.TRUE.equals(i.getActive()),
-            level
+            level,
+            i.getCreationDate()
         );
     }
 

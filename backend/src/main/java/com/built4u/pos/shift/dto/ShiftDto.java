@@ -18,6 +18,8 @@ public record ShiftDto(
     String closedBy,
     BigDecimal cashSalesTotal,
     BigDecimal cashRefundsTotal,
+    BigDecimal cashIn,
+    BigDecimal cashOut,
     BigDecimal expectedCash,
     BigDecimal countedCash,
     BigDecimal cashVariance,

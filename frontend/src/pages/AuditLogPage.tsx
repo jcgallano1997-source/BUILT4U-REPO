@@ -37,7 +37,7 @@ export default function AuditLogPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="flex items-center gap-2 text-xl font-semibold text-slate-800">
-          <History size={18} className="text-indigo-600" /> Audit log
+          <History size={18} className="text-blue-600" /> Audit log
         </h1>
         <div className="flex gap-2">
           <button className={btnGhost} onClick={() => download('pdf')}><FileText size={14} /> PDF</button>

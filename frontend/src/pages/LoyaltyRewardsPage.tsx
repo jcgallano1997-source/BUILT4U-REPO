@@ -27,7 +27,7 @@ export default function LoyaltyRewardsPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="flex items-center gap-2 text-xl font-semibold text-slate-800">
-          <Gift size={18} className="text-indigo-600" /> Loyalty rewards
+          <Gift size={18} className="text-blue-600" /> Loyalty rewards
         </h1>
         <button className={btnPrimary} onClick={() => setEditing('new')}><Plus size={16} /> New reward</button>
       </div>
@@ -47,7 +47,7 @@ export default function LoyaltyRewardsPage() {
                   <td className="px-4 py-2 text-right text-slate-600">{r.pointsCost}</td>
                   <td className="px-4 py-2"><span className={r.active ? 'text-emerald-600' : 'text-slate-400'}>{r.active ? 'Active' : 'Inactive'}</span></td>
                   <td className="px-4 py-2 text-right whitespace-nowrap">
-                    <button className="text-indigo-600 hover:underline" onClick={() => setEditing(r)}>Edit</button>
+                    <button className="text-blue-600 hover:underline" onClick={() => setEditing(r)}>Edit</button>
                     <button className="ml-3 inline-flex items-center gap-1 text-red-600 hover:underline" onClick={() => remove(r)}><Trash2 size={13} /> Delete</button>
                   </td>
                 </tr>
@@ -111,7 +111,7 @@ function RForm({ r, onClose, onSaved }: { r: Reward | null; onClose: () => void;
         </div>
         {f.rewardType === 'ITEM' && (
           <div className="relative">
-            <label className="mb-1 block text-sm font-medium text-slate-700">Linked item {f.itemLabel && <span className="text-indigo-600">· {f.itemLabel}</span>}</label>
+            <label className="mb-1 block text-sm font-medium text-slate-700">Linked item {f.itemLabel && <span className="text-blue-600">· {f.itemLabel}</span>}</label>
             <input className={inputCls} placeholder="Search item…" value={search} onChange={(e) => setSearch(e.target.value)} />
             {results.length > 0 && (
               <div className="absolute z-10 mt-1 w-full rounded-md border border-slate-200 bg-white shadow">

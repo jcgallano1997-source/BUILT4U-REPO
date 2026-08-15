@@ -14,6 +14,8 @@ public record CreateItemRequest(
     @NotNull                   Long catId,
     @NotNull                   Long locId,
     @NotBlank @Size(max = 50)  String uom,
+    @Size(max = 50)            String purchaseUom,
+    @PositiveOrZero            BigDecimal packSize,
     @NotNull @PositiveOrZero   BigDecimal quantity,
     @NotNull @PositiveOrZero   BigDecimal sellingPrice,
     @PositiveOrZero            BigDecimal costPrice,

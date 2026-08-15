@@ -21,6 +21,9 @@ public final class Modules {
     public static final String SHIFTS            = "SHIFTS";
     public static final String SHIFTS_ADMIN      = "SHIFTS_ADMIN";
     public static final String INVENTORY         = "INVENTORY";
+    public static final String INVENTORY_CREATE  = "INVENTORY_CREATE";
+    public static final String INVENTORY_EDIT    = "INVENTORY_EDIT";
+    public static final String INVENTORY_ADJUST  = "INVENTORY_ADJUST";
     public static final String STOCKTAKE         = "STOCKTAKE";
     public static final String CUSTOMERS         = "CUSTOMERS";
     public static final String SUPPLIERS         = "SUPPLIERS";
@@ -48,6 +51,7 @@ public final class Modules {
     public static final String GOODS_RECEIPTS_REPORT = "GOODS_RECEIPTS_REPORT";
     public static final String PURCHASE_ORDERS_REPORT = "PURCHASE_ORDERS_REPORT";
     public static final String AUDIT_LOG          = "AUDIT_LOG";
+    public static final String ERROR_LOG          = "ERROR_LOG";
     public static final String PAYABLES           = "PAYABLES";
     public static final String STOCK_TRANSFER     = "STOCK_TRANSFER";
     public static final String STOCK_TRANSFER_POLICY = "STOCK_TRANSFER_POLICY";
@@ -57,19 +61,22 @@ public final class Modules {
     public static final String PAYABLES_REPORT       = "PAYABLES_REPORT";
     public static final String DOC_SETTINGS          = "DOC_SETTINGS";
     public static final String PO_APPROVERS          = "PO_APPROVERS";
+    public static final String PRICE_OVERRIDE        = "PRICE_OVERRIDE";
+    public static final String DISCOUNTS_REPORT      = "DISCOUNTS_REPORT";
+    public static final String REORDER_REPORT        = "REORDER_REPORT";
 
     /** Every module code. Order matches the catalog sort order. */
     public static final List<String> ALL = List.of(
-        POS, SALES, SHIFTS, SHIFTS_ADMIN, INVENTORY, STOCKTAKE,
+        POS, SALES, SHIFTS, SHIFTS_ADMIN, INVENTORY, INVENTORY_CREATE, INVENTORY_EDIT, INVENTORY_ADJUST, STOCKTAKE,
         CUSTOMERS, SUPPLIERS, PURCHASE_ORDERS, GOODS_RECEIPTS,
         CATEGORIES, LOCATIONS, UOMS, SALES_REPORTS,
         INVENTORY_SNAPSHOT, INVENTORY_VALUATION, INVENTORY_MOVEMENT,
         USERS, SITES, ROLES, EMAIL_CONFIG, PDF_CONFIG, INVENTORY_IMPORT,
         RECEIPT_CONFIG, VOUCHERS, PAYMENT_MODES, LOYALTY_CONFIG, LOYALTY_REWARDS,
-        RECEIVABLES, GOODS_RECEIPTS_REPORT, PURCHASE_ORDERS_REPORT, AUDIT_LOG,
+        RECEIVABLES, GOODS_RECEIPTS_REPORT, PURCHASE_ORDERS_REPORT, AUDIT_LOG, ERROR_LOG,
         PAYABLES, STOCK_TRANSFER, STOCK_TRANSFER_POLICY,
         STOCK_TRANSFER_REPORT, SHIFT_HISTORY_REPORT, RECEIVABLES_REPORT, PAYABLES_REPORT,
-        DOC_SETTINGS, PO_APPROVERS
+        DOC_SETTINGS, PO_APPROVERS, PRICE_OVERRIDE, DISCOUNTS_REPORT, REORDER_REPORT
     );
 
     /** Wildcard sentinel placed in the JWT {@code modules} claim for ADMIN. */

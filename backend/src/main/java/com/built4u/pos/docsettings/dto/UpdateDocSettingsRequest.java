@@ -11,5 +11,25 @@ public record UpdateDocSettingsRequest(
     @Size(max = 255) String footerNote,
     @Pattern(regexp = "#[0-9A-Fa-f]{6}", message = "accentColor must be a #RRGGBB hex colour") String accentColor,
     @Size(max = 60)  String receiptTitle,
-    @Size(max = 255) String receiptFooter
+    @Size(max = 255) String receiptFooter,
+
+    // ── Logo placement & report-PDF page setup ───────────────────────────────
+    String logoPosition,
+    Boolean showLogoPdf,
+    String paperSize,
+    String orientation,
+    String marginPreset,
+    String fontScale,
+    Boolean zebraStriping,
+    Boolean showPageNumbers,
+    Boolean showTimestamp,
+    Boolean showPrintedBy,
+
+    // ── Receipt customization ────────────────────────────────────────────────
+    Boolean showLogoReceipt,
+    @Size(max = 255) String receiptHeaderNote,
+    Boolean receiptShowCashier,
+    Boolean receiptShowCustomer,
+    Boolean receiptShowVoucher,
+    String receiptFormat
 ) {}

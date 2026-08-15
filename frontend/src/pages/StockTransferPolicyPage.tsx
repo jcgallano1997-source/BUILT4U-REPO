@@ -47,7 +47,7 @@ export default function StockTransferPolicyPage() {
   return (
     <div className="space-y-4">
       <h1 className="flex items-center gap-2 text-xl font-semibold text-slate-800">
-        <Route size={18} className="text-indigo-600" /> Stock transfer policy
+        <Route size={18} className="text-blue-600" /> Stock transfer policy
       </h1>
       <div className={`rounded-md border px-3 py-2 text-sm ${enforced ? 'border-amber-200 bg-amber-50 text-amber-800' : 'border-emerald-200 bg-emerald-50 text-emerald-800'}`}>
         {enforced

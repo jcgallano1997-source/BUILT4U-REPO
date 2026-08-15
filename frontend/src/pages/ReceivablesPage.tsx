@@ -12,7 +12,7 @@ const STATUS_LABEL: Record<LedgerStatus, string> = {
   OPEN: 'Open', PARTIAL: 'Partial', PAID: 'Paid', CANCELLED: 'Cancelled',
 }
 const statusColor: Record<LedgerStatus, string> = {
-  OPEN: 'text-indigo-600', PARTIAL: 'text-amber-600', PAID: 'text-emerald-600', CANCELLED: 'text-slate-400 line-through',
+  OPEN: 'text-blue-600', PARTIAL: 'text-amber-600', PAID: 'text-emerald-600', CANCELLED: 'text-slate-400 line-through',
 }
 
 export default function ReceivablesPage() {
@@ -39,7 +39,7 @@ export default function ReceivablesPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="flex items-center gap-2 text-xl font-semibold text-slate-800">
-          <Wallet size={18} className="text-indigo-600" /> Accounts receivable
+          <Wallet size={18} className="text-blue-600" /> Accounts receivable
         </h1>
         <div className="flex items-center gap-3">
           <label className="flex items-center gap-2 text-sm text-slate-500">
@@ -69,7 +69,7 @@ export default function ReceivablesPage() {
               : rows.length === 0 ? <tr><td colSpan={6} className="px-4 py-6 text-center text-slate-400">No receivables</td></tr>
               : rows.map((r) => (
                 <tr key={r.id} className="cursor-pointer hover:bg-slate-50" onClick={() => open(r.id)}>
-                  <td className="px-4 py-2 font-medium text-indigo-700">{r.salesNumber}</td>
+                  <td className="px-4 py-2 font-medium text-blue-700">{r.salesNumber}</td>
                   <td className="px-4 py-2 text-slate-600">{r.customerName}</td>
                   <td className={`px-4 py-2 ${r.overdue ? 'font-medium text-red-600' : 'text-slate-500'}`}>{r.dueDate}{r.overdue ? ' • overdue' : ''}</td>
                   <td className="px-4 py-2 text-right text-slate-500">{peso(r.originalAmount)}</td>

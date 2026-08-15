@@ -41,7 +41,7 @@ export default function UsersPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="flex items-center gap-2 text-xl font-semibold text-slate-800">
-          <Users size={18} className="text-indigo-600" /> Users
+          <Users size={18} className="text-blue-600" /> Users
         </h1>
         <button className={btnPrimary} onClick={() => setEditing('new')}><Plus size={16} /> New user</button>
       </div>
@@ -77,7 +77,7 @@ export default function UsersPage() {
                     {u.locked && <span className="ml-1 text-amber-600">· locked</span>}
                   </td>
                   <td className="px-4 py-2 text-right whitespace-nowrap">
-                    <button className="text-indigo-600 hover:underline" onClick={() => setEditing(u)}>Edit</button>
+                    <button className="text-blue-600 hover:underline" onClick={() => setEditing(u)}>Edit</button>
                     <button className="ml-3 inline-flex items-center gap-1 text-slate-500 hover:underline" onClick={() => setResetting(u)}>
                       <KeyRound size={13} /> Reset
                     </button>

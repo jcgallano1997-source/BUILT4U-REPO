@@ -73,6 +73,7 @@ public class ItemService {
         Long siteId = TenantContext.requireSiteId();
         validateRefs(siteId, req.catId(), req.locId(), req.uom());
         validateThresholds(req.warning(), req.critical());
+        validatePack(req.purchaseUom(), req.packSize());
 
         String code = req.code().trim();
         if (itemRepository.existsByCode(siteId, code, null)) {
@@ -90,6 +91,8 @@ public class ItemService {
             .itemName(req.name().trim())
             .itemDesc(blankToNull(req.description()))
             .uom(req.uom().trim())
+            .purchaseUom(blankToNull(req.purchaseUom()))
+            .packSize(req.packSize())
             .quantity(req.quantity())
             .sellingPrice(req.sellingPrice())
             .costPrice(req.costPrice())
@@ -99,6 +102,10 @@ public class ItemService {
             .active(true)
             .build();
         Item saved = itemRepository.save(entity);
+        // Journal the opening balance so historical (as-of) reports can reconstruct stock.
+        BigDecimal opening = saved.getQuantity() == null ? BigDecimal.ZERO : saved.getQuantity();
+        logStock(siteId, saved.getItemId(), saved.getCatId(), TransactionLog.TYPE_STOCK_IN_OPENING,
+            opening, opening, "Opening balance");
         return reloadDto(saved.getItemId());   // re-read so @ManyToOne joins populate for the DTO
     }
 
@@ -110,6 +117,7 @@ public class ItemService {
 
         validateRefs(siteId, req.catId(), req.locId(), req.uom());
         validateThresholds(req.warning(), req.critical());
+        validatePack(req.purchaseUom(), req.packSize());
 
         String code = req.code().trim();
         if (itemRepository.existsByCode(siteId, code, itemId)) {
@@ -119,12 +127,17 @@ public class ItemService {
             throw new ConflictException("Barcode '" + req.barcodeId() + "' is already in use at this site");
         }
 
+        BigDecimal oldQty = i.getQuantity() == null ? BigDecimal.ZERO : i.getQuantity();
+        BigDecimal newQty = req.quantity() == null ? BigDecimal.ZERO : req.quantity();
+
         i.setCatId(req.catId());
         i.setLocId(req.locId());
         i.setItemCode(code);
         i.setItemName(req.name().trim());
         i.setItemDesc(blankToNull(req.description()));
         i.setUom(req.uom().trim());
+        i.setPurchaseUom(blankToNull(req.purchaseUom()));
+        i.setPackSize(req.packSize());
         i.setQuantity(req.quantity());
         i.setSellingPrice(req.sellingPrice());
         i.setCostPrice(req.costPrice());
@@ -134,7 +147,27 @@ public class ItemService {
         i.setActive(Boolean.TRUE.equals(req.active()));
 
         itemRepository.save(i);
+        // Journal a direct quantity edit so it isn't invisible to as-of reports.
+        BigDecimal delta = newQty.subtract(oldQty);
+        if (delta.signum() != 0) {
+            logStock(siteId, itemId, req.catId(), TransactionLog.TYPE_STOCK_EDIT,
+                delta, newQty, "Manual quantity edit");
+        }
         return reloadDto(itemId);
+    }
+
+    /** Append a stock-movement journal row (signed delta in attr2, resulting balance in attr3). */
+    private void logStock(Long siteId, Long itemId, Long catId, String type,
+                          BigDecimal delta, BigDecimal balance, String reason) {
+        txnLogRepository.save(TransactionLog.builder()
+            .siteId(siteId)
+            .itemId(itemId)
+            .catId(catId)
+            .transactionType(type)
+            .attribute2(delta == null ? "0" : delta.toPlainString())
+            .attribute3(balance == null ? null : balance.toPlainString())
+            .reason(reason)
+            .build());
     }
 
     @Transactional
@@ -209,6 +242,16 @@ public class ItemService {
     private void validateThresholds(BigDecimal warning, BigDecimal critical) {
         if (warning != null && critical != null && critical.compareTo(warning) > 0) {
             throw new BadRequestException("Critical threshold must be <= warning threshold");
+        }
+    }
+
+    /** A purchase unit and its pack size must be set together (pack size > 0). */
+    private void validatePack(String purchaseUom, BigDecimal packSize) {
+        boolean hasUom = purchaseUom != null && !purchaseUom.isBlank();
+        boolean hasPack = packSize != null && packSize.signum() > 0;
+        if (hasUom != hasPack) {
+            throw new BadRequestException(
+                "Set the purchase unit and a pack size (base units per purchase unit) together");
         }
     }
 

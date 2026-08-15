@@ -46,7 +46,7 @@ export default function SalesPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="flex items-center gap-2 text-xl font-semibold text-slate-800">
-          <Receipt size={18} className="text-indigo-600" /> Sales
+          <Receipt size={18} className="text-blue-600" /> Sales
         </h1>
         <select className={`${inputCls} max-w-[12rem]`} value={status} onChange={(e) => setStatus(e.target.value as SaleStatus | '')}>
           <option value="">All statuses</option>
@@ -73,7 +73,7 @@ export default function SalesPage() {
               : rows.length === 0 ? <tr><td colSpan={6} className="px-4 py-6 text-center text-slate-400">No sales</td></tr>
               : rows.map((s) => (
                 <tr key={s.salesNumber} className="cursor-pointer hover:bg-slate-50" onClick={() => open(s.salesNumber)}>
-                  <td className="px-4 py-2 font-medium text-indigo-700">{s.salesNumber}</td>
+                  <td className="px-4 py-2 font-medium text-blue-700">{s.salesNumber}</td>
                   <td className="px-4 py-2 text-slate-500">{new Date(s.creationDate).toLocaleString()}</td>
                   <td className="px-4 py-2 text-slate-500">{s.createdBy}</td>
                   <td className="px-4 py-2 text-slate-500">{s.modeOfPayment}</td>

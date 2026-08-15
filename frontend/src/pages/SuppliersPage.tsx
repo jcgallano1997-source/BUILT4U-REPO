@@ -31,7 +31,7 @@ export default function SuppliersPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="flex items-center gap-2 text-xl font-semibold text-slate-800">
-          <Truck size={18} className="text-indigo-600" /> Suppliers
+          <Truck size={18} className="text-blue-600" /> Suppliers
         </h1>
         <button className={btnPrimary} onClick={() => setEditing('new')}><Plus size={16} /> New supplier</button>
       </div>
@@ -55,7 +55,7 @@ export default function SuppliersPage() {
                   <td className="px-4 py-2 text-slate-500">{s.contact ?? '—'}</td>
                   <td className="px-4 py-2"><span className={s.active ? 'text-emerald-600' : 'text-slate-400'}>{s.active ? 'Active' : 'Inactive'}</span></td>
                   <td className="px-4 py-2 text-right whitespace-nowrap">
-                    <button className="text-indigo-600 hover:underline" onClick={() => setEditing(s)}>Edit</button>
+                    <button className="text-blue-600 hover:underline" onClick={() => setEditing(s)}>Edit</button>
                     {s.active && <button className="ml-3 inline-flex items-center gap-1 text-red-600 hover:underline" onClick={() => remove(s)}><Trash2 size={13} /> Deactivate</button>}
                   </td>
                 </tr>

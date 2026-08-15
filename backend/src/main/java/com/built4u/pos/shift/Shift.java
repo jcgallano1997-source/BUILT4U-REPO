@@ -69,6 +69,14 @@ public class Shift {
     @Builder.Default
     private BigDecimal cashRefundsTotal = BigDecimal.ZERO;
 
+    @Column(name = "cash_in_total", nullable = false)
+    @Builder.Default
+    private BigDecimal cashInTotal = BigDecimal.ZERO;
+
+    @Column(name = "cash_out_total", nullable = false)
+    @Builder.Default
+    private BigDecimal cashOutTotal = BigDecimal.ZERO;
+
     @Column(name = "noncash_gcash_total", nullable = false)
     @Builder.Default
     private BigDecimal noncashGcashTotal = BigDecimal.ZERO;

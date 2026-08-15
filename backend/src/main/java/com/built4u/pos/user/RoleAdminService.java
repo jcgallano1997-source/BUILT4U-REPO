@@ -1,5 +1,6 @@
 package com.built4u.pos.user;
 
+import com.built4u.pos.auth.AuthUtils;
 import com.built4u.pos.auth.Modules;
 import com.built4u.pos.common.exception.BadRequestException;
 import com.built4u.pos.common.exception.ConflictException;
@@ -39,16 +40,23 @@ public class RoleAdminService {
     private final ModuleRepository moduleRepository;
     private final UserRepository userRepository;
 
+    /** IT-only modules hidden from non-admins in the role editor. */
+    private static final Set<String> ADMIN_ONLY_MODULES = Set.of(Modules.ERROR_LOG);
+
     @Transactional(readOnly = true)
     public List<ModuleDto> listModules() {
+        boolean admin = AuthUtils.isCurrentUserAdmin();
         return moduleRepository.findAllByOrderBySortOrderAsc().stream()
+            .filter(m -> admin || !ADMIN_ONLY_MODULES.contains(m.getCode()))
             .map(m -> new ModuleDto(m.getCode(), m.getName(), m.getDescription(), m.getSortOrder()))
             .toList();
     }
 
     @Transactional(readOnly = true)
     public List<RoleDetailDto> list() {
+        boolean admin = AuthUtils.isCurrentUserAdmin();
         return roleRepository.findAll().stream()
+            .filter(r -> admin || !r.isWildcard())   // hide the ADMIN role from non-admins
             .sorted(Comparator.comparing(Role::getCode))
             .map(this::toDetail)
             .toList();
@@ -56,7 +64,11 @@ public class RoleAdminService {
 
     @Transactional(readOnly = true)
     public RoleDetailDto get(Long id) {
-        return toDetail(loadRole(id));
+        Role r = loadRole(id);
+        if (!AuthUtils.isCurrentUserAdmin() && r.isWildcard()) {
+            throw new NotFoundException("Role " + id + " not found");
+        }
+        return toDetail(r);
     }
 
     @Transactional

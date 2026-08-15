@@ -50,7 +50,7 @@ public class AuditEntityListener
         Set.of("passwordhash", "tokenhash", "password", "secret");
     /** Entities excluded entirely — noisy append-only logs + the audit row itself. */
     private static final Set<String> SKIP_ENTITIES =
-        Set.of("AuditLog", "TransactionLog", "LoyaltyLedger", "RefreshToken", "PasswordResetToken");
+        Set.of("AuditLog", "TransactionLog", "LoyaltyLedger", "RefreshToken", "PasswordResetToken", "HeldSale");
     private static final int MAX_VALUE_LEN = 1000;
     private static final String INSERT_SQL =
         "INSERT INTO pos_audit_log (site_id, username, entity_name, entity_id, "

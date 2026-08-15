@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState, type ChangeEvent, type ReactNode } from 'react'
-import { Boxes, Package, Plus, SlidersHorizontal, Upload } from 'lucide-react'
+import { Boxes, Download, Package, Plus, SlidersHorizontal, Upload } from 'lucide-react'
 import { toast } from 'sonner'
 import type { AxiosError } from 'axios'
 import Modal, { btnGhost, btnPrimary, inputCls } from '@/components/Modal'
-import { importInventory } from '@/lib/reports'
+import { downloadImportTemplate, importInventory } from '@/lib/reports'
 import { useAuthStore } from '@/store/authStore'
 import {
   adjustStock, createItem, listCategories, listItems, listLocations, listUoms, updateItem,
@@ -32,6 +32,9 @@ export default function InventoryPage() {
   const [editing, setEditing] = useState<Item | 'new' | null>(null)
   const [adjusting, setAdjusting] = useState<Item | null>(null)
   const canImport = useAuthStore((s) => (s.user?.modules ?? []).includes('INVENTORY_IMPORT'))
+  const canCreate = useAuthStore((s) => (s.user?.modules ?? []).includes('INVENTORY_CREATE'))
+  const canEdit = useAuthStore((s) => (s.user?.modules ?? []).includes('INVENTORY_EDIT'))
+  const canAdjust = useAuthStore((s) => (s.user?.modules ?? []).includes('INVENTORY_ADJUST'))
   const fileInput = useRef<HTMLInputElement>(null)
 
   const reload = useCallback(async () => {
@@ -53,6 +56,11 @@ export default function InventoryPage() {
   }, [])
   useEffect(() => { reload() }, [reload])
 
+  async function downloadTemplate() {
+    try { await downloadImportTemplate() }
+    catch (e) { toast.error(apiErr(e, 'Could not download template')) }
+  }
+
   async function onImportFile(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (file) {
@@ -70,16 +78,19 @@ export default function InventoryPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="flex items-center gap-2 text-xl font-semibold text-slate-800">
-          <Package size={18} className="text-indigo-600" /> Inventory
+          <Package size={18} className="text-blue-600" /> Inventory
         </h1>
         <div className="flex items-center gap-2">
           {canImport && (
             <>
+              <button className={btnGhost} onClick={downloadTemplate}><Download size={15} /> Template</button>
               <input ref={fileInput} type="file" accept=".xlsx" className="hidden" onChange={onImportFile} />
               <button className={btnGhost} onClick={() => fileInput.current?.click()}><Upload size={15} /> Import xlsx</button>
             </>
           )}
-          <button className={btnPrimary} onClick={() => setEditing('new')}><Plus size={16} /> New item</button>
+          {canCreate && (
+            <button className={btnPrimary} onClick={() => setEditing('new')}><Plus size={16} /> New item</button>
+          )}
         </div>
       </div>
 
@@ -123,10 +134,15 @@ export default function InventoryPage() {
                   <td className="px-4 py-2 text-right">₱{Number(it.sellingPrice).toFixed(2)}</td>
                   <td className="px-4 py-2"><span className={`rounded px-1.5 py-0.5 text-xs ${levelBadge[it.stockLevel]}`}>{it.stockLevel}</span></td>
                   <td className="px-4 py-2 text-right whitespace-nowrap">
-                    <button className="inline-flex items-center gap-1 text-slate-600 hover:underline" onClick={() => setAdjusting(it)}>
-                      <SlidersHorizontal size={13} /> Adjust
-                    </button>
-                    <button className="ml-3 text-indigo-600 hover:underline" onClick={() => setEditing(it)}>Edit</button>
+                    {canAdjust && (
+                      <button className="inline-flex items-center gap-1 text-slate-600 hover:underline" onClick={() => setAdjusting(it)}>
+                        <SlidersHorizontal size={13} /> Adjust
+                      </button>
+                    )}
+                    {canEdit && (
+                      <button className="ml-3 text-blue-600 hover:underline" onClick={() => setEditing(it)}>Edit</button>
+                    )}
+                    {!canAdjust && !canEdit && <span className="text-slate-300">—</span>}
                   </td>
                 </tr>
               ))}
@@ -164,6 +180,8 @@ function ItemForm({
     catId: item ? String(item.catId) : '',
     locId: item ? String(item.locId) : '',
     uom: item?.uom ?? '',
+    purchaseUom: item?.purchaseUom ?? '',
+    packSize: item?.packSize != null ? String(item.packSize) : '',
     quantity: item ? String(item.quantity) : '0',
     sellingPrice: item ? String(item.sellingPrice) : '',
     costPrice: item?.costPrice != null ? String(item.costPrice) : '',
@@ -181,6 +199,7 @@ function ItemForm({
     const payload: ItemPayload = {
       code: f.code.trim(), name: f.name.trim(), description: f.description.trim() || undefined,
       catId: Number(f.catId), locId: Number(f.locId), uom: f.uom,
+      purchaseUom: f.purchaseUom.trim() || undefined, packSize: num(f.packSize),
       quantity: Number(f.quantity || 0), sellingPrice: Number(f.sellingPrice || 0),
       costPrice: num(f.costPrice), warning: num(f.warning), critical: num(f.critical), barcodeId: num(f.barcodeId),
       active: f.active,
@@ -223,6 +242,16 @@ function ItemForm({
         <L label="Description"><input className={inputCls} value={f.description} onChange={set('description')} /></L>
         <L label="Warning level"><input className={inputCls} type="number" value={f.warning} onChange={set('warning')} /></L>
         <L label="Critical level"><input className={inputCls} type="number" value={f.critical} onChange={set('critical')} /></L>
+        <L label="Purchase unit (optional)">
+          <select className={inputCls} value={f.purchaseUom} onChange={set('purchaseUom')}>
+            <option value="">Same as stock unit</option>
+            {uoms.map((u) => <option key={u.uom} value={u.uom}>{u.uom}</option>)}
+          </select>
+        </L>
+        <L label={`Pack size${f.purchaseUom ? ` (${f.uom || 'base'} per ${f.purchaseUom})` : ''}`}>
+          <input className={inputCls} type="number" value={f.packSize} onChange={set('packSize')}
+            placeholder="e.g. 12" disabled={!f.purchaseUom} />
+        </L>
         {!isNew && (
           <label className="flex items-center gap-2 self-end pb-2 text-sm text-slate-700">
             <input type="checkbox" checked={f.active} onChange={set('active')} /> Active

@@ -56,7 +56,7 @@ export default function StockTransfersPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="flex items-center gap-2 text-xl font-semibold text-slate-800">
-          <ArrowLeftRight size={18} className="text-indigo-600" /> Stock transfers
+          <ArrowLeftRight size={18} className="text-blue-600" /> Stock transfers
         </h1>
         <div className="flex items-center gap-2">
           <select className={`${inputCls} max-w-[9rem]`} value={direction} onChange={(e) => setDirection(e.target.value as 'OUTBOUND' | 'INBOUND' | '')}>
@@ -88,10 +88,10 @@ export default function StockTransfersPage() {
               : rows.length === 0 ? <tr><td colSpan={5} className="px-4 py-6 text-center text-slate-400">No transfers</td></tr>
               : rows.map((t) => (
                 <tr key={t.id} className="cursor-pointer hover:bg-slate-50" onClick={() => open(t.transferNumber)}>
-                  <td className="px-4 py-2 font-medium text-indigo-700">{t.transferNumber}</td>
+                  <td className="px-4 py-2 font-medium text-blue-700">{t.transferNumber}</td>
                   <td className="px-4 py-2 text-slate-600">
                     {t.sourceSiteName} <span className="text-slate-400">→</span> {t.destSiteName}
-                    {t.destSiteId === currentSiteId && <span className="ml-1 text-xs text-indigo-500">(inbound)</span>}
+                    {t.destSiteId === currentSiteId && <span className="ml-1 text-xs text-blue-500">(inbound)</span>}
                   </td>
                   <td className="px-4 py-2 text-slate-500">{new Date(t.shippedAt).toLocaleString()}</td>
                   <td className="px-4 py-2 text-right text-slate-500">{t.lineCount}</td>

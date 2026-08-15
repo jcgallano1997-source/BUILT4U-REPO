@@ -61,8 +61,11 @@ public class SaleController {
     /** Printable PDF receipt for a sale (uses the site's document branding). */
     @GetMapping(value = "/{salesNumber}/receipt", produces = MediaType.APPLICATION_PDF_VALUE)
     @PreAuthorize("hasAnyAuthority('MOD_SALES','MOD_POS')")
-    public ResponseEntity<byte[]> receipt(@PathVariable("salesNumber") String salesNumber) throws IOException {
-        byte[] body = receiptPdfService.generate(salesNumber);
+    public ResponseEntity<byte[]> receipt(
+        @PathVariable("salesNumber") String salesNumber,
+        @RequestParam(value = "format", required = false) String format
+    ) throws IOException {
+        byte[] body = receiptPdfService.generate(salesNumber, format);
         return ResponseEntity.ok()
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PDF_VALUE)
             .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"receipt-" + salesNumber + ".pdf\"")

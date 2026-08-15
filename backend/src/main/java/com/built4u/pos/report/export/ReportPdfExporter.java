@@ -3,10 +3,15 @@ package com.built4u.pos.report.export;
 import com.built4u.pos.docsettings.DocSettings;
 import com.built4u.pos.docsettings.DocSettingsService;
 import com.lowagie.text.*;
+import com.lowagie.text.Image;
+import com.lowagie.text.pdf.ColumnText;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
+import com.lowagie.text.pdf.PdfPageEventHelper;
 import com.lowagie.text.pdf.PdfWriter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.awt.Color;
@@ -21,10 +26,10 @@ import java.util.List;
 
 /**
  * Self-contained PDF renderer for an {@link ExportTable}, drawn directly with
- * OpenPDF. Landscape A4 with a branded letterhead (business name/address/
- * contact/TIN + accent colour from {@link DocSettings}), the report title,
- * subtitle lines, an accent-shaded header row, type-formatted cells (numbers
- * right-aligned), and italic footer notes.
+ * OpenPDF. Branding & layout come from {@link DocSettings}: optional logo,
+ * business letterhead, accent colour, paper size / orientation / margins,
+ * font scale, zebra-striped rows, and a footer band (page number / timestamp /
+ * printed-by) — each individually toggleable.
  */
 @Component
 @RequiredArgsConstructor
@@ -34,30 +39,46 @@ public class ReportPdfExporter {
     private static final DateTimeFormatter D = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final DateTimeFormatter DT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     private static final Color DEFAULT_ACCENT = new Color(0x1D, 0x4E, 0xD8);
+    private static final Color ZEBRA = new Color(0xF3, 0xF5, 0xF9);
 
     private final DocSettingsService docSettingsService;
 
     public byte[] export(ExportTable table) throws IOException {
         DocSettings brand = docSettingsService.resolve();
         Color accent = parseColor(brand.getAccentColor(), DEFAULT_ACCENT);
+        float fs = fontScale(brand.getFontScale());
         String businessName = brand.getBusinessName() == null || brand.getBusinessName().isBlank()
             ? "Built4U POS" : brand.getBusinessName();
 
-        Document doc = new Document(PageSize.A4.rotate(), 36, 36, 36, 36);
+        Rectangle base = "LETTER".equalsIgnoreCase(brand.getPaperSize()) ? PageSize.LETTER : PageSize.A4;
+        Rectangle pageSize = "PORTRAIT".equalsIgnoreCase(brand.getOrientation()) ? base : base.rotate();
+        float margin = margin(brand.getMarginPreset());
+
+        Document doc = new Document(pageSize, margin, margin, margin, margin + 10);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {
-            PdfWriter.getInstance(doc, out);
+            PdfWriter writer = PdfWriter.getInstance(doc, out);
+            writer.setPageEvent(new FooterBand(brand, fs));
             doc.open();
 
-            Font brandFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 15, accent);
-            Font brandSub = FontFactory.getFont(FontFactory.HELVETICA, 8, Color.DARK_GRAY);
-            Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, new Color(0x1E, 0x29, 0x3B));
-            Font subFont = FontFactory.getFont(FontFactory.HELVETICA, 9, Color.DARK_GRAY);
-            Font headFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 8, Color.WHITE);
-            Font cellFont = FontFactory.getFont(FontFactory.HELVETICA, 8, Color.BLACK);
-            Font footFont = FontFactory.getFont(FontFactory.HELVETICA_OBLIQUE, 8, Color.GRAY);
+            // Optional logo above the letterhead.
+            if (Boolean.TRUE.equals(brand.getShowLogoPdf()) && hasLogo(brand)) {
+                try {
+                    Image logo = Image.getInstance(brand.getLogoImage());
+                    logo.scaleToFit(140, 52);
+                    logo.setAlignment(align(brand.getLogoPosition()));
+                    doc.add(logo);
+                } catch (Exception ignore) { /* bad image bytes — skip logo, keep the report */ }
+            }
 
-            // Branded letterhead.
+            Font brandFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 15 * fs, accent);
+            Font brandSub = FontFactory.getFont(FontFactory.HELVETICA, 8 * fs, Color.DARK_GRAY);
+            Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12 * fs, new Color(0x1E, 0x29, 0x3B));
+            Font subFont = FontFactory.getFont(FontFactory.HELVETICA, 9 * fs, Color.DARK_GRAY);
+            Font headFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 8 * fs, Color.WHITE);
+            Font cellFont = FontFactory.getFont(FontFactory.HELVETICA, 8 * fs, Color.BLACK);
+            Font footFont = FontFactory.getFont(FontFactory.HELVETICA_OBLIQUE, 8 * fs, Color.GRAY);
+
             Paragraph brandLine = new Paragraph(businessName, brandFont);
             brandLine.setSpacingAfter(1f);
             doc.add(brandLine);
@@ -86,15 +107,20 @@ public class ReportPdfExporter {
                 pdf.addCell(c);
             }
 
+            boolean zebra = Boolean.TRUE.equals(brand.getZebraStriping());
+            int r = 0;
             for (List<Object> row : table.rows()) {
+                boolean shade = zebra && (r % 2 == 1);
                 for (int i = 0; i < cols; i++) {
                     Object v = i < row.size() ? row.get(i) : null;
                     PdfPCell c = new PdfPCell(new Phrase(format(v), cellFont));
                     c.setPadding(3f);
                     c.setBorderColor(Color.LIGHT_GRAY);
+                    if (shade) c.setBackgroundColor(ZEBRA);
                     if (v instanceof Number) c.setHorizontalAlignment(Element.ALIGN_RIGHT);
                     pdf.addCell(c);
                 }
+                r++;
             }
             doc.add(pdf);
 
@@ -115,6 +141,62 @@ public class ReportPdfExporter {
         } catch (DocumentException e) {
             throw new IOException("PDF render failed: " + e.getMessage(), e);
         }
+    }
+
+    /** Bottom-of-page band: printed-by (left), timestamp (centre), page number (right). */
+    private static final class FooterBand extends PdfPageEventHelper {
+        private final DocSettings brand;
+        private final Font font;
+        private final String printedBy;
+
+        FooterBand(DocSettings brand, float fs) {
+            this.brand = brand;
+            this.font = FontFactory.getFont(FontFactory.HELVETICA, 7 * fs, Color.GRAY);
+            this.printedBy = currentUsername();
+        }
+
+        @Override
+        public void onEndPage(PdfWriter writer, Document doc) {
+            float y = doc.bottom() - 12;
+            if (Boolean.TRUE.equals(brand.getShowPrintedBy())) {
+                ColumnText.showTextAligned(writer.getDirectContent(), Element.ALIGN_LEFT,
+                    new Phrase("Printed by " + printedBy, font), doc.left(), y, 0);
+            }
+            if (Boolean.TRUE.equals(brand.getShowTimestamp())) {
+                ColumnText.showTextAligned(writer.getDirectContent(), Element.ALIGN_CENTER,
+                    new Phrase(LocalDateTime.now().format(DT), font),
+                    (doc.left() + doc.right()) / 2, y, 0);
+            }
+            if (Boolean.TRUE.equals(brand.getShowPageNumbers())) {
+                ColumnText.showTextAligned(writer.getDirectContent(), Element.ALIGN_RIGHT,
+                    new Phrase("Page " + writer.getPageNumber(), font), doc.right(), y, 0);
+            }
+        }
+    }
+
+    private static boolean hasLogo(DocSettings d) { return d.getLogoImage() != null && d.getLogoImage().length > 0; }
+
+    private static int align(String pos) {
+        if ("CENTER".equalsIgnoreCase(pos)) return Element.ALIGN_CENTER;
+        if ("RIGHT".equalsIgnoreCase(pos)) return Element.ALIGN_RIGHT;
+        return Element.ALIGN_LEFT;
+    }
+
+    private static float margin(String preset) {
+        if ("NARROW".equalsIgnoreCase(preset)) return 24f;
+        if ("WIDE".equalsIgnoreCase(preset)) return 54f;
+        return 36f;
+    }
+
+    private static float fontScale(String scale) {
+        if ("SMALL".equalsIgnoreCase(scale)) return 0.85f;
+        if ("LARGE".equalsIgnoreCase(scale)) return 1.15f;
+        return 1f;
+    }
+
+    private static String currentUsername() {
+        Authentication a = SecurityContextHolder.getContext().getAuthentication();
+        return a == null || a.getName() == null ? "SYSTEM" : a.getName();
     }
 
     private static Color parseColor(String hex, Color fallback) {

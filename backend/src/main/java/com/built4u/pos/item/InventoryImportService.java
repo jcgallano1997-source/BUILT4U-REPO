@@ -7,14 +7,19 @@ import com.built4u.pos.common.tenant.TenantContext;
 import com.built4u.pos.item.dto.ImportResultDto;
 import com.built4u.pos.location.Location;
 import com.built4u.pos.location.LocationRepository;
+import com.built4u.pos.transactionlog.TransactionLog;
+import com.built4u.pos.transactionlog.TransactionLogRepository;
+import com.built4u.pos.uom.Uom;
 import com.built4u.pos.uom.UomRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,6 +43,7 @@ public class InventoryImportService {
     private final CategoryRepository categoryRepository;
     private final LocationRepository locationRepository;
     private final UomRepository uomRepository;
+    private final TransactionLogRepository txnLogRepository;
 
     @Transactional
     public ImportResultDto importXlsx(MultipartFile file) {
@@ -88,6 +94,7 @@ public class InventoryImportService {
                     var existing = itemRepository.findBySiteIdAndItemCodeIgnoreCase(siteId, code.trim());
                     if (existing.isPresent()) {
                         Item it = existing.get();
+                        BigDecimal oldQty = it.getQuantity() == null ? BigDecimal.ZERO : it.getQuantity();
                         it.setItemName(name.trim());
                         it.setCatId(cat.getCatId());
                         it.setLocId(loc.getLocId());
@@ -96,15 +103,23 @@ public class InventoryImportService {
                         if (sell != null) it.setSellingPrice(sell);
                         if (cost != null) it.setCostPrice(cost);
                         itemRepository.save(it);
+                        // Journal a quantity change so as-of reports stay accurate.
+                        if (qty != null && qty.compareTo(oldQty) != 0) {
+                            logStock(siteId, it.getItemId(), cat.getCatId(), TransactionLog.TYPE_STOCK_EDIT,
+                                qty.subtract(oldQty), qty, "Bulk import");
+                        }
                         updated++;
                     } else {
-                        itemRepository.save(Item.builder()
+                        BigDecimal openingQty = qty == null ? BigDecimal.ZERO : qty;
+                        Item newItem = itemRepository.save(Item.builder()
                             .siteId(siteId).catId(cat.getCatId()).locId(loc.getLocId())
                             .itemCode(code.trim()).itemName(name.trim()).uom(uom.trim())
-                            .quantity(qty == null ? BigDecimal.ZERO : qty)
+                            .quantity(openingQty)
                             .sellingPrice(sell == null ? BigDecimal.ZERO : sell)
                             .costPrice(cost == null ? BigDecimal.ZERO : cost)
                             .active(true).build());
+                        logStock(siteId, newItem.getItemId(), cat.getCatId(), TransactionLog.TYPE_STOCK_IN_OPENING,
+                            openingQty, openingQty, "Opening balance (bulk import)");
                         created++;
                     }
                 } catch (Exception e) {
@@ -120,6 +135,77 @@ public class InventoryImportService {
         log.info("Inventory import: {} created, {} updated, {} skipped, {} error(s)",
             created, updated, skipped, errors.size());
         return new ImportResultDto(created, updated, skipped, errors);
+    }
+
+    /**
+     * Build a blank .xlsx import template: the exact header row the importer
+     * expects, plus two example rows pre-filled with this site's first real
+     * category / location / unit so they import cleanly (or sensible placeholders
+     * if the site has none yet). Delete the example rows before importing.
+     */
+    @Transactional(readOnly = true)
+    public byte[] buildTemplate() {
+        Long siteId = TenantContext.requireSiteId();
+        String exCat = firstOr(categoryRepository.findBySiteIdOrderByCategoryNameAsc(siteId).stream()
+            .map(Category::getCategoryName).toList(), "Beverages");
+        String exLoc = firstOr(locationRepository.findBySiteIdOrderByLocationAsc(siteId).stream()
+            .map(Location::getLocation).toList(), "Aisle 1");
+        String exUom = firstOr(uomRepository.findBySiteIdAndActiveTrueOrderByUomAsc(siteId).stream()
+            .map(Uom::getUom).toList(), "PCS");
+
+        String[] headers = {"code", "name", "category", "location", "uom", "quantity", "sellingPrice", "costPrice"};
+        Object[][] examples = {
+            {"ITM-001", "Sample Item A (delete this row)", exCat, exLoc, exUom, 100, 25.00, 18.00},
+            {"ITM-002", "Sample Item B (delete this row)", exCat, exLoc, exUom, 50, 12.50, 8.00},
+        };
+
+        try (Workbook wb = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            Sheet sheet = wb.createSheet("Items");
+            Font bold = wb.createFont();
+            bold.setBold(true);
+            CellStyle headStyle = wb.createCellStyle();
+            headStyle.setFont(bold);
+
+            Row h = sheet.createRow(0);
+            for (int i = 0; i < headers.length; i++) {
+                Cell c = h.createCell(i);
+                c.setCellValue(headers[i]);
+                c.setCellStyle(headStyle);
+            }
+            int r = 1;
+            for (Object[] ex : examples) {
+                Row row = sheet.createRow(r++);
+                for (int i = 0; i < ex.length; i++) {
+                    Cell c = row.createCell(i);
+                    if (ex[i] instanceof Number n) c.setCellValue(n.doubleValue());
+                    else c.setCellValue(String.valueOf(ex[i]));
+                }
+            }
+            for (int i = 0; i < headers.length; i++) sheet.autoSizeColumn(i);
+
+            wb.write(out);
+            return out.toByteArray();
+        } catch (Exception e) {
+            throw new BadRequestException("Could not build the import template: " + e.getMessage());
+        }
+    }
+
+    /** Append a stock-movement journal row (signed delta in attr2, resulting balance in attr3). */
+    private void logStock(Long siteId, Long itemId, Long catId, String type,
+                          BigDecimal delta, BigDecimal balance, String reason) {
+        txnLogRepository.save(TransactionLog.builder()
+            .siteId(siteId)
+            .itemId(itemId)
+            .catId(catId)
+            .transactionType(type)
+            .attribute2(delta == null ? "0" : delta.toPlainString())
+            .attribute3(balance == null ? null : balance.toPlainString())
+            .reason(reason)
+            .build());
+    }
+
+    private static String firstOr(List<String> values, String fallback) {
+        return values.isEmpty() ? fallback : values.get(0);
     }
 
     private static Map<String, Integer> headerIndex(Row header) {

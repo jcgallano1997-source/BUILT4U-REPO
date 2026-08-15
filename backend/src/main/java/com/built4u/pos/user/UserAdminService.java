@@ -1,5 +1,6 @@
 package com.built4u.pos.user;
 
+import com.built4u.pos.auth.AuthUtils;
 import com.built4u.pos.auth.RefreshTokenRepository;
 import com.built4u.pos.common.exception.BadRequestException;
 import com.built4u.pos.common.exception.ConflictException;
@@ -40,7 +41,10 @@ public class UserAdminService {
     @Transactional(readOnly = true)
     public List<UserSummaryDto> list(String search, boolean includeInactive) {
         String needle = search == null ? "" : search.toLowerCase().trim();
+        boolean admin = AuthUtils.isCurrentUserAdmin();
         return userRepository.findAllByOrderByUsernameAsc().stream()
+            // IT/admin accounts are invisible to everyone but another admin.
+            .filter(u -> admin || u.getRoles().stream().noneMatch(Role::isWildcard))
             .filter(u -> includeInactive || u.isActive())
             .filter(u -> needle.isEmpty()
                 || u.getUsername().toLowerCase().contains(needle)
@@ -52,7 +56,12 @@ public class UserAdminService {
 
     @Transactional(readOnly = true)
     public UserDetailDto get(Long id) {
-        return toDetail(loadUser(id));
+        User u = loadUser(id);
+        // Don't let a non-admin open an IT/admin account (even by guessing the id).
+        if (!AuthUtils.isCurrentUserAdmin() && u.getRoles().stream().anyMatch(Role::isWildcard)) {
+            throw new NotFoundException("User " + id + " not found");
+        }
+        return toDetail(u);
     }
 
     @Transactional
@@ -146,7 +155,9 @@ public class UserAdminService {
 
     @Transactional(readOnly = true)
     public List<RoleDto> listRoles() {
+        boolean admin = AuthUtils.isCurrentUserAdmin();
         return roleRepository.findAll().stream()
+            .filter(r -> admin || !r.isWildcard())   // hide the ADMIN role from non-admins
             .sorted(Comparator.comparing(Role::getCode))
             .map(r -> new RoleDto(r.getId(), r.getCode(), r.getName(), r.getDescription()))
             .toList();
@@ -171,10 +182,15 @@ public class UserAdminService {
         if (codes == null || codes.isEmpty()) {
             throw new BadRequestException("At least one role is required");
         }
+        boolean admin = AuthUtils.isCurrentUserAdmin();
         Set<Role> result = new HashSet<>();
         for (String code : codes) {
             Role r = roleRepository.findByCode(code.trim())
                 .orElseThrow(() -> new BadRequestException("Unknown role code: " + code));
+            // A non-admin must never be able to grant the IT/admin role.
+            if (!admin && r.isWildcard()) {
+                throw new BadRequestException("You are not allowed to assign the ADMIN role.");
+            }
             result.add(r);
         }
         return result;

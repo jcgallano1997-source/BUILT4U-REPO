@@ -33,7 +33,7 @@ export default function UomsPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="flex items-center gap-2 text-xl font-semibold text-slate-800">
-          <Ruler size={18} className="text-indigo-600" /> Units of measure
+          <Ruler size={18} className="text-blue-600" /> Units of measure
         </h1>
         <button className={btnPrimary} onClick={() => setAdding(true)}><Plus size={16} /> New unit</button>
       </div>
@@ -55,7 +55,7 @@ export default function UomsPage() {
                   <td className="px-4 py-2 font-medium text-slate-700">{u.uom}</td>
                   <td className="px-4 py-2"><span className={u.active ? 'text-emerald-600' : 'text-slate-400'}>{u.active ? 'Active' : 'Inactive'}</span></td>
                   <td className="px-4 py-2 text-right">
-                    <button className="text-indigo-600 hover:underline" onClick={() => toggle(u)}>{u.active ? 'Deactivate' : 'Reactivate'}</button>
+                    <button className="text-blue-600 hover:underline" onClick={() => toggle(u)}>{u.active ? 'Deactivate' : 'Reactivate'}</button>
                   </td>
                 </tr>
               ))}

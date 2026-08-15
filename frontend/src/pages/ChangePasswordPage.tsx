@@ -53,7 +53,7 @@ export default function ChangePasswordPage() {
   return (
     <div className="max-w-sm mx-auto">
       <div className="mb-4 flex items-center gap-2 text-slate-800">
-        <KeyRound size={18} className="text-indigo-600" />
+        <KeyRound size={18} className="text-blue-600" />
         <h1 className="text-lg font-semibold">Change password</h1>
       </div>
 
@@ -76,7 +76,7 @@ export default function ChangePasswordPage() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-60"
+          className="w-full rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
         >
           {isSubmitting ? 'Saving…' : 'Update password'}
         </button>
@@ -86,7 +86,7 @@ export default function ChangePasswordPage() {
 }
 
 const inputCls =
-  'w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+  'w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500'
 
 function Field({ label, error, children }: { label: string; error?: string; children: ReactNode }) {
   return (

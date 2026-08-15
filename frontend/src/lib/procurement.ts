@@ -91,7 +91,7 @@ export interface GoodsReceipt {
   createdBy: string
   lines: GrLine[]
 }
-export interface CreateGrLine { itemId: number; quantity: number; unitCost?: number }
+export interface CreateGrLine { itemId: number; quantity: number; unitCost?: number; inPurchaseUnit?: boolean }
 export interface CreateGr { poNumber?: string; supplier?: string; reference?: string; remarks?: string; lines: CreateGrLine[] }
 
 export async function listGoodsReceipts(params?: { poNumber?: string; search?: string; source?: 'PO' | 'DIRECT' | '' }): Promise<GoodsReceipt[]> {

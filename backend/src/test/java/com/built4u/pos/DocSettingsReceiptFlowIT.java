@@ -59,16 +59,28 @@ class DocSettingsReceiptFlowIT {
     void branding_savesReadsBack_and_pdfsRender() throws Exception {
         loginAsAdmin();
 
-        String saved = mvc.perform(put("/api/admin/doc-settings").header("Authorization", auth)
+        // Identity section (DOC_SETTINGS)
+        String saved = mvc.perform(put("/api/admin/doc-settings/identity").header("Authorization", auth)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {"businessName":"Aling Nena Store","addressLine":"123 Rizal St","contactLine":"0917-000-0000",
-                     "tin":"123-456-789","footerNote":"BIR permit #42","accentColor":"#0F766E",
-                     "receiptTitle":"OFFICIAL RECEIPT","receiptFooter":"Salamat po!"}"""))
+                     "tin":"123-456-789"}"""))
             .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
         JsonNode d = json.readTree(saved);
         assertThat(d.get("businessName").asText()).isEqualTo("Aling Nena Store");
-        assertThat(d.get("accentColor").asText()).isEqualTo("#0F766E");
         assertThat(d.get("usingDefault").asBoolean()).isFalse();
+
+        // Report-PDF section (PDF_CONFIG)
+        String savedPdf = mvc.perform(put("/api/admin/doc-settings/pdf").header("Authorization", auth)
+                .contentType(MediaType.APPLICATION_JSON).content("""
+                    {"footerNote":"BIR permit #42","accentColor":"#0F766E"}"""))
+            .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        assertThat(json.readTree(savedPdf).get("accentColor").asText()).isEqualTo("#0F766E");
+
+        // Receipt section (RECEIPT_CONFIG)
+        mvc.perform(put("/api/admin/doc-settings/receipt").header("Authorization", auth)
+                .contentType(MediaType.APPLICATION_JSON).content("""
+                    {"receiptTitle":"OFFICIAL RECEIPT","receiptFooter":"Salamat po!"}"""))
+            .andExpect(status().isOk());
 
         JsonNode reread = getJson("/api/admin/doc-settings");
         assertThat(reread.get("receiptTitle").asText()).isEqualTo("OFFICIAL RECEIPT");

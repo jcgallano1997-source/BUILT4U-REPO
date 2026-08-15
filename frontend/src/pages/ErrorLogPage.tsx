@@ -45,7 +45,7 @@ export default function ErrorLogPage() {
               : rows.map((r) => (
                 <tr key={r.id} className="cursor-pointer hover:bg-slate-50" onClick={() => open(r.id)}>
                   <td className="px-4 py-2 text-slate-500">{new Date(r.occurredAt).toLocaleString()}</td>
-                  <td className="px-4 py-2 font-mono text-xs text-indigo-700">{r.ref}</td>
+                  <td className="px-4 py-2 font-mono text-xs text-blue-700">{r.ref}</td>
                   <td className="px-4 py-2 text-slate-600">{r.username ?? '—'}</td>
                   <td className="px-4 py-2 text-slate-500">{r.httpMethod} {r.requestPath}</td>
                   <td className="px-4 py-2 text-slate-600 truncate max-w-[18rem]">{r.message ?? r.exceptionClass}</td>

@@ -32,7 +32,7 @@ export default function PaymentModesPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="flex items-center gap-2 text-xl font-semibold text-slate-800">
-          <CreditCard size={18} className="text-indigo-600" /> Payment modes
+          <CreditCard size={18} className="text-blue-600" /> Payment modes
         </h1>
         <button className={btnPrimary} onClick={() => setEditing('new')}><Plus size={16} /> New mode</button>
       </div>
@@ -58,7 +58,7 @@ export default function PaymentModesPage() {
                   </td>
                   <td className="px-4 py-2"><span className={m.active ? 'text-emerald-600' : 'text-slate-400'}>{m.active ? 'Active' : 'Inactive'}</span></td>
                   <td className="px-4 py-2 text-right whitespace-nowrap">
-                    <button className="text-indigo-600 hover:underline" onClick={() => setEditing(m)}>Edit</button>
+                    <button className="text-blue-600 hover:underline" onClick={() => setEditing(m)}>Edit</button>
                     <button className="ml-3 inline-flex items-center gap-1 text-red-600 hover:underline" onClick={() => remove(m)}><Trash2 size={13} /> Delete</button>
                   </td>
                 </tr>

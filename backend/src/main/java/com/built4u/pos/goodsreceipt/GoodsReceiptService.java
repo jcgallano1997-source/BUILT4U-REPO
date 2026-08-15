@@ -164,24 +164,47 @@ public class GoodsReceiptService {
 
         for (var line : req.lines()) {
             Item item = items.get(line.itemId());
-            BigDecimal unitCost;
-            if (line.unitCost() != null) {
-                unitCost = line.unitCost();
-            } else if (poNumber != null && poLineByItemId.containsKey(line.itemId())) {
-                unitCost = poLineByItemId.get(line.itemId()).getUnitPrice();  // fall back to PO price
-            } else {
-                unitCost = item.getCostPrice() == null ? BigDecimal.ZERO : item.getCostPrice();
+
+            // Optional purchase-unit entry: convert qty & cost to BASE units. Only
+            // for direct (non-PO) receipts — a PO's remaining qty is tracked in base
+            // units, so PO-linked lines are always received in the base unit.
+            BigDecimal packSize = nz(item.getPackSize());
+            boolean inPurchaseUnit = Boolean.TRUE.equals(line.inPurchaseUnit());
+            if (inPurchaseUnit) {
+                if (poNumber != null) {
+                    throw new BadRequestException("Receive against a PO in the stock unit, not the purchase unit");
+                }
+                if (packSize.signum() <= 0) {
+                    throw new BadRequestException("Item '" + item.getItemCode()
+                        + "' has no purchase pack size configured");
+                }
             }
-            BigDecimal sub = unitCost.multiply(line.quantity());
+
+            BigDecimal enteredUnitCost;
+            if (line.unitCost() != null) {
+                enteredUnitCost = line.unitCost();
+            } else if (poNumber != null && poLineByItemId.containsKey(line.itemId())) {
+                enteredUnitCost = poLineByItemId.get(line.itemId()).getUnitPrice();  // fall back to PO price (base unit)
+            } else {
+                enteredUnitCost = nz(item.getCostPrice());
+            }
+
+            // Amount paid is qty × cost in the entered unit; derive the per-base-unit
+            // cost so stock, moving-average, and the GR row all stay in base units.
+            BigDecimal sub = enteredUnitCost.multiply(line.quantity());
+            BigDecimal recvQty = inPurchaseUnit ? line.quantity().multiply(packSize) : line.quantity();
+            BigDecimal unitCost = inPurchaseUnit
+                ? sub.divide(recvQty, 2, java.math.RoundingMode.HALF_UP)
+                : enteredUnitCost;
             grand = grand.add(sub);
 
-            // 1. Insert the GR row.
+            // 1. Insert the GR row (in base units).
             GoodsReceiptItem grRow = GoodsReceiptItem.builder()
                 .siteId(siteId)
                 .grNumber(grNumber)
                 .itemId(line.itemId())
                 .itemDesc(item.getItemDesc())
-                .quantity(line.quantity())
+                .quantity(recvQty)
                 .uom(item.getUom())
                 .reference(blankToNull(req.reference()))
                 .poNumber(poNumber)
@@ -192,14 +215,27 @@ public class GoodsReceiptService {
                 .build();
             grRepository.save(grRow);
 
-            // 2. Bump item stock + refresh cost price.
-            BigDecimal newQty = (item.getQuantity() == null ? BigDecimal.ZERO : item.getQuantity())
-                .add(line.quantity());
+            // 2. Bump item stock + recompute the MOVING-AVERAGE cost.
+            //    newCost = (oldQty·oldCost + recvQty·recvCost) / (oldQty + recvQty).
+            //    When there's no positive on-hand to average into, the receipt price
+            //    simply becomes the new cost basis.
+            BigDecimal oldQty = nz(item.getQuantity());
+            BigDecimal oldCost = nz(item.getCostPrice());
+            BigDecimal newQty = oldQty.add(recvQty);
+            BigDecimal newCost = oldQty.signum() <= 0 ? unitCost
+                : oldQty.multiply(oldCost).add(recvQty.multiply(unitCost))
+                    .divide(newQty, 2, java.math.RoundingMode.HALF_UP);
             item.setQuantity(newQty);
-            item.setCostPrice(unitCost);
+            item.setCostPrice(newCost);
             itemRepository.save(item);
 
-            // 3. Audit row.
+            // 3. Audit row (base units); note the purchase-unit entry when converted.
+            String note = blankToNull(req.remarks());
+            if (inPurchaseUnit) {
+                String conv = "Received " + line.quantity().toPlainString() + " "
+                    + item.getPurchaseUom() + " × " + packSize.toPlainString();
+                note = note == null ? conv : note + " · " + conv;
+            }
             TransactionLog tx = TransactionLog.builder()
                 .siteId(siteId)
                 .itemId(line.itemId())
@@ -207,9 +243,9 @@ public class GoodsReceiptService {
                 .transactionType(TransactionLog.TYPE_STOCK_IN_GR)
                 .attribute1(poNumber)
                 .attribute2(grNumber)
-                .attribute3(line.quantity().toPlainString())
+                .attribute3(recvQty.toPlainString())
                 .attribute4(unitCost.toPlainString())
-                .reason(blankToNull(req.remarks()))
+                .reason(note)
                 .build();
             txnLogRepository.save(tx);
         }
@@ -315,6 +351,10 @@ public class GoodsReceiptService {
 
     private static String nz(String s) {
         return s == null ? "" : s;
+    }
+
+    private static BigDecimal nz(BigDecimal v) {
+        return v == null ? BigDecimal.ZERO : v;
     }
 
     /** Lenient ISO date parse; blank/invalid → null (no filter). */

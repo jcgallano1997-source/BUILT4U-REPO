@@ -1,7 +1,9 @@
 package com.built4u.pos.shift;
 
+import com.built4u.pos.shift.dto.CashMovementDto;
 import com.built4u.pos.shift.dto.CloseShiftRequest;
 import com.built4u.pos.shift.dto.OpenShiftRequest;
+import com.built4u.pos.shift.dto.RecordCashMovementRequest;
 import com.built4u.pos.shift.dto.ShiftDto;
 import com.built4u.pos.shift.dto.ShiftSummaryDto;
 import jakarta.validation.Valid;
@@ -55,5 +57,18 @@ public class ShiftController {
     @PreAuthorize("hasAnyAuthority('MOD_SHIFTS','MOD_SHIFTS_ADMIN')")
     public ResponseEntity<ShiftDto> get(@PathVariable("shiftNumber") String shiftNumber) {
         return ResponseEntity.ok(shiftService.getShift(shiftNumber));
+    }
+
+    @PostMapping("/{shiftNumber}/cash-movement")
+    @PreAuthorize("hasAnyAuthority('MOD_SHIFTS','MOD_SHIFTS_ADMIN','MOD_POS')")
+    public ResponseEntity<ShiftDto> recordCashMovement(@PathVariable("shiftNumber") String shiftNumber,
+                                                       @Valid @RequestBody RecordCashMovementRequest req) {
+        return ResponseEntity.ok(shiftService.recordCashMovement(shiftNumber, req));
+    }
+
+    @GetMapping("/{shiftNumber}/cash-movements")
+    @PreAuthorize("hasAnyAuthority('MOD_SHIFTS','MOD_SHIFTS_ADMIN','MOD_POS')")
+    public ResponseEntity<List<CashMovementDto>> cashMovements(@PathVariable("shiftNumber") String shiftNumber) {
+        return ResponseEntity.ok(shiftService.listCashMovements(shiftNumber));
     }
 }

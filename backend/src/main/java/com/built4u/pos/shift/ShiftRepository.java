@@ -29,4 +29,20 @@ public interface ShiftRepository extends JpaRepository<Shift, ShiftId> {
 
     @Query("SELECT MAX(s.shiftNumber) FROM Shift s WHERE s.siteId = :siteId AND s.shiftNumber LIKE :prefix")
     String findMaxShiftNumberWithPrefix(@Param("siteId") Long siteId, @Param("prefix") String prefix);
+
+    /** Shift History report: filter by status / cashier-or-number search / opened-at window. */
+    @Query("""
+           SELECT s FROM Shift s
+           WHERE s.siteId = :siteId
+             AND (:status IS NULL OR s.status = :status)
+             AND (:pattern IS NULL OR LOWER(s.cashier) LIKE :pattern OR LOWER(s.shiftNumber) LIKE :pattern)
+             AND (:from IS NULL OR s.openedAt >= :from)
+             AND (:to IS NULL OR s.openedAt <= :to)
+           ORDER BY s.openedAt DESC
+           """)
+    List<Shift> searchForReport(@Param("siteId") Long siteId,
+                                @Param("status") String status,
+                                @Param("pattern") String pattern,
+                                @Param("from") java.time.LocalDateTime from,
+                                @Param("to") java.time.LocalDateTime to);
 }

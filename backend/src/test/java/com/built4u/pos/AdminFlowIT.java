@@ -46,7 +46,7 @@ class AdminFlowIT {
         // --- Sites: module meta + create + list ---
         mvc.perform(get("/api/admin/roles/_meta/modules").header("Authorization", auth))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$", hasSize(41)));
+            .andExpect(jsonPath("$", hasSize(45)));
 
         mvc.perform(post("/api/admin/sites").header("Authorization", auth)
                 .contentType(MediaType.APPLICATION_JSON)

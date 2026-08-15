@@ -47,7 +47,7 @@ export default function RolesPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="flex items-center gap-2 text-xl font-semibold text-slate-800">
-          <Shield size={18} className="text-indigo-600" /> Roles
+          <Shield size={18} className="text-blue-600" /> Roles
         </h1>
         <button className={btnPrimary} onClick={() => setEditing('new')}><Plus size={16} /> New role</button>
       </div>
@@ -75,7 +75,7 @@ export default function RolesPage() {
                   <td className="px-4 py-2 text-slate-500">{r.wildcard ? 'All modules' : `${r.moduleCodes.length} modules`}</td>
                   <td className="px-4 py-2 text-right">
                     {!r.wildcard && (
-                      <button className="text-indigo-600 hover:underline" onClick={() => setEditing(r)}>Edit</button>
+                      <button className="text-blue-600 hover:underline" onClick={() => setEditing(r)}>Edit</button>
                     )}
                     {!r.builtIn && (
                       <button className="ml-3 text-red-600 hover:underline inline-flex items-center gap-1" onClick={() => remove(r)}>
@@ -161,7 +161,7 @@ function RoleForm({
         <div>
           <div className="mb-1 flex items-center justify-between">
             <label className="text-sm font-medium text-slate-700">Modules ({selected.size})</label>
-            <button type="button" className="text-xs text-indigo-600 hover:underline"
+            <button type="button" className="text-xs text-blue-600 hover:underline"
               onClick={() => setSelected(new Set(modules.map((m) => m.code)))}>Select all</button>
           </div>
           <div className="grid max-h-72 grid-cols-1 gap-1 overflow-y-auto rounded-md border border-slate-200 p-2 sm:grid-cols-2">

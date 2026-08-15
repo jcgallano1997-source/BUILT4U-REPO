@@ -14,7 +14,7 @@ const STATUS_LABEL: Record<PoStatus, string> = {
   RECEIVED: 'Received', CANCELLED: 'Cancelled',
 }
 const statusColor: Record<PoStatus, string> = {
-  DRAFT: 'text-slate-500', APPROVED: 'text-indigo-600', PARTIALLY_RECEIVED: 'text-amber-600',
+  DRAFT: 'text-slate-500', APPROVED: 'text-blue-600', PARTIALLY_RECEIVED: 'text-amber-600',
   RECEIVED: 'text-emerald-600', CANCELLED: 'text-slate-400 line-through',
 }
 
@@ -51,7 +51,7 @@ export default function PurchaseOrdersPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="flex items-center gap-2 text-xl font-semibold text-slate-800">
-          <ClipboardCheck size={18} className="text-indigo-600" /> Purchase orders
+          <ClipboardCheck size={18} className="text-blue-600" /> Purchase orders
         </h1>
         <div className="flex items-center gap-2">
           <select className={`${inputCls} max-w-[12rem]`} value={status} onChange={(e) => setStatus(e.target.value as PoStatus | '')}>
@@ -79,7 +79,7 @@ export default function PurchaseOrdersPage() {
               : rows.length === 0 ? <tr><td colSpan={6} className="px-4 py-6 text-center text-slate-400">No purchase orders</td></tr>
               : rows.map((p) => (
                 <tr key={p.poNumber} className="cursor-pointer hover:bg-slate-50" onClick={() => open(p.poNumber)}>
-                  <td className="px-4 py-2 font-medium text-indigo-700">{p.poNumber}</td>
+                  <td className="px-4 py-2 font-medium text-blue-700">{p.poNumber}</td>
                   <td className="px-4 py-2 text-slate-600">{p.supplier}</td>
                   <td className="px-4 py-2 text-slate-500">{new Date(p.creationDate).toLocaleString()}</td>
                   <td className="px-4 py-2 text-right text-slate-500">{p.lineCount}</td>

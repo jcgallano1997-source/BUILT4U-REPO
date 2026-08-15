@@ -34,7 +34,7 @@ export default function LocationsPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="flex items-center gap-2 text-xl font-semibold text-slate-800">
-          <MapPin size={18} className="text-indigo-600" /> Locations
+          <MapPin size={18} className="text-blue-600" /> Locations
         </h1>
         <button className={btnPrimary} onClick={() => setEditing('new')}><Plus size={16} /> New location</button>
       </div>
@@ -57,7 +57,7 @@ export default function LocationsPage() {
                   <td className="px-4 py-2 text-slate-500">{l.capacity ?? '—'}</td>
                   <td className="px-4 py-2"><span className={l.active ? 'text-emerald-600' : 'text-slate-400'}>{l.active ? 'Active' : 'Inactive'}</span></td>
                   <td className="px-4 py-2 text-right whitespace-nowrap">
-                    <button className="text-indigo-600 hover:underline" onClick={() => setEditing(l)}>Edit</button>
+                    <button className="text-blue-600 hover:underline" onClick={() => setEditing(l)}>Edit</button>
                     {l.active && <button className="ml-3 inline-flex items-center gap-1 text-red-600 hover:underline" onClick={() => remove(l)}><Trash2 size={13} /> Deactivate</button>}
                   </td>
                 </tr>

@@ -20,6 +20,9 @@ public record CreateGoodsReceiptRequest(
     public record Line(
         @NotNull            Long itemId,
         @NotNull @Positive  BigDecimal quantity,
-        @PositiveOrZero     BigDecimal unitCost
+        @PositiveOrZero     BigDecimal unitCost,
+        /** When true, quantity &amp; unitCost are in the item's purchase unit and are
+         *  converted to base units on receipt. Only allowed on direct (non-PO) GRs. */
+        Boolean inPurchaseUnit
     ) {}
 }

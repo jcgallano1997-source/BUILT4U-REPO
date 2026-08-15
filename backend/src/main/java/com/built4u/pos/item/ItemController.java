@@ -48,25 +48,25 @@ public class ItemController {
     }
 
     @PostMapping("/{id}/adjust")
-    @PreAuthorize("hasAnyAuthority('MOD_INVENTORY','MOD_STOCKTAKE')")
+    @PreAuthorize("hasAnyAuthority('MOD_INVENTORY_ADJUST','MOD_STOCKTAKE')")
     public ResponseEntity<ItemDto> adjust(@PathVariable("id") Long id, @Valid @RequestBody AdjustStockRequest req) {
         return ResponseEntity.ok(itemService.adjustStock(id, req));
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('MOD_INVENTORY')")
+    @PreAuthorize("hasAuthority('MOD_INVENTORY_CREATE')")
     public ResponseEntity<ItemDto> create(@Valid @RequestBody CreateItemRequest req) {
         return ResponseEntity.ok(itemService.create(req));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('MOD_INVENTORY')")
+    @PreAuthorize("hasAuthority('MOD_INVENTORY_EDIT')")
     public ResponseEntity<ItemDto> update(@PathVariable("id") Long id, @Valid @RequestBody UpdateItemRequest req) {
         return ResponseEntity.ok(itemService.update(id, req));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('MOD_INVENTORY')")
+    @PreAuthorize("hasAuthority('MOD_INVENTORY_EDIT')")
     public ResponseEntity<Void> delete(@PathVariable("id") Long id) {
         itemService.softDelete(id);
         return ResponseEntity.noContent().build();

@@ -5,9 +5,12 @@ import com.built4u.pos.common.exception.ConflictException;
 import com.built4u.pos.common.exception.NotFoundException;
 import com.built4u.pos.common.tenant.TenantContext;
 import com.built4u.pos.sale.ReturnItemRepository;
+import com.built4u.pos.sale.SalePaymentRepository;
 import com.built4u.pos.sale.SaleRepository;
+import com.built4u.pos.shift.dto.CashMovementDto;
 import com.built4u.pos.shift.dto.CloseShiftRequest;
 import com.built4u.pos.shift.dto.OpenShiftRequest;
+import com.built4u.pos.shift.dto.RecordCashMovementRequest;
 import com.built4u.pos.shift.dto.ShiftDto;
 import com.built4u.pos.shift.dto.ShiftSummaryDto;
 import lombok.RequiredArgsConstructor;
@@ -44,7 +47,10 @@ public class ShiftService {
 
     private final ShiftRepository shiftRepository;
     private final SaleRepository saleRepository;
+    private final SalePaymentRepository salePaymentRepository;
     private final ReturnItemRepository returnItemRepository;
+    private final CashMovementRepository cashMovementRepository;
+    private final ShiftDenominationRepository shiftDenominationRepository;
 
     @Transactional
     public ShiftDto openShift(OpenShiftRequest req) {
@@ -106,18 +112,36 @@ public class ShiftService {
         LocalDateTime from = shift.getOpenedAt();
         LocalDateTime to = LocalDateTime.now();
         Totals t = computeTotals(siteId, shift.getCashier(), from, to);
+        BigDecimal[] io = cashInOut(siteId, shiftNumber);
+        BigDecimal cashIn = io[0], cashOut = io[1];
 
-        BigDecimal expected = shift.getOpeningFloat().add(t.cashSales).subtract(t.cashRefunds);
-        BigDecimal variance = req.countedCash().subtract(expected);
+        // Counted cash: derive from the denomination tally when provided (typo-proof),
+        // else trust the declared amount. Store the tally either way.
+        BigDecimal counted = req.countedCash();
+        if (req.denominations() != null && !req.denominations().isEmpty()) {
+            counted = BigDecimal.ZERO;
+            for (CloseShiftRequest.DenomCount d : req.denominations()) {
+                counted = counted.add(d.denom().multiply(BigDecimal.valueOf(d.qty())));
+                if (d.qty() > 0) {
+                    shiftDenominationRepository.save(ShiftDenomination.builder()
+                        .siteId(siteId).shiftNumber(shiftNumber).denom(d.denom()).qty(d.qty()).build());
+                }
+            }
+        }
+
+        BigDecimal expected = shift.getOpeningFloat().add(t.cashSales).subtract(t.cashRefunds).add(cashIn).subtract(cashOut);
+        BigDecimal variance = counted.subtract(expected);
 
         shift.setStatus(ShiftStatus.CLOSED.name());
         shift.setClosedAt(to);
         shift.setClosedBy(actor);
-        shift.setCountedCash(req.countedCash());
+        shift.setCountedCash(counted);
         shift.setExpectedCash(expected);
         shift.setCashVariance(variance);
         shift.setCashSalesTotal(t.cashSales);
         shift.setCashRefundsTotal(t.cashRefunds);
+        shift.setCashInTotal(cashIn);
+        shift.setCashOutTotal(cashOut);
         shift.setNoncashGcashTotal(t.gcash);
         shift.setNoncashPaymayaTotal(t.paymaya);
         shift.setNoncashBankTotal(t.bankTransfer);
@@ -128,7 +152,7 @@ public class ShiftService {
         shiftRepository.save(shift);
 
         log.info("Shift {} closed by {}: expected={}, counted={}, variance={}, sales={}",
-            shiftNumber, actor, expected, req.countedCash(), variance, t.saleCount);
+            shiftNumber, actor, expected, counted, variance, t.saleCount);
         return toDto(shift);
     }
 
@@ -156,18 +180,64 @@ public class ShiftService {
         return toDto(shift);
     }
 
+    // ── Cash movements ──────────────────────────────────────────────────────────
+
+    @Transactional
+    public ShiftDto recordCashMovement(String shiftNumber, RecordCashMovementRequest req) {
+        Long siteId = TenantContext.requireSiteId();
+        String actor = currentUsername();
+        Shift shift = shiftRepository.findBySiteIdAndShiftNumber(siteId, shiftNumber)
+            .orElseThrow(() -> new NotFoundException("Shift " + shiftNumber + " not found"));
+        if (!ShiftStatus.OPEN.name().equals(shift.getStatus())) {
+            throw new BadRequestException("Shift " + shiftNumber + " is closed");
+        }
+        if (!shift.getCashier().equals(actor) && !hasManagerAuthority()) {
+            throw new AccessDeniedException("Only the shift's cashier or a manager can record cash movements");
+        }
+        cashMovementRepository.save(CashMovement.builder()
+            .siteId(siteId).shiftNumber(shiftNumber)
+            .direction(req.direction().trim().toUpperCase())
+            .amount(req.amount()).reason(blankToNull(req.reason())).build());
+        log.info("Cash {} of {} on shift {} by {} ({})", req.direction(), req.amount(), shiftNumber, actor, req.reason());
+        return getShift(shiftNumber);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CashMovementDto> listCashMovements(String shiftNumber) {
+        Long siteId = TenantContext.requireSiteId();
+        Shift shift = shiftRepository.findBySiteIdAndShiftNumber(siteId, shiftNumber)
+            .orElseThrow(() -> new NotFoundException("Shift " + shiftNumber + " not found"));
+        if (!shift.getCashier().equals(currentUsername()) && !hasManagerAuthority()) {
+            throw new AccessDeniedException("You can only view your own shift");
+        }
+        return cashMovementRepository.findBySiteIdAndShiftNumberOrderByCreationDateAsc(siteId, shiftNumber).stream()
+            .map(m -> new CashMovementDto(m.getMovementId(), m.getDirection(), m.getAmount(), m.getReason(),
+                m.getCreatedBy(), m.getCreationDate()))
+            .toList();
+    }
+
+    /** [cashIn, cashOut] recorded on a shift. */
+    private BigDecimal[] cashInOut(Long siteId, String shiftNumber) {
+        return new BigDecimal[]{
+            nz(cashMovementRepository.sumByShiftAndDirection(siteId, shiftNumber, CashMovement.IN)),
+            nz(cashMovementRepository.sumByShiftAndDirection(siteId, shiftNumber, CashMovement.OUT)),
+        };
+    }
+
     // ── internals ──────────────────────────────────────────────────────────────
 
     private record Totals(BigDecimal cashSales, BigDecimal cashRefunds, BigDecimal gcash, BigDecimal paymaya,
                           BigDecimal bankTransfer, BigDecimal cheque, BigDecimal charge, int saleCount) {}
 
     private Totals computeTotals(Long siteId, String cashier, LocalDateTime from, LocalDateTime to) {
-        BigDecimal cash = saleRepository.sumGrandTotalByCashierModeInWindow(siteId, cashier, "CASH", from, to);
-        BigDecimal gcash = saleRepository.sumGrandTotalByCashierModeInWindow(siteId, cashier, "GCASH", from, to);
-        BigDecimal paymaya = saleRepository.sumGrandTotalByCashierModeInWindow(siteId, cashier, "PAYMAYA", from, to);
-        BigDecimal bank = saleRepository.sumGrandTotalByCashierModeInWindow(siteId, cashier, "BANK TRANSFER", from, to);
-        BigDecimal cheque = saleRepository.sumGrandTotalByCashierModeInWindow(siteId, cashier, "CHEQUE", from, to);
-        BigDecimal charge = saleRepository.sumGrandTotalByCashierModeInWindow(siteId, cashier, "CHARGE", from, to);
+        // Aggregate applied tender amounts per mode (handles split tender — a single
+        // sale can contribute cash AND non-cash). Cash change is already excluded.
+        BigDecimal cash = salePaymentRepository.sumAppliedByCashierModeInWindow(siteId, cashier, "CASH", from, to);
+        BigDecimal gcash = salePaymentRepository.sumAppliedByCashierModeInWindow(siteId, cashier, "GCASH", from, to);
+        BigDecimal paymaya = salePaymentRepository.sumAppliedByCashierModeInWindow(siteId, cashier, "PAYMAYA", from, to);
+        BigDecimal bank = salePaymentRepository.sumAppliedByCashierModeInWindow(siteId, cashier, "BANK TRANSFER", from, to);
+        BigDecimal cheque = salePaymentRepository.sumAppliedByCashierModeInWindow(siteId, cashier, "CHEQUE", from, to);
+        BigDecimal charge = salePaymentRepository.sumAppliedByCashierModeInWindow(siteId, cashier, "CHARGE", from, to);
         BigDecimal refunds = returnItemRepository.sumRefundSubTotalByCashierInWindow(siteId, cashier, from, to);
         long count = saleRepository.countByCashierInWindow(siteId, cashier, from, to);
         return new Totals(nz(cash), nz(refunds), nz(gcash), nz(paymaya), nz(bank), nz(cheque), nz(charge), (int) count);
@@ -176,22 +246,24 @@ public class ShiftService {
     private ShiftDto toDto(Shift s) {
         if (ShiftStatus.OPEN.name().equals(s.getStatus())) {
             Totals t = computeTotals(s.getSiteId(), s.getCashier(), s.getOpenedAt(), LocalDateTime.now());
-            BigDecimal expected = s.getOpeningFloat().add(t.cashSales).subtract(t.cashRefunds);
+            BigDecimal[] io = cashInOut(s.getSiteId(), s.getShiftNumber());
+            BigDecimal expected = s.getOpeningFloat().add(t.cashSales).subtract(t.cashRefunds).add(io[0]).subtract(io[1]);
             return new ShiftDto(s.getShiftNumber(), s.getCashier(), s.getStatus(), s.getOpeningFloat(),
-                s.getOpenedAt(), null, null, t.cashSales, t.cashRefunds, expected, null, null,
+                s.getOpenedAt(), null, null, t.cashSales, t.cashRefunds, io[0], io[1], expected, null, null,
                 t.gcash, t.paymaya, t.bankTransfer, t.cheque, t.charge, t.saleCount, null, s.getCreationDate(), s.getCreatedBy());
         }
         return new ShiftDto(s.getShiftNumber(), s.getCashier(), s.getStatus(), s.getOpeningFloat(),
             s.getOpenedAt(), s.getClosedAt(), s.getClosedBy(), s.getCashSalesTotal(), s.getCashRefundsTotal(),
-            s.getExpectedCash(), s.getCountedCash(), s.getCashVariance(), s.getNoncashGcashTotal(),
-            s.getNoncashPaymayaTotal(), s.getNoncashBankTotal(), s.getNoncashChequeTotal(), s.getNoncashChargeTotal(),
-            s.getSaleCount(), s.getCloseNote(), s.getCreationDate(), s.getCreatedBy());
+            s.getCashInTotal(), s.getCashOutTotal(), s.getExpectedCash(), s.getCountedCash(), s.getCashVariance(),
+            s.getNoncashGcashTotal(), s.getNoncashPaymayaTotal(), s.getNoncashBankTotal(), s.getNoncashChequeTotal(),
+            s.getNoncashChargeTotal(), s.getSaleCount(), s.getCloseNote(), s.getCreationDate(), s.getCreatedBy());
     }
 
     private ShiftSummaryDto toSummary(Shift s) {
         if (ShiftStatus.OPEN.name().equals(s.getStatus())) {
             Totals t = computeTotals(s.getSiteId(), s.getCashier(), s.getOpenedAt(), LocalDateTime.now());
-            BigDecimal expected = s.getOpeningFloat().add(t.cashSales).subtract(t.cashRefunds);
+            BigDecimal[] io = cashInOut(s.getSiteId(), s.getShiftNumber());
+            BigDecimal expected = s.getOpeningFloat().add(t.cashSales).subtract(t.cashRefunds).add(io[0]).subtract(io[1]);
             return new ShiftSummaryDto(s.getShiftNumber(), s.getCashier(), s.getStatus(), s.getOpeningFloat(),
                 expected, null, null, s.getOpenedAt(), null, t.saleCount);
         }

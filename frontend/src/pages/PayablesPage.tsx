@@ -13,7 +13,7 @@ const STATUS_LABEL: Record<LedgerStatus, string> = {
   OPEN: 'Open', PARTIAL: 'Partial', PAID: 'Paid', CANCELLED: 'Cancelled',
 }
 const statusColor: Record<LedgerStatus, string> = {
-  OPEN: 'text-indigo-600', PARTIAL: 'text-amber-600', PAID: 'text-emerald-600', CANCELLED: 'text-slate-400 line-through',
+  OPEN: 'text-blue-600', PARTIAL: 'text-amber-600', PAID: 'text-emerald-600', CANCELLED: 'text-slate-400 line-through',
 }
 
 export default function PayablesPage() {
@@ -41,7 +41,7 @@ export default function PayablesPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="flex items-center gap-2 text-xl font-semibold text-slate-800">
-          <Landmark size={18} className="text-indigo-600" /> Accounts payable
+          <Landmark size={18} className="text-blue-600" /> Accounts payable
         </h1>
         <div className="flex items-center gap-2">
           <select className={`${inputCls} max-w-[9rem]`} value={source} onChange={(e) => setSource(e.target.value as PayableSource | '')}>

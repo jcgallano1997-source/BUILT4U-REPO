@@ -40,6 +40,17 @@ public interface SaleRepository extends JpaRepository<Sale, SaleId> {
                                     @Param("from") java.time.LocalDateTime from,
                                     @Param("to") java.time.LocalDateTime to);
 
+    /** All sales (any status) in a half-open window [from, to) — drives the Discounts &amp; Overrides audit. */
+    @Query("""
+           SELECT s FROM Sale s
+           WHERE s.siteId = :siteId
+             AND s.creationDate >= :from AND s.creationDate < :to
+           ORDER BY s.creationDate ASC
+           """)
+    List<Sale> findInRange(@Param("siteId") Long siteId,
+                           @Param("from") java.time.LocalDateTime from,
+                           @Param("to") java.time.LocalDateTime to);
+
     /** Sum of grand_total for a cashier's non-VOIDED sales of one mode in a window (shift reconc). */
     @Query("""
            SELECT COALESCE(SUM(s.grandTotal), 0) FROM Sale s
@@ -68,4 +79,16 @@ public interface SaleRepository extends JpaRepository<Sale, SaleId> {
                                 @Param("cashier") String cashier,
                                 @Param("from") LocalDateTime from,
                                 @Param("to") LocalDateTime to);
+
+    /** All of a cashier's sales in a shift window [from, to] — drives the Shift History report. */
+    @Query("""
+           SELECT s FROM Sale s
+           WHERE s.siteId = :siteId AND s.createdBy = :cashier
+             AND s.creationDate >= :from AND s.creationDate <= :to
+           ORDER BY s.creationDate ASC
+           """)
+    List<Sale> findByCashierInWindow(@Param("siteId") Long siteId,
+                                     @Param("cashier") String cashier,
+                                     @Param("from") LocalDateTime from,
+                                     @Param("to") LocalDateTime to);
 }

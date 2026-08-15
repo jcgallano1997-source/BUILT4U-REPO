@@ -1,10 +1,14 @@
 package com.built4u.pos.sale;
 
+import com.built4u.pos.auth.Modules;
+import com.built4u.pos.auth.PermissionService;
 import com.built4u.pos.common.exception.BadRequestException;
 import com.built4u.pos.common.exception.NotFoundException;
 import com.built4u.pos.common.tenant.TenantContext;
 import com.built4u.pos.customer.Customer;
 import com.built4u.pos.customer.CustomerRepository;
+import com.built4u.pos.user.User;
+import com.built4u.pos.user.UserRepository;
 import com.built4u.pos.item.Item;
 import com.built4u.pos.item.ItemRepository;
 import com.built4u.pos.loyalty.LoyaltyConfigService;
@@ -29,6 +33,9 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,6 +60,7 @@ public class SaleService {
 
     private final SaleRepository saleRepository;
     private final SaleItemRepository saleItemRepository;
+    private final SalePaymentRepository salePaymentRepository;
     private final ReturnItemRepository returnItemRepository;
     private final ItemRepository itemRepository;
     private final TransactionLogRepository txnLogRepository;
@@ -65,6 +73,9 @@ public class SaleService {
     private final LoyaltyConfigService loyaltyConfigService;
     private final LoyaltyLedgerService loyaltyLedgerService;
     private final LoyaltyLedgerRepository loyaltyLedgerRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final PermissionService permissionService;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -90,6 +101,7 @@ public class SaleService {
         BigDecimal total = BigDecimal.ZERO;
         BigDecimal totalDiscItem = BigDecimal.ZERO;
         List<SaleItem> saleItems = new ArrayList<>();
+        List<SaleItem> overriddenLines = new ArrayList<>();   // lines needing override authorization
         List<TransactionLog> logs = new ArrayList<>();
 
         for (CreateSaleRequest.Line l : ordered) {
@@ -100,7 +112,11 @@ public class SaleService {
             }
             BigDecimal qty = l.quantity();
             BigDecimal adj = l.adjustment() == null ? BigDecimal.ZERO : l.adjustment();
-            BigDecimal price = item.getSellingPrice();
+            // list_price = catalog price snapshot; unit_cost = price actually charged.
+            // A supplied unitPrice that differs from the catalog price is an override.
+            BigDecimal catalogPrice = item.getSellingPrice();
+            boolean priceOverridden = l.unitPrice() != null && l.unitPrice().compareTo(catalogPrice) != 0;
+            BigDecimal price = priceOverridden ? l.unitPrice() : catalogPrice;
             BigDecimal gross = price.multiply(qty);
             BigDecimal sub = gross.subtract(adj);
             if (sub.signum() < 0) {
@@ -115,16 +131,28 @@ public class SaleService {
             total = total.add(gross);
             totalDiscItem = totalDiscItem.add(adj);
 
-            saleItems.add(SaleItem.builder()
+            boolean lineChanged = priceOverridden || adj.signum() > 0;
+            SaleItem saleItem = SaleItem.builder()
                 .siteId(siteId).salesNumber(salesNumber).itemId(item.getItemId())
                 .itemDesc(item.getItemName()).quantity(qty).uom(item.getUom())
-                .unitCost(price).adjustment(adj).subTotal(sub).build());
+                .unitCost(price).listPrice(catalogPrice).unitCogs(nz(item.getCostPrice()))
+                .overrideReason(lineChanged ? blankToNull(l.overrideReason()) : null)
+                .adjustment(adj).subTotal(sub).build();
+            saleItems.add(saleItem);
+            if (lineChanged) overriddenLines.add(saleItem);
             logs.add(TransactionLog.builder()
                 .siteId(siteId).itemId(item.getItemId()).catId(item.getCatId())
                 .transactionType(TransactionLog.TYPE_STOCK_OUT_SALE)
                 .attribute1(salesNumber).attribute2(qty.negate().toPlainString())
                 .attribute3(newQty.toPlainString()).build());
         }
+
+        // Price overrides and line discounts need authorization: the cashier may
+        // self-authorize when they hold PRICE_OVERRIDE, otherwise a manager who
+        // holds it must approve (verified by password). The approver is stamped on
+        // each affected line for the Discounts & Overrides audit report.
+        String overrideApprover = resolveOverrideApprover(!overriddenLines.isEmpty(), req);
+        for (SaleItem si : overriddenLines) si.setApprovedBy(overrideApprover);
 
         BigDecimal userDiscountAll = req.discountAll() == null ? BigDecimal.ZERO : req.discountAll();
         BigDecimal subtotalForVoucher = total.subtract(totalDiscItem).subtract(userDiscountAll);
@@ -162,39 +190,88 @@ public class SaleService {
         }
         Long customerId = customer == null ? null : customer.getCustomerId();
 
-        // An accounts-receivable payment mode lets the sale go out on credit: the
-        // unpaid remainder becomes a receivable, so payment may be < grand total.
-        String modeCode = req.modeOfPayment().trim();
-        PaymentMode mode = paymentModeRepository.findBySiteIdAndCode(siteId, modeCode).orElse(null);
-        boolean isAr = mode != null && mode.isAccountsReceivable();
-        BigDecimal payment = req.payment();
-
+        // Payment: either split/multiple tender (paid methods only) or the legacy
+        // single mode (which supports accounts-receivable credit). Either way we
+        // record pos_sale_payment rows whose APPLIED amounts sum to grand total, so
+        // "sales by mode" and shift reconciliation aggregate cleanly.
+        String modeCode;
+        BigDecimal payment;              // money applied (cash change excluded)
         BigDecimal change;
         BigDecimal arBalance = BigDecimal.ZERO;
-        if (isAr) {
-            if (customer == null) {
-                throw new BadRequestException("A customer is required for a credit (accounts-receivable) sale");
-            }
-            if (payment.signum() < 0) {
-                throw new BadRequestException("Payment can't be negative");
-            }
-            arBalance = grandTotal.subtract(payment).max(BigDecimal.ZERO);   // unpaid → on account
-            change = payment.subtract(grandTotal).max(BigDecimal.ZERO);      // no change on credit
-            if (arBalance.signum() > 0 && customer.getCreditLimit() != null
-                    && customer.getCreditLimit().signum() > 0) {
-                BigDecimal outstanding = nz(receivableRepository.sumOpenBalanceByCustomer(siteId, customerId));
-                if (outstanding.add(arBalance).compareTo(customer.getCreditLimit()) > 0) {
-                    throw new BadRequestException("Credit limit ₱" + customer.getCreditLimit().toPlainString()
-                        + " exceeded — outstanding ₱" + outstanding.toPlainString()
-                        + " + this ₱" + arBalance.toPlainString());
+        PaymentMode arMode = null;
+        List<SalePayment> paymentRows = new ArrayList<>();
+        LocalDateTime now = LocalDateTime.now();
+        List<CreateSaleRequest.Tender> tenders = req.payments();
+
+        if (tenders != null && !tenders.isEmpty()) {
+            BigDecimal cashTendered = BigDecimal.ZERO, nonCash = BigDecimal.ZERO;
+            int cashCount = 0;
+            for (CreateSaleRequest.Tender t : tenders) {
+                String code = t.mode().trim();
+                PaymentMode pm = paymentModeRepository.findBySiteIdAndCode(siteId, code).orElse(null);
+                if (pm != null && pm.isAccountsReceivable()) {
+                    throw new BadRequestException("Split tender is for paid methods only — use the single credit flow for accounts-receivable.");
                 }
+                if (t.amount().signum() <= 0) throw new BadRequestException("Each tender amount must be greater than zero");
+                if ("CASH".equalsIgnoreCase(code)) { cashTendered = cashTendered.add(t.amount()); cashCount++; }
+                else nonCash = nonCash.add(t.amount());
             }
-        } else {
+            if (cashCount > 1) throw new BadRequestException("Enter cash as a single tender");
+            BigDecimal dueAfterNonCash = grandTotal.subtract(nonCash);
+            if (dueAfterNonCash.signum() < 0) throw new BadRequestException("Non-cash tenders exceed the amount due");
+            change = cashTendered.subtract(dueAfterNonCash).max(BigDecimal.ZERO);
+            BigDecimal cashApplied = cashTendered.subtract(change);
+            payment = cashApplied.add(nonCash);
             if (payment.compareTo(grandTotal) < 0) {
                 throw new BadRequestException("Payment " + payment.toPlainString()
                     + " is less than the amount due " + grandTotal.toPlainString());
             }
-            change = payment.subtract(grandTotal);
+            modeCode = tenders.size() == 1 ? tenders.get(0).mode().trim() : "SPLIT";
+            int seq = 1;
+            for (CreateSaleRequest.Tender t : tenders) {
+                String code = t.mode().trim();
+                boolean isCash = "CASH".equalsIgnoreCase(code);
+                paymentRows.add(SalePayment.builder()
+                    .siteId(siteId).salesNumber(salesNumber).seq(seq++).mode(code)
+                    .amount(isCash ? cashApplied : t.amount())
+                    .tendered(isCash ? cashTendered : t.amount())
+                    .changeDue(isCash ? change : BigDecimal.ZERO)
+                    .reference(blankToNull(t.reference())).creationDate(now).build());
+            }
+        } else {
+            modeCode = req.modeOfPayment().trim();
+            PaymentMode mode = paymentModeRepository.findBySiteIdAndCode(siteId, modeCode).orElse(null);
+            boolean isAr = mode != null && mode.isAccountsReceivable();
+            payment = req.payment();
+            if (isAr) {
+                if (customer == null) {
+                    throw new BadRequestException("A customer is required for a credit (accounts-receivable) sale");
+                }
+                if (payment.signum() < 0) throw new BadRequestException("Payment can't be negative");
+                arBalance = grandTotal.subtract(payment).max(BigDecimal.ZERO);   // unpaid → on account
+                change = payment.subtract(grandTotal).max(BigDecimal.ZERO);      // no change on credit
+                arMode = mode;
+                if (arBalance.signum() > 0 && customer.getCreditLimit() != null
+                        && customer.getCreditLimit().signum() > 0) {
+                    BigDecimal outstanding = nz(receivableRepository.sumOpenBalanceByCustomer(siteId, customerId));
+                    if (outstanding.add(arBalance).compareTo(customer.getCreditLimit()) > 0) {
+                        throw new BadRequestException("Credit limit ₱" + customer.getCreditLimit().toPlainString()
+                            + " exceeded — outstanding ₱" + outstanding.toPlainString()
+                            + " + this ₱" + arBalance.toPlainString());
+                    }
+                }
+            } else {
+                if (payment.compareTo(grandTotal) < 0) {
+                    throw new BadRequestException("Payment " + payment.toPlainString()
+                        + " is less than the amount due " + grandTotal.toPlainString());
+                }
+                change = payment.subtract(grandTotal);
+            }
+            // One row covering the whole grand total under this mode (preserves legacy by-mode totals).
+            paymentRows.add(SalePayment.builder()
+                .siteId(siteId).salesNumber(salesNumber).seq(1).mode(modeCode)
+                .amount(grandTotal).tendered(payment).changeDue(change)
+                .reference(blankToNull(req.reference())).creationDate(now).build());
         }
 
         Sale sale = Sale.builder()
@@ -206,14 +283,15 @@ public class SaleService {
             .build();
         saleRepository.save(sale);
         saleItemRepository.saveAll(saleItems);
+        salePaymentRepository.saveAll(paymentRows);
         txnLogRepository.saveAll(logs);
 
         // Credit sale → open a receivable for the unpaid balance.
-        if (isAr && arBalance.signum() > 0) {
-            LocalDate due = LocalDate.now().plusDays(mode.getArDueDays());
+        if (arMode != null && arBalance.signum() > 0) {
+            LocalDate due = LocalDate.now().plusDays(arMode.getArDueDays());
             receivableRepository.save(Receivable.builder()
                 .siteId(siteId).salesNumber(salesNumber).customerId(customerId)
-                .modeCode(mode.getCode()).originalAmount(arBalance)
+                .modeCode(arMode.getCode()).originalAmount(arBalance)
                 .amountPaid(BigDecimal.ZERO).balance(arBalance).dueDate(due)
                 .status(ReceivableStatus.OPEN.name()).build());
             log.info("Sale {} opened a receivable of {} for customer {} (due {})",
@@ -425,12 +503,17 @@ public class SaleService {
             .stream().map(si -> {
                 BigDecimal refunded = nz(returnItemRepository.sumRefundedQuantity(siteId, salesNumber, si.getItemId()));
                 return new SaleLineDto(si.getItemId(), si.getItemDesc(), si.getUom(), si.getQuantity(),
-                    si.getAdjustment(), si.getUnitCost(), si.getSubTotal(), refunded, si.getQuantity().subtract(refunded));
+                    si.getAdjustment(), si.getUnitCost(), si.getListPrice(), si.getUnitCogs(), si.getOverrideReason(),
+                    si.getApprovedBy(), si.getSubTotal(), refunded, si.getQuantity().subtract(refunded));
             }).toList();
+        List<PaymentLineDto> payments = salePaymentRepository
+            .findBySiteIdAndSalesNumberOrderBySeqAsc(siteId, salesNumber).stream()
+            .map(p -> new PaymentLineDto(p.getMode(), p.getAmount(), p.getTendered(), p.getChangeDue(), p.getReference()))
+            .toList();
         return new SaleDto(s.getSalesNumber(), s.getTotal(), s.getDiscountAll(), s.getTotalDiscItem(),
             s.getGrandTotal(), s.getPayment(), s.getChangeDue(), s.getModeOfPayment(),
             s.getCustomerId(), customerName(siteId, s.getCustomerId()), s.getReference(),
-            s.getStatus(), s.getReprintCount(), s.getCreationDate(), s.getCreatedBy(), lines);
+            s.getStatus(), s.getReprintCount(), s.getCreationDate(), s.getCreatedBy(), lines, payments);
     }
 
     private String customerName(Long siteId, Long customerId) {
@@ -470,6 +553,40 @@ public class SaleService {
             catch (NumberFormatException ignored) { }
         }
         return String.format("%s%04d", prefix, next);
+    }
+
+    /**
+     * Authorizes price overrides / line discounts and returns the approver's username.
+     * The cashier self-authorizes when they hold {@link Modules#PRICE_OVERRIDE};
+     * otherwise a manager holding that module must approve, verified by password.
+     */
+    private String resolveOverrideApprover(boolean needed, CreateSaleRequest req) {
+        if (!needed) return null;
+        if (permissionService.has(Modules.PRICE_OVERRIDE)) {
+            return currentUsername();   // cashier is allowed to override on their own
+        }
+        String approver = blankToNull(req.approvalUser());
+        String password = req.approvalPassword();
+        if (approver == null || password == null || password.isBlank()) {
+            throw new BadRequestException("Manager approval is required to override a price or apply a line discount");
+        }
+        User manager = userRepository.findByUsername(approver)
+            .orElseThrow(() -> new BadRequestException("Approver '" + approver + "' was not found"));
+        if (!manager.isActive()) {
+            throw new BadRequestException("Approver account is inactive");
+        }
+        if (!passwordEncoder.matches(password, manager.getPasswordHash())) {
+            throw new BadRequestException("Approver password is incorrect");
+        }
+        if (!permissionService.effectiveModules(manager).contains(Modules.PRICE_OVERRIDE)) {
+            throw new BadRequestException("'" + approver + "' is not authorized to approve overrides");
+        }
+        return manager.getUsername();
+    }
+
+    private static String currentUsername() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth == null ? null : auth.getName();
     }
 
     private static BigDecimal nz(BigDecimal v) { return v == null ? BigDecimal.ZERO : v; }

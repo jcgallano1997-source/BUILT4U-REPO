@@ -33,7 +33,7 @@ export default function PoApproversPage() {
   return (
     <div className="space-y-4">
       <h1 className="flex items-center gap-2 text-xl font-semibold text-slate-800">
-        <GitBranch size={18} className="text-indigo-600" /> PO approvers
+        <GitBranch size={18} className="text-blue-600" /> PO approvers
       </h1>
       <p className="text-sm text-slate-500">
         A user with no approver auto-approves their own purchase orders. Assign an approver to make their POs

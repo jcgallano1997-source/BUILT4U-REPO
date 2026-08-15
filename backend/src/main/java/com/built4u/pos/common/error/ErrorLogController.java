@@ -7,11 +7,12 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/** Read-only error-log API for in-app debugging (gated by {@code MOD_AUDIT_LOG}). */
+/** Read-only error-log API for in-app debugging. Gated by {@code MOD_ERROR_LOG},
+ *  which is admin/IT-only — the business OWNER role deliberately excludes it. */
 @RestController
 @RequestMapping("/api/admin/error-logs")
 @RequiredArgsConstructor
-@PreAuthorize("hasAuthority('MOD_AUDIT_LOG')")
+@PreAuthorize("hasAuthority('MOD_ERROR_LOG')")
 public class ErrorLogController {
 
     private final ErrorLogService service;

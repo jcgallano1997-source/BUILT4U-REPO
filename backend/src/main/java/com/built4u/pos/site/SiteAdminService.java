@@ -6,6 +6,7 @@ import com.built4u.pos.common.exception.NotFoundException;
 import com.built4u.pos.site.dto.CreateSiteRequest;
 import com.built4u.pos.site.dto.SiteSummaryDto;
 import com.built4u.pos.site.dto.UpdateSiteRequest;
+import com.built4u.pos.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,6 +29,7 @@ import java.util.List;
 public class SiteAdminService {
 
     private final SiteRepository siteRepository;
+    private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
     public List<SiteSummaryDto> list(String search, boolean includeInactive) {
@@ -61,6 +63,15 @@ public class SiteAdminService {
             .createdAt(LocalDateTime.now())
             .build();
         Site saved = siteRepository.save(s);
+
+        // The business OWNER supervises every site — auto-grant the master
+        // account access to each newly created site (no manual step needed).
+        userRepository.findByUsername("owner").ifPresent(owner -> {
+            owner.getSites().add(saved);
+            userRepository.save(owner);
+            log.info("Auto-linked owner account to new site {}", saved.getCode());
+        });
+
         log.info("Admin {} created site {} ({})", currentUsername(), saved.getCode(), saved.getName());
         return toSummary(saved);
     }

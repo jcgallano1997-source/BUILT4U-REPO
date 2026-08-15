@@ -42,6 +42,22 @@ public class SaleItem {
     @Column(name = "unit_cost", nullable = false)
     private BigDecimal unitCost;
 
+    /** Catalog selling price at sale time (snapshot). Equals {@code unitCost} when no price override. */
+    @Column(name = "list_price")
+    private BigDecimal listPrice;
+
+    /** Reason for a price override or line discount (nullable when neither). */
+    @Column(name = "override_reason", length = 255)
+    private String overrideReason;
+
+    /** Username that authorized the override/discount — the cashier if self-authorized, else the approving manager. */
+    @Column(name = "approved_by", length = 50)
+    private String approvedBy;
+
+    /** Moving-average cost of goods per unit, snapshot at sale time (for stable margin reporting). */
+    @Column(name = "unit_cogs")
+    private BigDecimal unitCogs;
+
     @Column(nullable = false)
     @Builder.Default
     private BigDecimal adjustment = BigDecimal.ZERO;

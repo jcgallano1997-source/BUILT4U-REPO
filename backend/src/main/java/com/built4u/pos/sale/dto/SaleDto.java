@@ -20,5 +20,6 @@ public record SaleDto(
     int reprintCount,
     LocalDateTime creationDate,
     String createdBy,
-    List<SaleLineDto> lines
+    List<SaleLineDto> lines,
+    List<PaymentLineDto> payments
 ) {}

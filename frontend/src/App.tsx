@@ -29,9 +29,11 @@ import VouchersPage from '@/pages/VouchersPage'
 import LoyaltyConfigPage from '@/pages/LoyaltyConfigPage'
 import LoyaltyRewardsPage from '@/pages/LoyaltyRewardsPage'
 import ReportsPage from '@/pages/ReportsPage'
+import ReportViewPage from '@/pages/ReportViewPage'
 import AuditLogPage from '@/pages/AuditLogPage'
 import ErrorLogPage from '@/pages/ErrorLogPage'
 import DocSettingsPage from '@/pages/DocSettingsPage'
+import ReportEmailPage from '@/pages/ReportEmailPage'
 
 function Protected({ children }: { children: ReactNode }) {
   return (
@@ -67,9 +69,11 @@ export default function App() {
       <Route path="/admin/loyalty-config" element={<Protected><LoyaltyConfigPage /></Protected>} />
       <Route path="/admin/loyalty-rewards" element={<Protected><LoyaltyRewardsPage /></Protected>} />
       <Route path="/reports" element={<Protected><ReportsPage /></Protected>} />
+      <Route path="/reports/:key" element={<Protected><ReportViewPage /></Protected>} />
       <Route path="/admin/audit-log" element={<Protected><AuditLogPage /></Protected>} />
       <Route path="/admin/error-log" element={<Protected><ErrorLogPage /></Protected>} />
       <Route path="/admin/doc-settings" element={<Protected><DocSettingsPage /></Protected>} />
+      <Route path="/admin/report-email" element={<Protected><ReportEmailPage /></Protected>} />
       <Route path="/admin/po-approvers" element={<Protected><PoApproversPage /></Protected>} />
       <Route path="/admin/payment-modes" element={<Protected><PaymentModesPage /></Protected>} />
       <Route path="/admin/sites" element={<Protected><SitesPage /></Protected>} />

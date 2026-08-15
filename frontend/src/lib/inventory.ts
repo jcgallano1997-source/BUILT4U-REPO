@@ -69,6 +69,8 @@ export interface Item {
   locId: number
   locationName: string | null
   uom: string
+  purchaseUom: string | null
+  packSize: number | null
   quantity: number
   sellingPrice: number
   costPrice: number | null
@@ -85,6 +87,8 @@ export interface ItemPayload {
   catId: number
   locId: number
   uom: string
+  purchaseUom?: string
+  packSize?: number
   quantity: number
   sellingPrice: number
   costPrice?: number

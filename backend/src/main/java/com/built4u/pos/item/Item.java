@@ -61,8 +61,17 @@ public class Item {
     @Column(name = "item_desc", length = 300)
     private String itemDesc;
 
+    /** Base unit — the item is stocked and sold in this unit. */
     @Column(nullable = false, length = 50)
     private String uom;
+
+    /** Optional purchase (buying) unit label, e.g. BOX. Null = buy in the base unit. */
+    @Column(name = "purchase_uom", length = 50)
+    private String purchaseUom;
+
+    /** Base units per purchase unit (e.g. 12 pcs per box). Null/≤0 = no conversion. */
+    @Column(name = "pack_size")
+    private BigDecimal packSize;
 
     @Column(name = "quantity", nullable = false)
     @Builder.Default
