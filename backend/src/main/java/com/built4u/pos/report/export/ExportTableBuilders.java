@@ -6,10 +6,15 @@ import com.built4u.pos.item.ItemDto;
 import com.built4u.pos.payable.dto.PayableDto;
 import com.built4u.pos.purchaseorder.dto.PurchaseOrderSummaryDto;
 import com.built4u.pos.receivable.dto.ReceivableDto;
+import com.built4u.pos.report.dto.CustomerPurchaseDto;
+import com.built4u.pos.report.dto.DeadStockDto;
 import com.built4u.pos.report.dto.DiscountOverrideDto;
 import com.built4u.pos.report.dto.InventoryMovementDto;
 import com.built4u.pos.report.dto.InventoryValuationDto;
+import com.built4u.pos.report.dto.ProfitMarginDto;
 import com.built4u.pos.report.dto.ReorderSuggestionDto;
+import com.built4u.pos.report.dto.SalesByCashierDto;
+import com.built4u.pos.report.dto.SalesByHourDto;
 import com.built4u.pos.report.dto.SalesDetailedDto;
 import com.built4u.pos.report.dto.SalesOverviewDto;
 import com.built4u.pos.report.dto.ShiftHistoryReportDto;
@@ -241,6 +246,65 @@ public final class ExportTableBuilders {
             rows, List.of(
                 d.itemCount() + " item(s) need reordering",
                 "Estimated reorder cost: " + d.totalSuggestedCost()));
+    }
+
+    public static ExportTable profitMargin(ProfitMarginDto d) {
+        List<List<Object>> rows = new ArrayList<>();
+        for (var r : d.rows()) {
+            rows.add(row(r.item(), r.category() == null ? "" : r.category(), r.qtySold(),
+                r.revenue(), r.cogs(), r.margin(), r.marginPct() + "%"));
+        }
+        return new ExportTable("Profit & Margin", List.of(range(d.from(), d.to())),
+            List.of("Item", "Category", "Qty sold", "Revenue", "Cost of goods", "Margin", "Margin %"),
+            rows, List.of(
+                "Revenue: " + d.totalRevenue() + "  ·  Cost of goods: " + d.totalCogs(),
+                "Gross margin: " + d.totalMargin() + "  (" + d.marginPct() + "%)"));
+    }
+
+    public static ExportTable salesByCashier(SalesByCashierDto d) {
+        List<List<Object>> rows = new ArrayList<>();
+        for (var r : d.rows()) {
+            rows.add(row(r.cashier(), r.saleCount(), r.gross(), r.discounts(), r.net(), r.avgSale()));
+        }
+        return new ExportTable("Sales by Cashier", List.of(range(d.from(), d.to())),
+            List.of("Cashier", "Sales", "Gross", "Discounts", "Net sales", "Avg sale"),
+            rows, List.of(d.rows().size() + " cashier(s)"));
+    }
+
+    public static ExportTable salesByHour(SalesByHourDto d) {
+        List<List<Object>> rows = new ArrayList<>();
+        for (var r : d.rows()) {
+            rows.add(row(r.hour(), r.saleCount(), r.net(), r.avgSale()));
+        }
+        return new ExportTable("Sales by Hour", List.of(range(d.from(), d.to())),
+            List.of("Hour", "Sales", "Net sales", "Avg sale"),
+            rows, List.of(d.rows().size() + " active hour(s)"));
+    }
+
+    public static ExportTable deadStock(DeadStockDto d) {
+        List<List<Object>> rows = new ArrayList<>();
+        for (var r : d.rows()) {
+            rows.add(row(r.code(), r.name(), r.category() == null ? "" : r.category(),
+                r.onHand(), r.uom(), r.unitCost(), r.stockValue(),
+                r.lastSold() == null ? "never" : r.lastSold(),
+                r.daysIdle() == null ? "—" : r.daysIdle(), r.bucket()));
+        }
+        return new ExportTable("Dead Stock", List.of("Idle at least " + d.minIdleDays() + " day(s)"),
+            List.of("Code", "Name", "Category", "On hand", "UOM", "Unit cost", "Stock value",
+                "Last sold", "Days idle", "Bucket"),
+            rows, List.of(
+                d.itemCount() + " slow/dead item(s)",
+                "Value tied up: " + d.totalIdleValue()));
+    }
+
+    public static ExportTable customerPurchases(CustomerPurchaseDto d) {
+        List<List<Object>> rows = new ArrayList<>();
+        for (var r : d.rows()) {
+            rows.add(row(r.customer(), r.saleCount(), r.totalSpent(), r.avgSale(), r.lastPurchase()));
+        }
+        return new ExportTable("Customer Purchases", List.of(range(d.from(), d.to())),
+            List.of("Customer", "Sales", "Total spent", "Avg sale", "Last purchase"),
+            rows, List.of(d.rows().size() + " customer(s)"));
     }
 
     public static ExportTable auditLog(List<AuditLogDto> list) {

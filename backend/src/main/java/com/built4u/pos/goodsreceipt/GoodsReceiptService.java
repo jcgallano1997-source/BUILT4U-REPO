@@ -161,6 +161,7 @@ public class GoodsReceiptService {
 
         String grNumber = nextGrNumber(siteId);
         BigDecimal grand = BigDecimal.ZERO;
+        List<GoodsReceiptDto.RepriceSuggestion> reprice = new ArrayList<>();
 
         for (var line : req.lines()) {
             Item item = items.get(line.itemId());
@@ -229,6 +230,19 @@ public class GoodsReceiptService {
             item.setCostPrice(newCost);
             itemRepository.save(item);
 
+            // Markup-preserving reprice suggestion when the average cost ROSE: keep the
+            // item's existing markup ratio (sellingPrice / oldCost) against the new cost.
+            BigDecimal sellingPrice = nz(item.getSellingPrice());
+            if (oldCost.signum() > 0 && sellingPrice.signum() > 0 && newCost.compareTo(oldCost) > 0) {
+                BigDecimal ratio = sellingPrice.divide(oldCost, 6, java.math.RoundingMode.HALF_UP);
+                BigDecimal suggested = newCost.multiply(ratio).setScale(2, java.math.RoundingMode.HALF_UP);
+                if (suggested.compareTo(sellingPrice) > 0) {
+                    reprice.add(new GoodsReceiptDto.RepriceSuggestion(
+                        item.getItemId(), item.getItemCode(), item.getItemName(),
+                        oldCost, newCost, sellingPrice, suggested));
+                }
+            }
+
             // 3. Audit row (base units); note the purchase-unit entry when converted.
             String note = blankToNull(req.remarks());
             if (inPurchaseUnit) {
@@ -283,7 +297,7 @@ public class GoodsReceiptService {
         }
 
         log.info("GR {} created with {} lines, grand_total={}", grNumber, req.lines().size(), grand);
-        return get(grNumber);
+        return get(grNumber).withReprice(reprice);
     }
 
     private String nextGrNumber(Long siteId) {
@@ -339,7 +353,8 @@ public class GoodsReceiptService {
                 grand,
                 first.getCreationDate(),
                 first.getCreatedBy(),
-                lines
+                lines,
+                List.of()
             ));
         }
         return out;

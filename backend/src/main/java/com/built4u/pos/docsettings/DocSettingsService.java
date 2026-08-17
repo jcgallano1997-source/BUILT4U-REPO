@@ -86,6 +86,15 @@ public class DocSettingsService {
         if (r.receiptShowCustomer() != null) d.setReceiptShowCustomer(r.receiptShowCustomer());
         if (r.receiptShowVoucher() != null) d.setReceiptShowVoucher(r.receiptShowVoucher());
         if (r.receiptFormat() != null) d.setReceiptFormat(oneOf(r.receiptFormat(), d.getReceiptFormat(), "THERMAL_80MM", "BOND_LETTER"));
+        // Network printer + drawer.
+        d.setReceiptPrinterHost(blankToNull(r.receiptPrinterHost()));
+        if (r.receiptPrinterPort() != null) {
+            int p = r.receiptPrinterPort();
+            if (p < 1 || p > 65535) throw new com.built4u.pos.common.exception.BadRequestException("Printer port must be 1–65535");
+            d.setReceiptPrinterPort(p);
+        }
+        if (r.receiptPrinterEnabled() != null) d.setReceiptPrinterEnabled(r.receiptPrinterEnabled());
+        if (r.openDrawerOnSale() != null) d.setOpenDrawerOnSale(r.openDrawerOnSale());
         return stamp(d);
     }
 

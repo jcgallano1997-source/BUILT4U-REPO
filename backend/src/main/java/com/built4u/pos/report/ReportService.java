@@ -5,10 +5,15 @@ import com.built4u.pos.customer.Customer;
 import com.built4u.pos.customer.CustomerRepository;
 import com.built4u.pos.item.ItemDto;
 import com.built4u.pos.item.ItemService;
+import com.built4u.pos.report.dto.CustomerPurchaseDto;
+import com.built4u.pos.report.dto.DeadStockDto;
 import com.built4u.pos.report.dto.DiscountOverrideDto;
 import com.built4u.pos.report.dto.InventoryMovementDto;
 import com.built4u.pos.report.dto.InventoryValuationDto;
+import com.built4u.pos.report.dto.ProfitMarginDto;
 import com.built4u.pos.report.dto.ReorderSuggestionDto;
+import com.built4u.pos.report.dto.SalesByCashierDto;
+import com.built4u.pos.report.dto.SalesByHourDto;
 import com.built4u.pos.report.dto.SalesDetailedDto;
 import com.built4u.pos.report.dto.SalesOverviewDto;
 import com.built4u.pos.report.dto.ShiftHistoryReportDto;
@@ -276,6 +281,183 @@ public class ReportService {
                 case "OUT_OF_STOCK" -> 0; case "CRITICAL" -> 1; default -> 2; })
             .thenComparing(r -> r.name() == null ? "" : r.name(), String.CASE_INSENSITIVE_ORDER));
         return new ReorderSuggestionDto(rows.size(), totalCost, rows);
+    }
+
+    /**
+     * Profit &amp; margin per item over a period, from the per-line moving-average
+     * cost snapshot (unit_cogs). Excludes VOIDED sales; sorted by margin, high→low.
+     */
+    @Transactional(readOnly = true)
+    public ProfitMarginDto profitMargin(LocalDate from, LocalDate to) {
+        long siteId = TenantContext.requireSiteId();
+        List<Sale> sales = saleRepository.findCompletedInRange(
+            siteId, from.atStartOfDay(), to.plusDays(1).atStartOfDay());
+
+        Map<Long, String> itemCategory = new HashMap<>();
+        Map<Long, String> itemName = new HashMap<>();
+        for (ItemDto it : inventorySnapshot()) { itemCategory.put(it.id(), it.categoryName()); itemName.put(it.id(), it.name()); }
+
+        // Per-item running [qty, revenue, cogs]; keep a fallback name from the sale line.
+        Map<Long, BigDecimal[]> agg = new LinkedHashMap<>();
+        Map<Long, String> fallbackName = new HashMap<>();
+        for (Sale s : sales) {
+            for (SaleItem si : saleItemRepository.findBySiteIdAndSalesNumberOrderByItemIdAsc(siteId, s.getSalesNumber())) {
+                BigDecimal qty = nz(si.getQuantity());
+                BigDecimal[] a = agg.computeIfAbsent(si.getItemId(),
+                    k -> new BigDecimal[]{ BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO });
+                a[0] = a[0].add(qty);
+                a[1] = a[1].add(nz(si.getSubTotal()));
+                a[2] = a[2].add(nz(si.getUnitCogs()).multiply(qty));
+                fallbackName.putIfAbsent(si.getItemId(), si.getItemDesc());
+            }
+        }
+
+        List<ProfitMarginDto.Row> rows = new ArrayList<>();
+        BigDecimal totRev = BigDecimal.ZERO, totCogs = BigDecimal.ZERO;
+        for (var e : agg.entrySet()) {
+            BigDecimal qty = e.getValue()[0], rev = e.getValue()[1], cogs = e.getValue()[2];
+            BigDecimal margin = rev.subtract(cogs);
+            String name = itemName.getOrDefault(e.getKey(), fallbackName.get(e.getKey()));
+            rows.add(new ProfitMarginDto.Row(name, itemCategory.get(e.getKey()), qty, rev, cogs, margin, pct(margin, rev)));
+            totRev = totRev.add(rev); totCogs = totCogs.add(cogs);
+        }
+        rows.sort((a, b) -> b.margin().compareTo(a.margin()));
+        BigDecimal totMargin = totRev.subtract(totCogs);
+        return new ProfitMarginDto(from, to, totRev, totCogs, totMargin, pct(totMargin, totRev), rows);
+    }
+
+    /** Completed sales grouped by cashier over a period (excludes VOIDED). */
+    @Transactional(readOnly = true)
+    public SalesByCashierDto salesByCashier(LocalDate from, LocalDate to) {
+        long siteId = TenantContext.requireSiteId();
+        List<Sale> sales = saleRepository.findCompletedInRange(
+            siteId, from.atStartOfDay(), to.plusDays(1).atStartOfDay());
+
+        Map<String, long[]> count = new LinkedHashMap<>();
+        Map<String, BigDecimal[]> money = new HashMap<>();  // [gross, discounts, net]
+        for (Sale s : sales) {
+            String cashier = s.getCreatedBy() == null || s.getCreatedBy().isBlank() ? "—" : s.getCreatedBy();
+            count.computeIfAbsent(cashier, k -> new long[1])[0]++;
+            BigDecimal[] m = money.computeIfAbsent(cashier, k -> new BigDecimal[]{ BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO });
+            m[0] = m[0].add(nz(s.getTotal()));
+            m[1] = m[1].add(nz(s.getTotalDiscItem())).add(nz(s.getDiscountAll()));
+            m[2] = m[2].add(nz(s.getGrandTotal()));
+        }
+        List<SalesByCashierDto.Row> rows = new ArrayList<>();
+        for (var e : count.entrySet()) {
+            long n = e.getValue()[0];
+            BigDecimal[] m = money.get(e.getKey());
+            rows.add(new SalesByCashierDto.Row(e.getKey(), n, m[0], m[1], m[2], avg(m[2], n)));
+        }
+        rows.sort((a, b) -> b.net().compareTo(a.net()));
+        return new SalesByCashierDto(from, to, rows);
+    }
+
+    /** Completed sales grouped by hour-of-day over a period (peak-hour analysis). */
+    @Transactional(readOnly = true)
+    public SalesByHourDto salesByHour(LocalDate from, LocalDate to) {
+        long siteId = TenantContext.requireSiteId();
+        List<Sale> sales = saleRepository.findCompletedInRange(
+            siteId, from.atStartOfDay(), to.plusDays(1).atStartOfDay());
+
+        long[] count = new long[24];
+        BigDecimal[] net = new BigDecimal[24];
+        java.util.Arrays.fill(net, BigDecimal.ZERO);
+        for (Sale s : sales) {
+            int h = s.getCreationDate() == null ? 0 : s.getCreationDate().getHour();
+            count[h]++;
+            net[h] = net[h].add(nz(s.getGrandTotal()));
+        }
+        List<SalesByHourDto.Row> rows = new ArrayList<>();
+        for (int h = 0; h < 24; h++) {
+            if (count[h] == 0) continue;
+            String label = String.format("%02d:00-%02d:00", h, (h + 1) % 24);
+            rows.add(new SalesByHourDto.Row(label, count[h], net[h], avg(net[h], count[h])));
+        }
+        return new SalesByHourDto(from, to, rows);
+    }
+
+    /**
+     * Dead / slow stock: active items with on-hand stock that last sold at least
+     * {@code minIdleDays} ago (or never). Value is at the current MA cost.
+     */
+    @Transactional(readOnly = true)
+    public DeadStockDto deadStock(int minIdleDays) {
+        long siteId = TenantContext.requireSiteId();
+        Map<Long, LocalDate> lastSold = new HashMap<>();
+        for (Object[] r : saleItemRepository.lastSoldPerItem(siteId)) {
+            if (r[1] != null) lastSold.put((Long) r[0], ((LocalDateTime) r[1]).toLocalDate());
+        }
+        LocalDate today = LocalDate.now();
+
+        List<DeadStockDto.Row> rows = new ArrayList<>();
+        BigDecimal totalValue = BigDecimal.ZERO;
+        for (ItemDto it : inventorySnapshot()) {
+            if (!it.active()) continue;
+            BigDecimal onHand = nz(it.quantity());
+            if (onHand.signum() <= 0) continue;
+            LocalDate ls = lastSold.get(it.id());
+            Integer daysIdle = ls == null ? null : (int) java.time.temporal.ChronoUnit.DAYS.between(ls, today);
+            if (daysIdle != null && daysIdle < minIdleDays) continue;
+            String bucket = daysIdle == null ? "NEVER" : daysIdle >= 90 ? "90+" : daysIdle >= 60 ? "60-89" : "30-59";
+            BigDecimal unitCost = nz(it.costPrice());
+            BigDecimal value = onHand.multiply(unitCost);
+            rows.add(new DeadStockDto.Row(it.code(), it.name(), it.categoryName(), onHand, it.uom(),
+                unitCost, value, ls == null ? null : ls.toString(), daysIdle, bucket));
+            totalValue = totalValue.add(value);
+        }
+        // Never-sold first, then most idle first.
+        rows.sort(java.util.Comparator
+            .comparing((DeadStockDto.Row r) -> r.daysIdle() == null ? Integer.MAX_VALUE : r.daysIdle())
+            .reversed());
+        return new DeadStockDto(minIdleDays, rows.size(), totalValue, rows);
+    }
+
+    /** Per-customer purchase summary over a period (walk-ins excluded), highest spend first. */
+    @Transactional(readOnly = true)
+    public CustomerPurchaseDto customerPurchases(LocalDate from, LocalDate to) {
+        long siteId = TenantContext.requireSiteId();
+        List<Sale> sales = saleRepository.findCompletedInRange(
+            siteId, from.atStartOfDay(), to.plusDays(1).atStartOfDay());
+
+        Map<Long, String> custName = new HashMap<>();
+        for (Customer c : customerRepository.findBySiteIdOrderByCustomerNameAsc(siteId)) {
+            custName.put(c.getCustomerId(), c.getCustomerName());
+        }
+
+        Map<Long, long[]> count = new LinkedHashMap<>();
+        Map<Long, BigDecimal> spent = new HashMap<>();
+        Map<Long, LocalDate> last = new HashMap<>();
+        for (Sale s : sales) {
+            Long cid = s.getCustomerId();
+            if (cid == null) continue;   // walk-in
+            count.computeIfAbsent(cid, k -> new long[1])[0]++;
+            spent.merge(cid, nz(s.getGrandTotal()), BigDecimal::add);
+            LocalDate d = s.getCreationDate() == null ? from : s.getCreationDate().toLocalDate();
+            last.merge(cid, d, (a, b) -> b.isAfter(a) ? b : a);
+        }
+        List<CustomerPurchaseDto.Row> rows = new ArrayList<>();
+        for (var e : count.entrySet()) {
+            long n = e.getValue()[0];
+            BigDecimal total = spent.get(e.getKey());
+            rows.add(new CustomerPurchaseDto.Row(
+                custName.getOrDefault(e.getKey(), "#" + e.getKey()), n, total, avg(total, n),
+                last.get(e.getKey()).toString()));
+        }
+        rows.sort((a, b) -> b.totalSpent().compareTo(a.totalSpent()));
+        return new CustomerPurchaseDto(from, to, rows);
+    }
+
+    /** Percent = part/whole × 100, one decimal; zero when whole is zero. */
+    private static BigDecimal pct(BigDecimal part, BigDecimal whole) {
+        if (whole == null || whole.signum() == 0) return BigDecimal.ZERO;
+        return part.multiply(BigDecimal.valueOf(100)).divide(whole, 1, java.math.RoundingMode.HALF_UP);
+    }
+
+    /** Average = total/count, two decimals; zero when count is zero. */
+    private static BigDecimal avg(BigDecimal total, long count) {
+        if (count <= 0) return BigDecimal.ZERO;
+        return nz(total).divide(BigDecimal.valueOf(count), 2, java.math.RoundingMode.HALF_UP);
     }
 
     /** Every stock movement in a period, normalized to a signed qty change per item. */

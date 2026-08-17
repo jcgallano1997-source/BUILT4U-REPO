@@ -35,6 +35,11 @@ export interface DocSettings {
   receiptShowCustomer: boolean
   receiptShowVoucher: boolean
   receiptFormat: string
+  // Network printer + drawer
+  receiptPrinterHost: string | null
+  receiptPrinterPort: number
+  receiptPrinterEnabled: boolean
+  openDrawerOnSale: boolean
   updatedBy: string | null
   updatedAt: string | null
 }
@@ -63,6 +68,11 @@ export interface SaveDocSettings {
   receiptShowCustomer?: boolean
   receiptShowVoucher?: boolean
   receiptFormat?: string
+  // Network printer + drawer
+  receiptPrinterHost?: string
+  receiptPrinterPort?: number
+  receiptPrinterEnabled?: boolean
+  openDrawerOnSale?: boolean
 }
 
 export async function getDocSettings(): Promise<DocSettings> {
@@ -106,6 +116,19 @@ export async function fetchDocLogoObjectUrl(): Promise<string | null> {
   } catch {
     return null
   }
+}
+
+/** Print a sale receipt to the site's network thermal printer (opens the drawer if configured). */
+export async function printSaleReceipt(salesNumber: string): Promise<void> {
+  await api.post(`/sales/${salesNumber}/print`)
+}
+/** Print a test slip + kick the drawer to confirm the printer is reachable. */
+export async function testPrinter(): Promise<void> {
+  await api.post('/printer/test')
+}
+/** Open the cash drawer without printing. */
+export async function openDrawer(): Promise<void> {
+  await api.post('/printer/open-drawer')
 }
 
 /** Fetch a sale's receipt PDF (with auth) and open it in a new tab. */

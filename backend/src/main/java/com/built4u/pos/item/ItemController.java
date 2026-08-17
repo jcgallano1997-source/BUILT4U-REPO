@@ -2,6 +2,7 @@ package com.built4u.pos.item;
 
 import com.built4u.pos.item.dto.AdjustStockRequest;
 import com.built4u.pos.item.dto.CreateItemRequest;
+import com.built4u.pos.item.dto.UpdateSellingPriceRequest;
 import com.built4u.pos.item.dto.UpdateItemRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -63,6 +64,14 @@ public class ItemController {
     @PreAuthorize("hasAuthority('MOD_INVENTORY_EDIT')")
     public ResponseEntity<ItemDto> update(@PathVariable("id") Long id, @Valid @RequestBody UpdateItemRequest req) {
         return ResponseEntity.ok(itemService.update(id, req));
+    }
+
+    /** Update just the selling price — used by the reprice-on-receive prompt. */
+    @PutMapping("/{id}/selling-price")
+    @PreAuthorize("hasAuthority('MOD_INVENTORY_EDIT')")
+    public ResponseEntity<ItemDto> updateSellingPrice(@PathVariable("id") Long id,
+                                                      @Valid @RequestBody UpdateSellingPriceRequest req) {
+        return ResponseEntity.ok(itemService.updateSellingPrice(id, req.sellingPrice()));
     }
 
     @DeleteMapping("/{id}")

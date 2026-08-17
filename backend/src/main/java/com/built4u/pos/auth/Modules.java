@@ -64,6 +64,10 @@ public final class Modules {
     public static final String PRICE_OVERRIDE        = "PRICE_OVERRIDE";
     public static final String DISCOUNTS_REPORT      = "DISCOUNTS_REPORT";
     public static final String REORDER_REPORT        = "REORDER_REPORT";
+    public static final String PROFIT_REPORT         = "PROFIT_REPORT";
+    public static final String SALES_ANALYTICS       = "SALES_ANALYTICS";
+    public static final String DEAD_STOCK_REPORT     = "DEAD_STOCK_REPORT";
+    public static final String CUSTOMER_REPORT       = "CUSTOMER_REPORT";
 
     /** Every module code. Order matches the catalog sort order. */
     public static final List<String> ALL = List.of(
@@ -76,7 +80,8 @@ public final class Modules {
         RECEIVABLES, GOODS_RECEIPTS_REPORT, PURCHASE_ORDERS_REPORT, AUDIT_LOG, ERROR_LOG,
         PAYABLES, STOCK_TRANSFER, STOCK_TRANSFER_POLICY,
         STOCK_TRANSFER_REPORT, SHIFT_HISTORY_REPORT, RECEIVABLES_REPORT, PAYABLES_REPORT,
-        DOC_SETTINGS, PO_APPROVERS, PRICE_OVERRIDE, DISCOUNTS_REPORT, REORDER_REPORT
+        DOC_SETTINGS, PO_APPROVERS, PRICE_OVERRIDE, DISCOUNTS_REPORT, REORDER_REPORT,
+        PROFIT_REPORT, SALES_ANALYTICS, DEAD_STOCK_REPORT, CUSTOMER_REPORT
     );
 
     /** Wildcard sentinel placed in the JWT {@code modules} claim for ADMIN. */

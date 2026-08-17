@@ -136,6 +136,73 @@ public class ReportController {
         return render(data, ExportTableBuilders.shiftHistoryDetail(data), format, "shift-history", email);
     }
 
+    @GetMapping("/profit-margin")
+    @PreAuthorize("hasAuthority('MOD_PROFIT_REPORT')")
+    public ResponseEntity<?> profitMargin(
+        @RequestParam(value = "from", required = false) String from,
+        @RequestParam(value = "to", required = false) String to,
+        @RequestParam(value = "format", required = false) String format,
+        @RequestParam(value = "email", defaultValue = "false") boolean email
+    ) throws IOException {
+        LocalDate toD = parse(to, LocalDate.now());
+        LocalDate fromD = parse(from, toD.minusDays(30));
+        var dto = reportService.profitMargin(fromD, toD);
+        return render(dto, ExportTableBuilders.profitMargin(dto), format, "profit-margin", email);
+    }
+
+    @GetMapping("/sales-by-cashier")
+    @PreAuthorize("hasAuthority('MOD_SALES_ANALYTICS')")
+    public ResponseEntity<?> salesByCashier(
+        @RequestParam(value = "from", required = false) String from,
+        @RequestParam(value = "to", required = false) String to,
+        @RequestParam(value = "format", required = false) String format,
+        @RequestParam(value = "email", defaultValue = "false") boolean email
+    ) throws IOException {
+        LocalDate toD = parse(to, LocalDate.now());
+        LocalDate fromD = parse(from, toD.minusDays(30));
+        var dto = reportService.salesByCashier(fromD, toD);
+        return render(dto, ExportTableBuilders.salesByCashier(dto), format, "sales-by-cashier", email);
+    }
+
+    @GetMapping("/sales-by-hour")
+    @PreAuthorize("hasAuthority('MOD_SALES_ANALYTICS')")
+    public ResponseEntity<?> salesByHour(
+        @RequestParam(value = "from", required = false) String from,
+        @RequestParam(value = "to", required = false) String to,
+        @RequestParam(value = "format", required = false) String format,
+        @RequestParam(value = "email", defaultValue = "false") boolean email
+    ) throws IOException {
+        LocalDate toD = parse(to, LocalDate.now());
+        LocalDate fromD = parse(from, toD.minusDays(30));
+        var dto = reportService.salesByHour(fromD, toD);
+        return render(dto, ExportTableBuilders.salesByHour(dto), format, "sales-by-hour", email);
+    }
+
+    @GetMapping("/dead-stock")
+    @PreAuthorize("hasAuthority('MOD_DEAD_STOCK_REPORT')")
+    public ResponseEntity<?> deadStock(
+        @RequestParam(value = "minIdleDays", defaultValue = "30") int minIdleDays,
+        @RequestParam(value = "format", required = false) String format,
+        @RequestParam(value = "email", defaultValue = "false") boolean email
+    ) throws IOException {
+        var dto = reportService.deadStock(Math.max(0, minIdleDays));
+        return render(dto, ExportTableBuilders.deadStock(dto), format, "dead-stock", email);
+    }
+
+    @GetMapping("/customer-purchases")
+    @PreAuthorize("hasAuthority('MOD_CUSTOMER_REPORT')")
+    public ResponseEntity<?> customerPurchases(
+        @RequestParam(value = "from", required = false) String from,
+        @RequestParam(value = "to", required = false) String to,
+        @RequestParam(value = "format", required = false) String format,
+        @RequestParam(value = "email", defaultValue = "false") boolean email
+    ) throws IOException {
+        LocalDate toD = parse(to, LocalDate.now());
+        LocalDate fromD = parse(from, toD.minusDays(30));
+        var dto = reportService.customerPurchases(fromD, toD);
+        return render(dto, ExportTableBuilders.customerPurchases(dto), format, "customer-purchases", email);
+    }
+
     @GetMapping("/reorder")
     @PreAuthorize("hasAuthority('MOD_REORDER_REPORT')")
     public ResponseEntity<?> reorderSuggestions(

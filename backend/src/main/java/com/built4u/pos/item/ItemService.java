@@ -170,6 +170,17 @@ public class ItemService {
             .build());
     }
 
+    /** Change only the selling price (reprice-on-receive prompt). */
+    @Transactional
+    public ItemDto updateSellingPrice(Long itemId, BigDecimal sellingPrice) {
+        Long siteId = TenantContext.requireSiteId();
+        Item i = itemRepository.findBySiteIdAndItemId(siteId, itemId)
+            .orElseThrow(() -> new NotFoundException("Item " + itemId + " not found"));
+        i.setSellingPrice(sellingPrice);
+        itemRepository.save(i);
+        return reloadDto(itemId);
+    }
+
     @Transactional
     public void softDelete(Long itemId) {
         Long siteId = TenantContext.requireSiteId();

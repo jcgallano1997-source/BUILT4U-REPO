@@ -5,7 +5,7 @@ import { btnPrimary, btnGhost, inputCls } from '@/components/Modal'
 import { useAuthStore } from '@/store/authStore'
 import {
   docErr, getDocSettings, saveDocIdentity, saveDocPdf, saveDocReceipt,
-  uploadDocLogo, deleteDocLogo, fetchDocLogoObjectUrl,
+  uploadDocLogo, deleteDocLogo, fetchDocLogoObjectUrl, testPrinter, openDrawer,
 } from '@/lib/docsettings'
 
 const DEFAULTS = {
@@ -16,6 +16,7 @@ const DEFAULTS = {
   showPageNumbers: true, showTimestamp: true, showPrintedBy: true,
   showLogoReceipt: false, receiptHeaderNote: '', receiptShowCashier: true,
   receiptShowCustomer: true, receiptShowVoucher: true, receiptFormat: 'THERMAL_80MM',
+  receiptPrinterHost: '', receiptPrinterPort: '9100', receiptPrinterEnabled: false, openDrawerOnSale: false,
 }
 
 /** Admin: branding + templating, split into independently-permissioned sections. */
@@ -50,6 +51,8 @@ export default function DocSettingsPage() {
         receiptHeaderNote: d.receiptHeaderNote ?? '', receiptShowCashier: d.receiptShowCashier,
         receiptShowCustomer: d.receiptShowCustomer, receiptShowVoucher: d.receiptShowVoucher,
         receiptFormat: d.receiptFormat,
+        receiptPrinterHost: d.receiptPrinterHost ?? '', receiptPrinterPort: String(d.receiptPrinterPort ?? 9100),
+        receiptPrinterEnabled: d.receiptPrinterEnabled, openDrawerOnSale: d.openDrawerOnSale,
       })
       setLogoUrl(d.hasLogo ? await fetchDocLogoObjectUrl() : null)
     } catch (e) { toast.error(docErr(e, 'Failed to load')) }
@@ -78,7 +81,12 @@ export default function DocSettingsPage() {
     receiptHeaderNote: f.receiptHeaderNote.trim() || undefined, showLogoReceipt: f.showLogoReceipt,
     receiptShowCashier: f.receiptShowCashier, receiptShowCustomer: f.receiptShowCustomer,
     receiptShowVoucher: f.receiptShowVoucher, receiptFormat: f.receiptFormat,
+    receiptPrinterHost: f.receiptPrinterHost.trim() || undefined,
+    receiptPrinterPort: Number(f.receiptPrinterPort) || 9100,
+    receiptPrinterEnabled: f.receiptPrinterEnabled, openDrawerOnSale: f.openDrawerOnSale,
   }))
+  const doTestPrint = () => run('printtest', async () => { await testPrinter() })
+  const doOpenDrawer = () => run('drawer', async () => { await openDrawer() })
 
   async function onLogoPick(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -175,6 +183,23 @@ export default function DocSettingsPage() {
                   <Chk label="Show customer" checked={f.receiptShowCustomer} onChange={(v) => set('receiptShowCustomer', v)} />
                   <Chk label="Show voucher" checked={f.receiptShowVoucher} onChange={(v) => set('receiptShowVoucher', v)} />
                 </div>
+              </div>
+              <div className="mt-1 space-y-3 rounded-md border border-slate-200 bg-slate-50/60 p-3">
+                <div className="text-sm font-medium text-slate-700">Network thermal printer &amp; cash drawer</div>
+                <p className="text-xs text-slate-500">Point at a LAN receipt printer (RAW/JetDirect, port 9100). The cash drawer plugs into the printer and opens on the print command.</p>
+                <div className="grid grid-cols-[1fr_7rem] gap-3">
+                  <F label="Printer host / IP"><input className={inputCls} value={f.receiptPrinterHost} onChange={(e) => set('receiptPrinterHost', e.target.value)} placeholder="192.168.1.50" /></F>
+                  <F label="Port"><input className={inputCls} type="number" value={f.receiptPrinterPort} onChange={(e) => set('receiptPrinterPort', e.target.value)} /></F>
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Chk label="Enable network receipt printing" checked={f.receiptPrinterEnabled} onChange={(v) => set('receiptPrinterEnabled', v)} />
+                  <Chk label="Open cash drawer when a sale prints" checked={f.openDrawerOnSale} onChange={(v) => set('openDrawerOnSale', v)} />
+                </div>
+                <div className="flex gap-2">
+                  <button className={btnGhost} disabled={saving !== null || !f.receiptPrinterHost.trim()} onClick={doTestPrint}>Test print</button>
+                  <button className={btnGhost} disabled={saving !== null || !f.receiptPrinterHost.trim()} onClick={doOpenDrawer}>Open drawer</button>
+                </div>
+                <p className="text-xs text-slate-400">Save first so the printer settings are stored, then test.</p>
               </div>
               <SaveBtn section="receipt" onClick={saveReceipt} />
             </section>

@@ -31,5 +31,11 @@ public record UpdateDocSettingsRequest(
     Boolean receiptShowCashier,
     Boolean receiptShowCustomer,
     Boolean receiptShowVoucher,
-    String receiptFormat
+    String receiptFormat,
+
+    // ── Network printer + drawer ─────────────────────────────────────────────
+    @Size(max = 100) String receiptPrinterHost,
+    Integer receiptPrinterPort,
+    Boolean receiptPrinterEnabled,
+    Boolean openDrawerOnSale
 ) {}

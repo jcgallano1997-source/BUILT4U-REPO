@@ -6,7 +6,7 @@ import {
   getSale, listSales, peso, posErr, refundSale, voidSale,
   type Sale, type SaleStatus, type SaleSummary,
 } from '@/lib/pos'
-import { docErr, openReceipt } from '@/lib/docsettings'
+import { docErr, openReceipt, printSaleReceipt } from '@/lib/docsettings'
 
 const statusColor: Record<SaleStatus, string> = {
   COMPLETED: 'text-emerald-600',
@@ -40,6 +40,10 @@ export default function SalesPage() {
   }
   async function printReceipt(num: string) {
     try { await openReceipt(num) } catch (e) { toast.error(docErr(e, 'Could not open receipt')) }
+  }
+  async function thermalPrint(num: string) {
+    try { await printSaleReceipt(num); toast.success('Sent to printer') }
+    catch (e) { toast.error(docErr(e, 'Could not print')) }
   }
 
   return (
@@ -119,7 +123,10 @@ export default function SalesPage() {
               <Row label="Change" value={peso(detail.change)} />
             </div>
             <div className="flex items-center justify-between pt-2">
-              <button className={btnGhost} onClick={() => printReceipt(detail.salesNumber)}><Printer size={14} /> Receipt</button>
+              <div className="flex gap-2">
+                <button className={btnGhost} onClick={() => printReceipt(detail.salesNumber)}><Receipt size={14} /> PDF</button>
+                <button className={btnGhost} onClick={() => thermalPrint(detail.salesNumber)}><Printer size={14} /> Print</button>
+              </div>
               {detail.status === 'COMPLETED' && (
                 <div className="flex gap-2">
                   <button className={`${btnGhost} text-red-600`} onClick={() => doVoid(detail.salesNumber)}><Ban size={14} /> Void</button>

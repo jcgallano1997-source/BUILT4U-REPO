@@ -2,10 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import type { ComponentType, ReactNode } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import {
-  AlertTriangle, ArrowLeftRight, BarChart3, ClipboardCheck, ClipboardList,
+  AlertTriangle, ArrowLeftRight, BarChart3, Boxes, ClipboardCheck, ClipboardList, Clock,
   CreditCard, FileBadge, Gift, GitBranch, History, Keyboard, KeyRound, Landmark, LayoutDashboard, LogOut, Mail, MapPin, Menu,
   Package, PackagePlus, Percent, Plus, Receipt, Route, Ruler, Shield, ShoppingCart, Sparkles, Store,
-  Tags, Ticket, Truck, UserRound, Users, Wallet, X,
+  Tags, Ticket, TrendingUp, Truck, UserRound, Users, Wallet, X,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/store/authStore'
@@ -47,6 +47,11 @@ const GROUPS: NavGroup[] = [
     { to: '/reports/inventory-valuation', label: 'Inventory valuation', icon: Tags, module: 'INVENTORY_VALUATION' },
     { to: '/reports/inventory-movement', label: 'Inventory movement', icon: ArrowLeftRight, module: 'INVENTORY_MOVEMENT' },
     { to: '/reports/reorder', label: 'Reorder suggestions', icon: AlertTriangle, module: 'REORDER_REPORT' },
+    { to: '/reports/dead-stock', label: 'Dead stock', icon: Boxes, module: 'DEAD_STOCK_REPORT' },
+    { to: '/reports/profit-margin', label: 'Profit & margin', icon: TrendingUp, module: 'PROFIT_REPORT' },
+    { to: '/reports/sales-by-cashier', label: 'Sales by cashier', icon: UserRound, module: 'SALES_ANALYTICS' },
+    { to: '/reports/sales-by-hour', label: 'Sales by hour', icon: Clock, module: 'SALES_ANALYTICS' },
+    { to: '/reports/customer-purchases', label: 'Customer purchases', icon: Users, module: 'CUSTOMER_REPORT' },
     { to: '/reports/shift-history', label: 'Shift history', icon: History, module: 'SHIFT_HISTORY_REPORT' },
     { to: '/reports/discounts-overrides', label: 'Discounts & overrides', icon: Percent, module: 'DISCOUNTS_REPORT' },
     { to: '/reports/goods-receipts', label: 'Goods receive', icon: PackagePlus, module: 'GOODS_RECEIPTS_REPORT' },

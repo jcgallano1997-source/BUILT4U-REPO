@@ -134,6 +134,26 @@ public class DocSettings {
     @Builder.Default
     private String receiptFormat = "THERMAL_80MM";
 
+    // ── Network receipt printer + cash drawer (per site) ─────────────────────
+    /** LAN printer host/IP; blank ⇒ network printing unavailable for this site. */
+    @Column(name = "receipt_printer_host", length = 100)
+    private String receiptPrinterHost;
+
+    @Column(name = "receipt_printer_port", nullable = false)
+    @Builder.Default
+    private Integer receiptPrinterPort = 9100;
+
+    @Column(name = "receipt_printer_enabled", nullable = false, length = 1)
+    @Convert(converter = YesNoConverter.class)
+    @Builder.Default
+    private Boolean receiptPrinterEnabled = false;
+
+    /** Kick the cash drawer when a sale receipt prints. */
+    @Column(name = "open_drawer_on_sale", nullable = false, length = 1)
+    @Convert(converter = YesNoConverter.class)
+    @Builder.Default
+    private Boolean openDrawerOnSale = false;
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 

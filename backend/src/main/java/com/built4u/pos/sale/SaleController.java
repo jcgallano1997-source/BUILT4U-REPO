@@ -5,6 +5,7 @@ import com.built4u.pos.sale.dto.RefundRequest;
 import com.built4u.pos.sale.dto.ReturnDto;
 import com.built4u.pos.sale.dto.SaleDto;
 import com.built4u.pos.sale.dto.SaleSummaryDto;
+import com.built4u.pos.printer.ReceiptPrintService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -24,6 +25,7 @@ public class SaleController {
 
     private final SaleService saleService;
     private final SaleReceiptPdfService receiptPdfService;
+    private final ReceiptPrintService receiptPrintService;
 
     @PostMapping
     @PreAuthorize("hasAuthority('MOD_POS')")
@@ -70,6 +72,14 @@ public class SaleController {
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PDF_VALUE)
             .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"receipt-" + salesNumber + ".pdf\"")
             .body(body);
+    }
+
+    /** Print the sale receipt to the site's network thermal printer (opens the drawer if configured). */
+    @PostMapping("/{salesNumber}/print")
+    @PreAuthorize("hasAnyAuthority('MOD_SALES','MOD_POS')")
+    public ResponseEntity<Void> print(@PathVariable("salesNumber") String salesNumber) {
+        receiptPrintService.printReceipt(salesNumber);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/returns/{returnNumber}")

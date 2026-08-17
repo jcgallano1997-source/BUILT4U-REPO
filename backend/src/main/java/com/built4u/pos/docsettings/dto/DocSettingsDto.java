@@ -38,6 +38,12 @@ public record DocSettingsDto(
     boolean receiptShowVoucher,
     String receiptFormat,
 
+    // ── Network printer + drawer ─────────────────────────────────────────────
+    String receiptPrinterHost,
+    int receiptPrinterPort,
+    boolean receiptPrinterEnabled,
+    boolean openDrawerOnSale,
+
     String updatedBy,
     LocalDateTime updatedAt
 ) {
@@ -53,6 +59,8 @@ public record DocSettingsDto(
             Boolean.TRUE.equals(d.getShowLogoReceipt()), d.getReceiptHeaderNote(),
             Boolean.TRUE.equals(d.getReceiptShowCashier()), Boolean.TRUE.equals(d.getReceiptShowCustomer()),
             Boolean.TRUE.equals(d.getReceiptShowVoucher()), d.getReceiptFormat(),
+            d.getReceiptPrinterHost(), d.getReceiptPrinterPort() == null ? 9100 : d.getReceiptPrinterPort(),
+            Boolean.TRUE.equals(d.getReceiptPrinterEnabled()), Boolean.TRUE.equals(d.getOpenDrawerOnSale()),
             d.getUpdatedBy(), d.getUpdatedAt());
     }
 }

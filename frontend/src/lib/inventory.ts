@@ -123,3 +123,8 @@ export async function adjustStock(id: number, body: { delta: number; reason: str
   const { data } = await api.post<Item>(`/items/${id}/adjust`, body)
   return data
 }
+/** Update just the selling price (reprice-on-receive prompt). */
+export async function updateSellingPrice(id: number, sellingPrice: number): Promise<Item> {
+  const { data } = await api.put<Item>(`/items/${id}/selling-price`, { sellingPrice })
+  return data
+}

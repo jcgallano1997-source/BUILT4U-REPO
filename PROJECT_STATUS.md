@@ -4,7 +4,7 @@
 > the checkboxes as phases complete. Committed to git so it survives across sessions
 > (if the chat/token context is lost, read this first).
 >
-> Last updated: **2026-08-15** · Current position: **Phase 14 deploy artifacts DONE (awaiting owner Render deploy); post-launch enhancements #2 & #3 shipped — see §5**
+> Last updated: **2026-08-15** · Current position: **Phase 14 deploy artifacts DONE (awaiting owner Render deploy); post-launch enhancements #2, #3, and most of #4 shipped — see §5. Migrations now V1–V26.**
 
 ---
 
@@ -227,6 +227,10 @@ From an assessment of gaps in the POS. Numbering kept from that review.
   - Moving-average costing (V22; running weighted-avg cost on receipt; `unit_cogs` snapshot per sale line; **Cost + Margin** columns in Sales → Detail)
   - **Reorder Suggestions** report (V23; `REORDER_REPORT` module)
   - Purchase-UOM conversions — buy-by-box / sell-by-piece (V24; `purchase_uom` + `pack_size` on items; converted at direct goods receipt)
+- **#4 (partial) — hardware + analytics:**
+  - Direct hardware: **network ESC/POS thermal printing + cash-drawer kick** (V25; per-site printer host/port/enable/open-drawer on `pos_doc_settings`; `printer` package; Print button on Sales; Test print / Open drawer in Doc settings; encoder + transport unit-tested with a loopback socket)
+  - Analytics reports (V26): **Profit & Margin**, **Sales by Cashier**, **Sales by Hour**, **Dead Stock**, **Customer Purchases** (`PROFIT_REPORT`, `SALES_ANALYTICS`, `DEAD_STOCK_REPORT`, `CUSTOMER_REPORT` modules)
+  - Receiving hardening: searchable **registered-supplier** picker + mandatory Supplier/Reference/Unit-cost; **reprice-on-receive** — when the moving-average cost rises, prompt a markup-preserving new selling price per item (`PUT /items/{id}/selling-price`)
 
 ### ⬜ Open items
 - [ ] **#1 — BIR / PH tax compliance** *(biggest gap; legally required for a real PH store; should be switchable on/off since not every business is VAT-registered)*
@@ -234,10 +238,8 @@ From an assessment of gaps in the POS. Numbering kept from that review.
   - Senior Citizen & PWD discounts (20% + VAT exemption, ID/name capture logged for BIR)
   - Z-reading / X-reading (accumulated grand total, reset counter, non-resettable series)
   - Official-Receipt essentials (permit/accreditation numbers, OR series, "This serves as your Official Receipt")
-- [ ] **#4 — Reliability & nice-to-haves**
+- [ ] **#4 (remaining) — Reliability**
   - Offline mode (keep selling when the internet drops)
-  - Direct hardware: ESC/POS thermal printing + cash-drawer kick (currently generates PDF receipts)
-  - Profit-margin report (now feasible — COGS is captured), sales-by-hour / by-cashier, dead-stock aging, customer purchase history
 
 ---
 

@@ -80,6 +80,15 @@ export interface GrLine {
   supPrice: number
   subTotal: number
 }
+export interface RepriceSuggestion {
+  itemId: number
+  code: string
+  name: string
+  oldCost: number
+  newCost: number
+  sellingPrice: number
+  suggestedPrice: number
+}
 export interface GoodsReceipt {
   grNumber: string
   poNumber: string | null
@@ -90,6 +99,7 @@ export interface GoodsReceipt {
   creationDate: string
   createdBy: string
   lines: GrLine[]
+  repriceSuggestions?: RepriceSuggestion[]
 }
 export interface CreateGrLine { itemId: number; quantity: number; unitCost?: number; inPurchaseUnit?: boolean }
 export interface CreateGr { poNumber?: string; supplier?: string; reference?: string; remarks?: string; lines: CreateGrLine[] }
