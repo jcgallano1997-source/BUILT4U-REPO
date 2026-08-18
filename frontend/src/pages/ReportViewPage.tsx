@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Navigate, useParams } from 'react-router-dom'
-import { BarChart3, FileText, Mail, Search, Sheet } from 'lucide-react'
+import { BarChart3, FileText, Loader2, Mail, RefreshCw, Search, Sheet } from 'lucide-react'
 import { toast } from 'sonner'
-import { btnGhost, inputCls } from '@/components/Modal'
+import { btnGhost, btnPrimary, inputCls } from '@/components/Modal'
 import { useAuthStore } from '@/store/authStore'
 import { downloadReport, fetchReportJson, reportErr } from '@/lib/reports'
 import { emailReport, emailErr } from '@/lib/reportemail'
@@ -57,6 +57,16 @@ export default function ReportViewPage() {
   const [search, setSearch] = useState('')
   const [rows, setRows] = useState<Record<string, unknown>[]>([])
   const [loading, setLoading] = useState(false)
+  // The report is generated only when the report first opens and when the user
+  // clicks Generate — NOT on every date change — so tweaking filters no longer
+  // spams report generation. `runId` bumps to request a run; `dirty` flags filter
+  // changes the user hasn't generated yet.
+  const [runId, setRunId] = useState(0)
+  const [dirty, setDirty] = useState(false)
+  // Which export is in flight, so we can show a spinner and block re-clicks
+  // (PDF/Excel generation is server-side and takes a moment; without this the
+  // button looks dead and users click repeatedly, spamming generation).
+  const [busy, setBusy] = useState<'pdf' | 'xlsx' | 'email' | null>(null)
 
   useEffect(() => {
     if (!def) return
@@ -70,9 +80,12 @@ export default function ReportViewPage() {
         setRows(Array.isArray(arr) ? (arr as Record<string, unknown>[]) : [])
       })
       .catch((e) => { if (!cancelled) toast.error(reportErr(e, 'Failed to load report')) })
-      .finally(() => { if (!cancelled) setLoading(false) })
+      .finally(() => { if (!cancelled) { setLoading(false); setDirty(false) } })
     return () => { cancelled = true }
-  }, [def, from, to, asOf])
+    // Deliberately excludes from/to/asOf: a run happens on open (def) and on each
+    // Generate click (runId), reading the current filter values at that moment.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [def, runId])
 
   if (!def) return <Navigate to="/reports" replace />
   if (!modules.includes(def.module)) {
@@ -95,16 +108,23 @@ export default function ReportViewPage() {
     return def!.dated ? { from, to } : def!.asOf ? { asOf } : {}
   }
 
+  // Trigger a (re)generation with the currently selected filters.
+  function runReport() { setRunId((n) => n + 1) }
+
   async function dl(fmt: 'pdf' | 'xlsx') {
+    setBusy(fmt)
     try { await downloadReport(def!.report, fmt, currentParams()) }
     catch (e) { toast.error(reportErr(e, 'Download failed')) }
+    finally { setBusy(null) }
   }
 
   async function email() {
+    setBusy('email')
     try {
       await emailReport(def!.report, 'pdf', currentParams())
       toast.success('Report emailed to the configured recipient')
     } catch (e) { toast.error(emailErr(e, 'Email failed')) }
+    finally { setBusy(null) }
   }
 
   return (
@@ -118,27 +138,44 @@ export default function ReportViewPage() {
 
       <div className="rounded-2xl border border-slate-200/70 bg-white p-4">
         <div className="flex flex-wrap items-end justify-between gap-3">
-          {def.dated ? (
-            <div className="flex flex-wrap items-end gap-3">
-              <div><label className="mb-1 block text-xs text-slate-500">From</label><input className={`${inputCls} w-40`} type="date" value={from} max={to} onChange={(e) => setFrom(e.target.value)} /></div>
-              <div><label className="mb-1 block text-xs text-slate-500">To</label><input className={`${inputCls} w-40`} type="date" value={to} min={from} onChange={(e) => setTo(e.target.value)} /></div>
-              <div className="flex gap-1.5">
-                <button onClick={() => { setFrom(startOfMonthIso()); setTo(todayIso()) }} className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-[12.5px] font-medium text-slate-600 hover:bg-slate-50">This month</button>
+          <div className="flex flex-wrap items-end gap-3">
+            {def.dated ? (
+              <div className="flex flex-wrap items-end gap-3">
+                <div><label className="mb-1 block text-xs text-slate-500">From</label><input className={`${inputCls} w-40`} type="date" value={from} max={to} onChange={(e) => { setFrom(e.target.value); setDirty(true) }} /></div>
+                <div><label className="mb-1 block text-xs text-slate-500">To</label><input className={`${inputCls} w-40`} type="date" value={to} min={from} onChange={(e) => { setTo(e.target.value); setDirty(true) }} /></div>
+                <div className="flex gap-1.5">
+                  <button onClick={() => { setFrom(startOfMonthIso()); setTo(todayIso()); setDirty(true) }} className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-[12.5px] font-medium text-slate-600 hover:bg-slate-50">This month</button>
+                </div>
               </div>
-            </div>
-          ) : def.asOf ? (
-            <div className="flex flex-wrap items-end gap-3">
-              <div><label className="mb-1 block text-xs text-slate-500">As of date</label><input className={`${inputCls} w-44`} type="date" value={asOf} max={todayIso()} onChange={(e) => setAsOf(e.target.value)} /></div>
-              <button onClick={() => setAsOf(todayIso())} className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-[12.5px] font-medium text-slate-600 hover:bg-slate-50">Today</button>
-              {asOf < todayIso() && (
-                <span className="pb-1.5 text-[12px] text-amber-600">Historical — reconstructed from stock movements (current cost)</span>
-              )}
-            </div>
-          ) : <div className="text-xs text-slate-400">Current snapshot</div>}
+            ) : def.asOf ? (
+              <div className="flex flex-wrap items-end gap-3">
+                <div><label className="mb-1 block text-xs text-slate-500">As of date</label><input className={`${inputCls} w-44`} type="date" value={asOf} max={todayIso()} onChange={(e) => { setAsOf(e.target.value); setDirty(true) }} /></div>
+                <button onClick={() => { setAsOf(todayIso()); setDirty(true) }} className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-[12.5px] font-medium text-slate-600 hover:bg-slate-50">Today</button>
+                {asOf < todayIso() && (
+                  <span className="pb-1.5 text-[12px] text-amber-600">Historical — reconstructed from stock movements (current cost)</span>
+                )}
+              </div>
+            ) : <div className="pb-1.5 text-xs text-slate-400">Current snapshot</div>}
+            <button
+              onClick={runReport}
+              disabled={loading}
+              title="Run this report with the selected filters"
+              className={`${dirty ? btnPrimary : btnGhost} disabled:cursor-not-allowed disabled:opacity-60`}
+            >
+              {loading ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />} {loading ? 'Generating…' : 'Generate'}
+            </button>
+            {dirty && !loading && <span className="pb-1.5 text-[12px] font-medium text-amber-600">Filters changed — click Generate</span>}
+          </div>
           <div className="flex gap-2">
-            <button className={btnGhost} onClick={() => dl('pdf')}><FileText size={14} /> PDF</button>
-            <button className={btnGhost} onClick={() => dl('xlsx')}><Sheet size={14} /> Excel</button>
-            <button className={btnGhost} onClick={email} title="Email this report to its configured recipient"><Mail size={14} /> Email</button>
+            <button className={`${btnGhost} disabled:cursor-not-allowed disabled:opacity-60`} disabled={busy !== null} onClick={() => dl('pdf')}>
+              {busy === 'pdf' ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />} {busy === 'pdf' ? 'Preparing…' : 'PDF'}
+            </button>
+            <button className={`${btnGhost} disabled:cursor-not-allowed disabled:opacity-60`} disabled={busy !== null} onClick={() => dl('xlsx')}>
+              {busy === 'xlsx' ? <Loader2 size={14} className="animate-spin" /> : <Sheet size={14} />} {busy === 'xlsx' ? 'Preparing…' : 'Excel'}
+            </button>
+            <button className={`${btnGhost} disabled:cursor-not-allowed disabled:opacity-60`} disabled={busy !== null} onClick={email} title="Email this report to its configured recipient">
+              {busy === 'email' ? <Loader2 size={14} className="animate-spin" /> : <Mail size={14} />} {busy === 'email' ? 'Sending…' : 'Email'}
+            </button>
           </div>
         </div>
       </div>
