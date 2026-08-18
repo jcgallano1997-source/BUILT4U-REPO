@@ -7,8 +7,6 @@ import com.built4u.pos.common.tenant.TenantContext;
 import com.built4u.pos.item.dto.ImportResultDto;
 import com.built4u.pos.location.Location;
 import com.built4u.pos.location.LocationRepository;
-import com.built4u.pos.transactionlog.TransactionLog;
-import com.built4u.pos.transactionlog.TransactionLogRepository;
 import com.built4u.pos.uom.Uom;
 import com.built4u.pos.uom.UomRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,29 +21,41 @@ import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Bulk-imports inventory from an .xlsx spreadsheet. Expected header row
  * (case-insensitive, any order): code, name, category, location, uom, quantity,
  * sellingPrice, costPrice. Category / location / uom must already exist at the
  * site (rows referencing unknown lookups are reported as errors, not created).
- * An item is matched by code — updated in place, or created if new. The whole
- * import is one transaction: any thrown error rolls it all back.
+ * An item is matched by code — updated in place, or created if new.
+ *
+ * <p>Parsing / validation happens first, with no writes. Valid rows are then
+ * persisted in chunks, each chunk in its own transaction (see
+ * {@link InventoryImportWriter}); if a chunk fails it is retried row-by-row so a
+ * single bad row can't roll back the rest. Only an unreadable file or a missing
+ * required header column aborts the whole import.
  */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class InventoryImportService {
 
-    private final ItemRepository itemRepository;
+    /** How many rows to persist per transaction on the fast path. */
+    private static final int CHUNK = 200;
+
     private final CategoryRepository categoryRepository;
     private final LocationRepository locationRepository;
     private final UomRepository uomRepository;
-    private final TransactionLogRepository txnLogRepository;
+    private final InventoryImportWriter writer;
 
-    @Transactional
+    /** A validated, ready-to-persist row (lookups already resolved to ids). */
+    public record ParsedRow(int line, String code, String name, Long catId, Long locId,
+                            String uom, BigDecimal qty, BigDecimal sell, BigDecimal cost) {}
+
     public ImportResultDto importXlsx(MultipartFile file) {
         Long siteId = TenantContext.requireSiteId();
         if (file == null || file.isEmpty()) throw new BadRequestException("No file uploaded.");
@@ -58,10 +68,16 @@ public class InventoryImportService {
         for (Location l : locationRepository.findBySiteIdOrderByLocationAsc(siteId)) {
             locByName.put(l.getLocation().toLowerCase(), l);
         }
+        Set<String> uomSet = new HashSet<>();
+        for (Uom u : uomRepository.findBySiteIdOrderByUomAsc(siteId)) {
+            uomSet.add(u.getUom().toLowerCase());
+        }
 
-        int created = 0, updated = 0, skipped = 0;
+        int skipped = 0;
         List<String> errors = new ArrayList<>();
+        List<ParsedRow> parsed = new ArrayList<>();
 
+        // ── Phase 1: read + validate every row (no DB writes) ──────────────────
         try (Workbook wb = WorkbookFactory.create(file.getInputStream())) {
             Sheet sheet = wb.getSheetAt(0);
             if (sheet == null) throw new BadRequestException("The spreadsheet has no sheets.");
@@ -76,60 +92,48 @@ public class InventoryImportService {
                 String code = str(row, col.get("code"));
                 if (code == null || code.isBlank()) { skipped++; continue; }
                 int line = r + 1;
-                try {
-                    String name = str(row, col.get("name"));
-                    if (name == null || name.isBlank()) { errors.add("Row " + line + ": name is required"); continue; }
-                    Category cat = catByName.get(low(str(row, col.get("category"))));
-                    if (cat == null) { errors.add("Row " + line + ": unknown category '" + str(row, col.get("category")) + "'"); continue; }
-                    Location loc = locByName.get(low(str(row, col.get("location"))));
-                    if (loc == null) { errors.add("Row " + line + ": unknown location '" + str(row, col.get("location")) + "'"); continue; }
-                    String uom = str(row, col.get("uom"));
-                    if (uom == null || uomRepository.findBySiteIdAndUom(siteId, uom.trim()).isEmpty()) {
-                        errors.add("Row " + line + ": unknown unit '" + uom + "'"); continue;
-                    }
-                    BigDecimal qty = num(row, col.get("quantity"));
-                    BigDecimal sell = num(row, col.get("sellingPrice"));
-                    BigDecimal cost = num(row, col.get("costPrice"));
-
-                    var existing = itemRepository.findBySiteIdAndItemCodeIgnoreCase(siteId, code.trim());
-                    if (existing.isPresent()) {
-                        Item it = existing.get();
-                        BigDecimal oldQty = it.getQuantity() == null ? BigDecimal.ZERO : it.getQuantity();
-                        it.setItemName(name.trim());
-                        it.setCatId(cat.getCatId());
-                        it.setLocId(loc.getLocId());
-                        it.setUom(uom.trim());
-                        if (qty != null) it.setQuantity(qty);
-                        if (sell != null) it.setSellingPrice(sell);
-                        if (cost != null) it.setCostPrice(cost);
-                        itemRepository.save(it);
-                        // Journal a quantity change so as-of reports stay accurate.
-                        if (qty != null && qty.compareTo(oldQty) != 0) {
-                            logStock(siteId, it.getItemId(), cat.getCatId(), TransactionLog.TYPE_STOCK_EDIT,
-                                qty.subtract(oldQty), qty, "Bulk import");
-                        }
-                        updated++;
-                    } else {
-                        BigDecimal openingQty = qty == null ? BigDecimal.ZERO : qty;
-                        Item newItem = itemRepository.save(Item.builder()
-                            .siteId(siteId).catId(cat.getCatId()).locId(loc.getLocId())
-                            .itemCode(code.trim()).itemName(name.trim()).uom(uom.trim())
-                            .quantity(openingQty)
-                            .sellingPrice(sell == null ? BigDecimal.ZERO : sell)
-                            .costPrice(cost == null ? BigDecimal.ZERO : cost)
-                            .active(true).build());
-                        logStock(siteId, newItem.getItemId(), cat.getCatId(), TransactionLog.TYPE_STOCK_IN_OPENING,
-                            openingQty, openingQty, "Opening balance (bulk import)");
-                        created++;
-                    }
-                } catch (Exception e) {
-                    errors.add("Row " + line + ": " + e.getMessage());
+                String name = str(row, col.get("name"));
+                if (name == null || name.isBlank()) { errors.add("Row " + line + ": name is required"); continue; }
+                Category cat = catByName.get(low(str(row, col.get("category"))));
+                if (cat == null) { errors.add("Row " + line + ": unknown category '" + str(row, col.get("category")) + "'"); continue; }
+                Location loc = locByName.get(low(str(row, col.get("location"))));
+                if (loc == null) { errors.add("Row " + line + ": unknown location '" + str(row, col.get("location")) + "'"); continue; }
+                String uom = str(row, col.get("uom"));
+                if (uom == null || !uomSet.contains(uom.trim().toLowerCase())) {
+                    errors.add("Row " + line + ": unknown unit '" + uom + "'"); continue;
                 }
+                // headerIndex() stores keys lower-cased with spaces stripped, so
+                // lookups must use the same form — "sellingprice", not "sellingPrice".
+                BigDecimal qty = num(row, col.get("quantity"));
+                BigDecimal sell = num(row, col.get("sellingprice"));
+                BigDecimal cost = num(row, col.get("costprice"));
+                parsed.add(new ParsedRow(line, code.trim(), name.trim(), cat.getCatId(),
+                    loc.getLocId(), uom.trim(), qty, sell, cost));
             }
         } catch (BadRequestException e) {
             throw e;
         } catch (Exception e) {
             throw new BadRequestException("Could not read the spreadsheet: " + e.getMessage());
+        }
+
+        // ── Phase 2: persist in chunks; a failed chunk falls back to per-row ───
+        int created = 0, updated = 0;
+        for (int i = 0; i < parsed.size(); i += CHUNK) {
+            List<ParsedRow> chunk = parsed.subList(i, Math.min(i + CHUNK, parsed.size()));
+            try {
+                int[] cu = writer.saveChunk(siteId, chunk);
+                created += cu[0];
+                updated += cu[1];
+            } catch (Exception chunkErr) {
+                // The chunk's transaction rolled back — salvage it one row at a time.
+                for (ParsedRow r : chunk) {
+                    try {
+                        if (writer.saveOne(siteId, r)) created++; else updated++;
+                    } catch (Exception rowErr) {
+                        errors.add("Row " + r.line() + " (" + r.code() + "): " + rootMsg(rowErr));
+                    }
+                }
+            }
         }
 
         log.info("Inventory import: {} created, {} updated, {} skipped, {} error(s)",
@@ -190,18 +194,12 @@ public class InventoryImportService {
         }
     }
 
-    /** Append a stock-movement journal row (signed delta in attr2, resulting balance in attr3). */
-    private void logStock(Long siteId, Long itemId, Long catId, String type,
-                          BigDecimal delta, BigDecimal balance, String reason) {
-        txnLogRepository.save(TransactionLog.builder()
-            .siteId(siteId)
-            .itemId(itemId)
-            .catId(catId)
-            .transactionType(type)
-            .attribute2(delta == null ? "0" : delta.toPlainString())
-            .attribute3(balance == null ? null : balance.toPlainString())
-            .reason(reason)
-            .build());
+    /** Deepest available message on an exception chain — surfaced back to the importer's per-row error list. */
+    private static String rootMsg(Throwable t) {
+        Throwable cur = t;
+        while (cur.getCause() != null && cur.getCause() != cur) cur = cur.getCause();
+        String m = cur.getMessage();
+        return (m == null || m.isBlank()) ? cur.getClass().getSimpleName() : m;
     }
 
     private static String firstOr(List<String> values, String fallback) {
