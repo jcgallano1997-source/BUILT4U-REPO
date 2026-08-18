@@ -4,10 +4,11 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { KeyRound } from 'lucide-react'
+import { Check, KeyRound, ShieldCheck } from 'lucide-react'
 import type { AxiosError } from 'axios'
 import { changePassword } from '@/lib/auth'
 import { useAuthStore } from '@/store/authStore'
+import { inputCls } from '@/components/Modal'
 
 const schema = z
   .object({
@@ -32,11 +33,21 @@ export default function ChangePasswordPage() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { currentPassword: '', newPassword: '', confirm: '' },
   })
+
+  const pw = watch('newPassword') ?? ''
+  const confirm = watch('confirm') ?? ''
+  const rules = [
+    { ok: pw.length >= 8, label: '8+ characters' },
+    { ok: /[A-Za-z]/.test(pw), label: 'a letter' },
+    { ok: /\d/.test(pw), label: 'a digit' },
+  ]
+  const matches = pw.length > 0 && pw === confirm
 
   async function onSubmit(values: FormValues) {
     try {
@@ -51,47 +62,67 @@ export default function ChangePasswordPage() {
   }
 
   return (
-    <div className="max-w-sm mx-auto">
-      <div className="mb-4 flex items-center gap-2 text-slate-800">
-        <KeyRound size={18} className="text-blue-600" />
-        <h1 className="text-lg font-semibold">Change password</h1>
-      </div>
+    <div className="mx-auto max-w-md">
+      <div className="num mb-3.5 text-[11px] font-semibold tracking-[0.18em] text-accent">ACCOUNT SECURITY</div>
+      <h1 className="flex items-center gap-2 text-[22px] font-extrabold tracking-[-0.02em] text-slate-900">
+        <KeyRound size={20} className="text-blue-600" /> Change password
+      </h1>
+      <p className="mt-1 mb-5 text-[13.5px] text-slate-500">Keep your register access secure.</p>
 
       {user?.mustChangePassword && (
-        <div className="mb-4 rounded-md bg-amber-50 border border-amber-200 text-amber-800 text-sm px-3 py-2">
-          You must set a new password before continuing.
+        <div className="mb-4 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          <ShieldCheck size={16} /> You must set a new password before continuing.
         </div>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-xl border border-slate-200 p-6 space-y-4">
-        <Field label="Current password" error={errors.currentPassword?.message}>
-          <input type="password" {...register('currentPassword')} className={inputCls} />
-        </Field>
-        <Field label="New password" error={errors.newPassword?.message}>
-          <input type="password" {...register('newPassword')} className={inputCls} />
-        </Field>
-        <Field label="Confirm new password" error={errors.confirm?.message}>
-          <input type="password" {...register('confirm')} className={inputCls} />
-        </Field>
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
-        >
-          {isSubmitting ? 'Saving…' : 'Update password'}
-        </button>
+      <form onSubmit={handleSubmit(onSubmit)} className="overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-sm">
+        <div className="safety-stripe h-1" />
+        <div className="space-y-4 p-6">
+          <Field label="Current password" error={errors.currentPassword?.message}>
+            <input type="password" {...register('currentPassword')} className={inputCls} autoFocus />
+          </Field>
+          <Field label="New password" error={errors.newPassword?.message}>
+            <input type="password" {...register('newPassword')} className={inputCls} />
+          </Field>
+
+          {/* Live rule chips — turn green as each rule is met. */}
+          <div className="flex flex-wrap gap-2">
+            {rules.map((r) => (
+              <span
+                key={r.label}
+                className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11.5px] font-semibold transition ${
+                  r.ok ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-400'
+                }`}
+              >
+                <Check size={12} className={r.ok ? '' : 'opacity-40'} /> {r.label}
+              </span>
+            ))}
+          </div>
+
+          <Field label="Confirm new password" error={errors.confirm?.message}>
+            <div className="relative">
+              <input type="password" {...register('confirm')} className={inputCls} />
+              {matches && <Check size={17} className="absolute right-3 top-2.5 text-emerald-600" />}
+            </div>
+          </Field>
+
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="mt-1 inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-blue-600 text-sm font-semibold text-white shadow-sm shadow-blue-600/30 transition hover:bg-blue-700 disabled:opacity-60"
+          >
+            {isSubmitting ? 'Saving…' : 'Update password'}
+          </button>
+        </div>
       </form>
     </div>
   )
 }
 
-const inputCls =
-  'w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500'
-
 function Field({ label, error, children }: { label: string; error?: string; children: ReactNode }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-slate-700 mb-1">{label}</label>
+      <label className="mb-1.5 block text-[13px] font-semibold text-slate-700">{label}</label>
       {children}
       {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
     </div>

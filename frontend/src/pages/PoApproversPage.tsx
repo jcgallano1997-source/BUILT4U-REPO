@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { GitBranch } from 'lucide-react'
 import { toast } from 'sonner'
+import { inputCls } from '@/components/Modal'
 import { listPoApprovers, procErr, setPoApprover, type PoApprover } from '@/lib/procurement'
 
 /**
@@ -59,7 +60,7 @@ export default function PoApproversPage() {
                   </td>
                   <td className="px-4 py-2">
                     <select
-                      className="w-full max-w-xs rounded-md border border-slate-300 px-2 py-1.5"
+                      className={`${inputCls} max-w-xs`}
                       disabled={savingId === u.userId}
                       value={u.approverUserId ?? ''}
                       onChange={(e) => change(u.userId, e.target.value ? Number(e.target.value) : null)}

@@ -10,6 +10,10 @@
   --color-navy: #0b1220;
   --color-navy-800: #111b2e;
   --color-canvas: #f7f8fa;
+
+  /* Hardware-amber accent — safety-stripe, active-nav inset, signature highlights. */
+  --color-accent: #f59e0b;
+  --color-accent-600: #d97706;
 }
 
 :root {
@@ -35,6 +39,31 @@ body {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
+}
+
+/* ── Signature motifs (Built4U hardware redesign) ───────────────────────────
+   Reused across auth cards, modals, drawers, and the shell. */
+
+/* Diagonal amber/navy "safety stripe" — a 4px top accent on cards & panels. */
+.safety-stripe {
+  background: repeating-linear-gradient(45deg, #f59e0b 0 13px, #0b1220 13px 26px);
+}
+
+/* Blueprint grid — layered faint white lines over dark surfaces. */
+.blueprint-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 30px 30px, 30px 30px, 150px 150px, 150px 150px;
+}
+
+/* Active nav item — amber left inset bar + tinted background. */
+.nav-active {
+  background: rgba(59, 130, 246, 0.15);
+  box-shadow: inset 3px 0 0 var(--color-accent);
+  color: #fff;
 }
 
 /* Slim scrollbar for the dark sidebar + long content. */

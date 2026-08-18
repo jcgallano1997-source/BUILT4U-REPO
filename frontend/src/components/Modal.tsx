@@ -36,11 +36,13 @@ export default function Modal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-slate-900/40 p-4 overflow-y-auto" onKeyDown={onKeyDown}>
-      <div ref={ref} className={`mt-12 w-full ${width} rounded-xl bg-white shadow-xl border border-slate-200`}>
-        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3">
-          <h2 className="font-semibold text-slate-800">{title}</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600" aria-label="Close">
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/50 p-4" onKeyDown={onKeyDown}>
+      <div ref={ref} className={`mt-12 w-full ${width} overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-2xl`}>
+        {/* Signature safety-stripe header accent. */}
+        <div className="safety-stripe h-1" />
+        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3.5">
+          <h2 className="text-[15px] font-bold text-slate-800">{title}</h2>
+          <button onClick={onClose} className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600" aria-label="Close">
             <X size={18} />
           </button>
         </div>
@@ -51,8 +53,8 @@ export default function Modal({
 }
 
 export const inputCls =
-  'w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500'
+  'w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-600/12'
 export const btnPrimary =
-  'inline-flex items-center justify-center gap-1.5 rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60'
+  'inline-flex items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm shadow-blue-600/30 transition hover:bg-blue-700 disabled:opacity-60'
 export const btnGhost =
-  'inline-flex items-center justify-center gap-1.5 rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50'
+  'inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100'

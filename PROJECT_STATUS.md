@@ -231,6 +231,7 @@ From an assessment of gaps in the POS. Numbering kept from that review.
   - Direct hardware: **network ESC/POS thermal printing + cash-drawer kick** (V25; per-site printer host/port/enable/open-drawer on `pos_doc_settings`; `printer` package; Print button on Sales; Test print / Open drawer in Doc settings; encoder + transport unit-tested with a loopback socket)
   - Analytics reports (V26): **Profit & Margin**, **Sales by Cashier**, **Sales by Hour**, **Dead Stock**, **Customer Purchases** (`PROFIT_REPORT`, `SALES_ANALYTICS`, `DEAD_STOCK_REPORT`, `CUSTOMER_REPORT` modules)
   - Receiving hardening: searchable **registered-supplier** picker + mandatory Supplier/Reference/Unit-cost; **reprice-on-receive** — when the moving-average cost rises, prompt a markup-preserving new selling price per item (`PUT /items/{id}/selling-price`)
+- **UI — "Hardware Edition" redesign** (frontend): amber accent + signature motifs (safety-stripe, blueprint-grid, amber active-nav inset); rebuilt Login (blueprint brand panel) and Change Password (live rule chips); safety-stripe headers on the shared `Modal` (all dialogs) + refined buttons/inputs app-wide; POS cart-rail stripe. Applied via shared components, so it lands across all screens.
 
 ### ⬜ Open items
 - [ ] **#1 — BIR / PH tax compliance** *(biggest gap; legally required for a real PH store; should be switchable on/off since not every business is VAT-registered)*

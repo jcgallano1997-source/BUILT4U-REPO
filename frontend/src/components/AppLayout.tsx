@@ -217,7 +217,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                   className={({ isActive }) =>
                     `flex items-center gap-3 rounded-lg px-3 py-2 text-[13.5px] transition-colors ${
                       isActive
-                        ? 'bg-blue-500/15 font-semibold text-white'
+                        ? 'nav-active font-semibold'
                         : 'font-medium text-slate-400 hover:bg-white/5 hover:text-slate-200'
                     }`
                   }

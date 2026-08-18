@@ -267,10 +267,10 @@ export default function PosPage() {
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {results.map((it) => (
             <button key={it.id} onClick={() => addToCart(it)}
-              className="rounded-lg border border-slate-200 bg-white p-3 text-left hover:border-blue-400">
+              className="rounded-lg border border-slate-200 bg-white p-3 text-left transition hover:border-blue-500 hover:shadow-sm hover:shadow-blue-600/10">
               <div className="truncate text-sm font-medium text-slate-700">{it.name}</div>
-              <div className="text-xs text-slate-400">{it.code} · {it.quantity} {it.uom}</div>
-              <div className="mt-1 text-sm text-blue-700">{peso(it.sellingPrice)}</div>
+              <div className="num text-xs text-slate-400">{it.code} · {it.quantity} {it.uom}</div>
+              <div className="num mt-1 text-sm font-semibold text-blue-700">{peso(it.sellingPrice)}</div>
             </button>
           ))}
           {results.length === 0 && <p className="col-span-full text-sm text-slate-400">No items.</p>}
@@ -278,7 +278,8 @@ export default function PosPage() {
       </div>
 
       {/* Cart + payment */}
-      <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+      <div className="space-y-3 overflow-hidden rounded-xl border border-slate-200 bg-white p-4">
+        <div className="safety-stripe -mx-4 -mt-4 mb-1 h-1" />
         <div className="flex items-center gap-2 font-semibold text-slate-800">
           <ShoppingCart size={16} className="text-blue-600" /> Cart
           <div className="ml-auto flex items-center gap-2">
