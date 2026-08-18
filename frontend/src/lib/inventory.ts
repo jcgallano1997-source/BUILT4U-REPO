@@ -112,6 +112,17 @@ export async function createItem(body: ItemPayload): Promise<Item> {
   const { data } = await api.post<Item>('/items', body)
   return data
 }
+/** Exact barcode lookup for scanning at the register. Returns null when no active
+ *  item carries that barcode (a 404), so the caller can fall back to text search. */
+export async function findItemByBarcode(code: string): Promise<Item | null> {
+  try {
+    const { data } = await api.get<Item>(`/items/barcode/${encodeURIComponent(code)}`)
+    return data
+  } catch (e) {
+    if ((e as { response?: { status?: number } })?.response?.status === 404) return null
+    throw e
+  }
+}
 export async function updateItem(id: number, body: ItemPayload): Promise<Item> {
   const { data } = await api.put<Item>(`/items/${id}`, body)
   return data

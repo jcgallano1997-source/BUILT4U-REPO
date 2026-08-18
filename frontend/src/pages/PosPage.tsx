@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { History, Minus, PauseCircle, Plus, ScanLine, ShieldCheck, ShoppingCart, Trash2, X } from 'lucide-react'
 import { toast } from 'sonner'
 import Modal, { btnGhost, btnPrimary, inputCls } from '@/components/Modal'
-import { listItems, type Item } from '@/lib/inventory'
+import { findItemByBarcode, listItems, type Item } from '@/lib/inventory'
 import {
   checkout, deleteHeldSale, getCurrentShift, getHeldSale, listHeldSales, PAYMENT_MODES, peso, posErr,
   saveHeldSale, type HeldSaleSummary, type Shift,
@@ -109,6 +109,23 @@ export default function PosPage() {
       if (found) return prev.map((l) => (l.item.id === item.id ? { ...l, qty: l.qty + 1 } : l))
       return [...prev, { item, qty: 1 }]
     })
+  }
+
+  // Enter in the search box: a barcode scanner types the code then sends Enter.
+  // Barcode is unique per site, so an exact barcode (or item-code) match adds that
+  // one item straight to the cart and clears the box, ready for the next scan.
+  // A non-unique name never auto-adds — the user picks from the results grid.
+  async function submitSearch() {
+    const term = search.trim()
+    if (!term) return
+    try {
+      const it = await findItemByBarcode(term) // authoritative; unaffected by the search debounce
+      if (it) { addToCart(it); setSearch(''); searchRef.current?.focus(); return }
+    } catch { /* lookup failed — fall back to the current text results */ }
+    const lower = term.toLowerCase()
+    const exact = results.find((r) => r.code?.toLowerCase() === lower || String(r.barcodeId ?? '') === term)
+    if (exact) { addToCart(exact); setSearch(''); searchRef.current?.focus(); return }
+    if (results.length === 1) { addToCart(results[0]); setSearch(''); searchRef.current?.focus() }
   }
   function setQty(id: number, qty: number) {
     if (qty <= 0) { setCart((prev) => prev.filter((l) => l.item.id !== id)); return }
@@ -262,7 +279,9 @@ export default function PosPage() {
         <div className="flex items-center gap-2">
           <ScanLine size={18} className="text-blue-600" />
           <input ref={searchRef} className={inputCls} placeholder="Search items by code, name or barcode…   (F2)" value={search}
-            onChange={(e) => setSearch(e.target.value)} autoFocus />
+            onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void submitSearch() } }}
+            autoFocus />
         </div>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {results.map((it) => (
