@@ -117,7 +117,7 @@ export default function DashboardPage() {
   const dateLabel = new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 
   return (
-    <div className="mx-auto max-w-[1200px] space-y-[18px]">
+    <div className="space-y-[18px]">
       {/* Header */}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>

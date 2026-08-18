@@ -23,7 +23,7 @@ export default function ReportsPage() {
   const has = (m: string) => modules.includes(m)
 
   return (
-    <div className="mx-auto max-w-[1100px] space-y-4">
+    <div className="space-y-4">
       <div>
         <h1 className="flex items-center gap-2 text-[22px] font-extrabold tracking-tight text-slate-900">
           <BarChart3 className="text-blue-600" size={22} /> Sales Report
