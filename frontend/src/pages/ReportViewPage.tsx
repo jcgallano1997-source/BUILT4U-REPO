@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Navigate, useParams } from 'react-router-dom'
 import { BarChart3, FileText, Loader2, Mail, RefreshCw, Search, Sheet } from 'lucide-react'
 import { toast } from 'sonner'
@@ -57,35 +57,30 @@ export default function ReportViewPage() {
   const [search, setSearch] = useState('')
   const [rows, setRows] = useState<Record<string, unknown>[]>([])
   const [loading, setLoading] = useState(false)
-  // The report is generated only when the report first opens and when the user
-  // clicks Generate — NOT on every date change — so tweaking filters no longer
-  // spams report generation. `runId` bumps to request a run; `dirty` flags filter
-  // changes the user hasn't generated yet.
-  const [runId, setRunId] = useState(0)
+  // The report is generated ONLY when the user clicks Generate — never on open
+  // and never on a date change — so nothing runs until asked. `hasRun` tracks
+  // whether a run has happened yet (drives the "click Generate" empty state);
+  // `dirty` flags filter changes made since the last run.
+  const [hasRun, setHasRun] = useState(false)
   const [dirty, setDirty] = useState(false)
+  // Bumped on every run / report switch so a slow in-flight fetch that is later
+  // superseded can't overwrite fresher results.
+  const runToken = useRef(0)
   // Which export is in flight, so we can show a spinner and block re-clicks
   // (PDF/Excel generation is server-side and takes a moment; without this the
   // button looks dead and users click repeatedly, spamming generation).
   const [busy, setBusy] = useState<'pdf' | 'xlsx' | 'email' | null>(null)
 
+  // Opening (or switching) a report clears the previous results — it does NOT
+  // fetch. The user picks their filters and clicks Generate to run it.
   useEffect(() => {
-    if (!def) return
-    let cancelled = false
-    setLoading(true)
-    const params: Record<string, string> = def.dated ? { from, to } : def.asOf ? { asOf } : {}
-    fetchReportJson<unknown>(def.report, params)
-      .then((data) => {
-        if (cancelled) return
-        const arr = def.dataPath ? ((data as Record<string, unknown>)?.[def.dataPath] as unknown[]) : (data as unknown[])
-        setRows(Array.isArray(arr) ? (arr as Record<string, unknown>[]) : [])
-      })
-      .catch((e) => { if (!cancelled) toast.error(reportErr(e, 'Failed to load report')) })
-      .finally(() => { if (!cancelled) { setLoading(false); setDirty(false) } })
-    return () => { cancelled = true }
-    // Deliberately excludes from/to/asOf: a run happens on open (def) and on each
-    // Generate click (runId), reading the current filter values at that moment.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [def, runId])
+    runToken.current++
+    setRows([])
+    setHasRun(false)
+    setDirty(false)
+    setSearch('')
+    setLoading(false)
+  }, [def])
 
   if (!def) return <Navigate to="/reports" replace />
   if (!modules.includes(def.module)) {
@@ -108,8 +103,25 @@ export default function ReportViewPage() {
     return def!.dated ? { from, to } : def!.asOf ? { asOf } : {}
   }
 
-  // Trigger a (re)generation with the currently selected filters.
-  function runReport() { setRunId((n) => n + 1) }
+  // Generate the report with the currently selected filters. Fetches only when
+  // called (i.e. on a Generate click) — never automatically.
+  async function runReport() {
+    if (!def) return
+    const token = ++runToken.current
+    setLoading(true)
+    try {
+      const data = await fetchReportJson<unknown>(def.report, currentParams())
+      if (token !== runToken.current) return // superseded by a newer run / report switch
+      const arr = def.dataPath ? ((data as Record<string, unknown>)?.[def.dataPath] as unknown[]) : (data as unknown[])
+      setRows(Array.isArray(arr) ? (arr as Record<string, unknown>[]) : [])
+      setDirty(false)
+      setHasRun(true)
+    } catch (e) {
+      if (token === runToken.current) toast.error(reportErr(e, 'Failed to load report'))
+    } finally {
+      if (token === runToken.current) setLoading(false)
+    }
+  }
 
   async function dl(fmt: 'pdf' | 'xlsx') {
     setBusy(fmt)
@@ -160,11 +172,11 @@ export default function ReportViewPage() {
               onClick={runReport}
               disabled={loading}
               title="Run this report with the selected filters"
-              className={`${dirty ? btnPrimary : btnGhost} disabled:cursor-not-allowed disabled:opacity-60`}
+              className={`${dirty || !hasRun ? btnPrimary : btnGhost} disabled:cursor-not-allowed disabled:opacity-60`}
             >
               {loading ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />} {loading ? 'Generating…' : 'Generate'}
             </button>
-            {dirty && !loading && <span className="pb-1.5 text-[12px] font-medium text-amber-600">Filters changed — click Generate</span>}
+            {dirty && hasRun && !loading && <span className="pb-1.5 text-[12px] font-medium text-amber-600">Filters changed — click Generate</span>}
           </div>
           <div className="flex gap-2">
             <button className={`${btnGhost} disabled:cursor-not-allowed disabled:opacity-60`} disabled={busy !== null} onClick={() => dl('pdf')}>
@@ -191,7 +203,9 @@ export default function ReportViewPage() {
           </div>
         )}
         {loading ? (
-          <p className="px-4 py-10 text-center text-sm text-slate-400">Loading…</p>
+          <p className="px-4 py-10 text-center text-sm text-slate-400">Generating…</p>
+        ) : !hasRun ? (
+          <p className="px-4 py-10 text-center text-sm text-slate-400">Choose your filters and click <span className="font-semibold text-slate-500">Generate</span> to run this report.</p>
         ) : rows.length === 0 ? (
           <p className="px-4 py-10 text-center text-sm text-slate-400">No data for this report.</p>
         ) : filtered.length === 0 ? (
