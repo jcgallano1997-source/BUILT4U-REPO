@@ -64,7 +64,8 @@ public interface ItemRepository extends JpaRepository<Item, ItemId> {
            WHERE i.siteId = :siteId
              AND (LOWER(i.itemCode) LIKE :pattern
                   OR LOWER(i.itemName) LIKE :pattern
-                  OR (i.itemDesc IS NOT NULL AND LOWER(i.itemDesc) LIKE :pattern))
+                  OR (i.itemDesc IS NOT NULL AND LOWER(i.itemDesc) LIKE :pattern)
+                  OR (i.barcodeId IS NOT NULL AND CAST(i.barcodeId AS string) LIKE :pattern))
              AND (:catId IS NULL OR i.catId = :catId)
              AND (:locId IS NULL OR i.locId = :locId)
              AND (:includeInactive = TRUE OR i.active = TRUE)

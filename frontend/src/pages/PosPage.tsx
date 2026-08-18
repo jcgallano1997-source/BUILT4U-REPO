@@ -261,7 +261,7 @@ export default function PosPage() {
       <div className="space-y-3">
         <div className="flex items-center gap-2">
           <ScanLine size={18} className="text-blue-600" />
-          <input ref={searchRef} className={inputCls} placeholder="Search items by code or name…   (F2)" value={search}
+          <input ref={searchRef} className={inputCls} placeholder="Search items by code, name or barcode…   (F2)" value={search}
             onChange={(e) => setSearch(e.target.value)} autoFocus />
         </div>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
