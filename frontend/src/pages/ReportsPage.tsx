@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import {
-  BarChart3, Calendar, FileText, Receipt, Search, Sheet, ShoppingBag, Tags, TrendingUp,
+  BarChart3, Calendar, FileText, Loader2, Receipt, RefreshCw, Search, Sheet, ShoppingBag, Tags, TrendingUp,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { btnGhost, inputCls } from '@/components/Modal'
+import { btnGhost, btnPrimary, inputCls } from '@/components/Modal'
 import { peso } from '@/lib/pos'
 import { useAuthStore } from '@/store/authStore'
 import {
@@ -48,11 +48,11 @@ function ExportButtons({ report, from, to }: { report: string; from?: string; to
   }
   return (
     <div className="flex gap-2">
-      <button className={btnGhost} disabled={busy !== null} onClick={() => dl('pdf')}>
-        <FileText size={14} /> {busy === 'pdf' ? '…' : 'PDF'}
+      <button className={`${btnGhost} disabled:cursor-not-allowed disabled:opacity-60`} disabled={busy !== null} onClick={() => dl('pdf')}>
+        {busy === 'pdf' ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />} {busy === 'pdf' ? 'Preparing…' : 'PDF'}
       </button>
-      <button className={btnGhost} disabled={busy !== null} onClick={() => dl('xlsx')}>
-        <Sheet size={14} /> {busy === 'xlsx' ? '…' : 'Excel'}
+      <button className={`${btnGhost} disabled:cursor-not-allowed disabled:opacity-60`} disabled={busy !== null} onClick={() => dl('xlsx')}>
+        {busy === 'xlsx' ? <Loader2 size={14} className="animate-spin" /> : <Sheet size={14} />} {busy === 'xlsx' ? 'Preparing…' : 'Excel'}
       </button>
     </div>
   )
@@ -66,24 +66,34 @@ function SalesReports() {
   const [overview, setOverview] = useState<SalesOverview | null>(null)
   const [detail, setDetail] = useState<SalesDetailed | null>(null)
   const [loading, setLoading] = useState(false)
+  // The report is generated ONLY when the user clicks Generate — never on open
+  // and never on a date change. `hasRun` gates the "click Generate" empty state;
+  // `dirty` flags filter changes since the last run; the token drops stale fetches.
+  const [hasRun, setHasRun] = useState(false)
+  const [dirty, setDirty] = useState(false)
+  const runToken = useRef(0)
   const invalid = from > to
 
-  useEffect(() => {
+  async function runReport() {
     if (invalid) return
-    let cancelled = false
+    const token = ++runToken.current
     setLoading(true)
-    Promise.all([getSalesOverview(from, to), getSalesDetailed(from, to)])
-      .then(([o, d]) => { if (!cancelled) { setOverview(o); setDetail(d) } })
-      .catch((e) => { if (!cancelled) toast.error(reportErr(e, 'Failed to load sales data')) })
-      .finally(() => { if (!cancelled) setLoading(false) })
-    return () => { cancelled = true }
-  }, [from, to, invalid])
+    try {
+      const [o, d] = await Promise.all([getSalesOverview(from, to), getSalesDetailed(from, to)])
+      if (token !== runToken.current) return
+      setOverview(o); setDetail(d); setDirty(false); setHasRun(true)
+    } catch (e) {
+      if (token === runToken.current) toast.error(reportErr(e, 'Failed to load sales data'))
+    } finally {
+      if (token === runToken.current) setLoading(false)
+    }
+  }
 
   const presets: [string, () => void][] = [
-    ['Today', () => { const t = todayIso(); setFrom(t); setTo(t) }],
-    ['Last 7 days', () => { setFrom(isoMinusDays(6)); setTo(todayIso()) }],
-    ['Last 30 days', () => { setFrom(isoMinusDays(29)); setTo(todayIso()) }],
-    ['This month', () => { setFrom(startOfMonthIso()); setTo(todayIso()) }],
+    ['Today', () => { const t = todayIso(); setFrom(t); setTo(t); setDirty(true) }],
+    ['Last 7 days', () => { setFrom(isoMinusDays(6)); setTo(todayIso()); setDirty(true) }],
+    ['Last 30 days', () => { setFrom(isoMinusDays(29)); setTo(todayIso()); setDirty(true) }],
+    ['This month', () => { setFrom(startOfMonthIso()); setTo(todayIso()); setDirty(true) }],
   ]
 
   const tabs: { id: Tab; label: string; icon: typeof TrendingUp }[] = [
@@ -100,11 +110,11 @@ function SalesReports() {
         <div className="flex flex-wrap items-end gap-3">
           <div>
             <label className="mb-1 block text-xs text-slate-500">From</label>
-            <input className={`${inputCls} w-40`} type="date" value={from} max={to} onChange={(e) => setFrom(e.target.value)} />
+            <input className={`${inputCls} w-40`} type="date" value={from} max={to} onChange={(e) => { setFrom(e.target.value); setDirty(true) }} />
           </div>
           <div>
             <label className="mb-1 block text-xs text-slate-500">To</label>
-            <input className={`${inputCls} w-40`} type="date" value={to} min={from} onChange={(e) => setTo(e.target.value)} />
+            <input className={`${inputCls} w-40`} type="date" value={to} min={from} onChange={(e) => { setTo(e.target.value); setDirty(true) }} />
           </div>
           <div className="flex flex-wrap gap-1.5">
             {presets.map(([label, fn]) => (
@@ -114,6 +124,15 @@ function SalesReports() {
               </button>
             ))}
           </div>
+          <button
+            onClick={runReport}
+            disabled={loading || invalid}
+            title="Run the sales report for the selected range"
+            className={`${dirty || !hasRun ? btnPrimary : btnGhost} disabled:cursor-not-allowed disabled:opacity-60`}
+          >
+            {loading ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />} {loading ? 'Generating…' : 'Generate'}
+          </button>
+          {dirty && hasRun && !loading && <span className="pb-2 text-[12px] font-medium text-amber-600">Filters changed — click Generate</span>}
           {invalid && <p className="text-sm text-red-600">"From" must be on or before "To".</p>}
         </div>
       </div>
@@ -133,8 +152,12 @@ function SalesReports() {
         })}
       </div>
 
-      {invalid ? null : loading && !overview ? (
-        <p className="py-8 text-center text-sm text-slate-400">Loading…</p>
+      {invalid ? null : !hasRun ? (
+        <div className="rounded-2xl border border-slate-200/70 bg-white py-12 text-center text-sm text-slate-400">
+          Choose your date range and click <span className="font-semibold text-slate-500">Generate</span> to run this report.
+        </div>
+      ) : loading && !overview ? (
+        <p className="py-8 text-center text-sm text-slate-400">Generating…</p>
       ) : (
         <>
           {tab === 'overview' && <OverviewTab overview={overview} detail={detail} from={from} to={to} />}
