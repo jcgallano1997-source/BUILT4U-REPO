@@ -1,5 +1,6 @@
 import api from '@/lib/api'
 import type { AxiosError } from 'axios'
+import * as agent from '@/lib/printagent'
 
 export const docErr = (e: unknown, f: string) =>
   (e as AxiosError<{ message?: string }>).response?.data?.message ?? f
@@ -118,17 +119,21 @@ export async function fetchDocLogoObjectUrl(): Promise<string | null> {
   }
 }
 
+// Printer actions go through the print-agent helper: it relays via a local agent
+// when one is running (needed when the backend is hosted off the shop's LAN) and
+// otherwise prints straight from the server, exactly as before.
+
 /** Print a sale receipt to the site's network thermal printer (opens the drawer if configured). */
 export async function printSaleReceipt(salesNumber: string): Promise<void> {
-  await api.post(`/sales/${salesNumber}/print`)
+  await agent.printReceipt(salesNumber)
 }
 /** Print a test slip + kick the drawer to confirm the printer is reachable. */
 export async function testPrinter(): Promise<void> {
-  await api.post('/printer/test')
+  await agent.printTest()
 }
 /** Open the cash drawer without printing. */
 export async function openDrawer(): Promise<void> {
-  await api.post('/printer/open-drawer')
+  await agent.openDrawer()
 }
 
 /** Fetch a sale's receipt PDF (with auth) and open it in a new tab. */

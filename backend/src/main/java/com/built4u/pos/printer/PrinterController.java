@@ -3,6 +3,7 @@ package com.built4u.pos.printer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,5 +34,27 @@ public class PrinterController {
     public ResponseEntity<Void> openDrawer() {
         printService.openDrawer();
         return ResponseEntity.noContent().build();
+    }
+
+    // ── Job variants ─────────────────────────────────────────────────────────
+    // Same bytes, returned rather than sent, for a print agent on the shop LAN
+    // to deliver — used when this backend has no route to the printer.
+
+    @PostMapping("/jobs/receipt/{salesNumber}")
+    @PreAuthorize("hasAnyAuthority('MOD_RECEIPT_CONFIG','MOD_POS')")
+    public ResponseEntity<PrintJobDto> receiptJob(@PathVariable("salesNumber") String salesNumber) {
+        return ResponseEntity.ok(printService.receiptJob(salesNumber));
+    }
+
+    @PostMapping("/jobs/test")
+    @PreAuthorize("hasAnyAuthority('MOD_RECEIPT_CONFIG','MOD_POS')")
+    public ResponseEntity<PrintJobDto> testJob() {
+        return ResponseEntity.ok(printService.testJob());
+    }
+
+    @PostMapping("/jobs/open-drawer")
+    @PreAuthorize("hasAnyAuthority('MOD_RECEIPT_CONFIG','MOD_POS')")
+    public ResponseEntity<PrintJobDto> openDrawerJob() {
+        return ResponseEntity.ok(printService.openDrawerJob());
     }
 }

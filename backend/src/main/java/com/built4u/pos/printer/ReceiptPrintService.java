@@ -41,6 +41,33 @@ public class ReceiptPrintService {
         printer.send(brand.getReceiptPrinterHost(), port(brand), EscPos.openDrawer());
     }
 
+    // ── Same jobs, handed to the browser to relay via a local print agent ─────
+
+    /** The receipt job for {@code salesNumber}, for a client-side print agent to send. */
+    public PrintJobDto receiptJob(String salesNumber) {
+        DocSettings brand = requireEnabledPrinter();
+        SaleDto sale = saleService.get(salesNumber);
+        boolean drawer = Boolean.TRUE.equals(brand.getOpenDrawerOnSale());
+        return job(brand, EscPos.receipt(sale, brand, drawer));
+    }
+
+    /** The test-slip job, for a client-side print agent to send. */
+    public PrintJobDto testJob() {
+        DocSettings brand = requireConfiguredHost();
+        return job(brand, EscPos.testSlip(brand, true));
+    }
+
+    /** The drawer-kick job, for a client-side print agent to send. */
+    public PrintJobDto openDrawerJob() {
+        DocSettings brand = requireConfiguredHost();
+        return job(brand, EscPos.openDrawer());
+    }
+
+    private static PrintJobDto job(DocSettings brand, byte[] data) {
+        return new PrintJobDto(brand.getReceiptPrinterHost(), port(brand),
+            java.util.Base64.getEncoder().encodeToString(data));
+    }
+
     // ── guards ────────────────────────────────────────────────────────────────
 
     private DocSettings requireEnabledPrinter() {
