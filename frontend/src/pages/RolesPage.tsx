@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Plus, Shield, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import type { AxiosError } from 'axios'
@@ -11,6 +11,35 @@ import {
 function apiErr(e: unknown, fallback: string) {
   return (e as AxiosError<{ message?: string }>).response?.data?.message ?? fallback
 }
+
+/**
+ * Groups for the module picker, roughly mirroring the sidebar so permissions are
+ * found where they're used. Codes listed here appear in this order; anything not
+ * listed still shows, under "Other", so a newly added module is never hidden.
+ */
+const MODULE_GROUPS: { title: string; codes: string[] }[] = [
+  { title: 'Sell', codes: ['POS', 'SALES', 'SHIFTS', 'PRICE_OVERRIDE'] },
+  { title: 'Catalog & inventory', codes: [
+    'INVENTORY', 'INVENTORY_CREATE', 'INVENTORY_EDIT', 'INVENTORY_ADJUST', 'INVENTORY_IMPORT',
+    'STOCKTAKE', 'CATEGORIES', 'LOCATIONS', 'UOMS',
+  ] },
+  { title: 'Procurement', codes: [
+    'SUPPLIERS', 'PURCHASE_ORDERS', 'PO_APPROVERS', 'GOODS_RECEIPTS',
+    'STOCK_TRANSFER', 'STOCK_TRANSFER_POLICY',
+  ] },
+  { title: 'Customers & promos', codes: ['CUSTOMERS', 'VOUCHERS', 'LOYALTY_CONFIG', 'LOYALTY_REWARDS'] },
+  { title: 'Finance', codes: ['RECEIVABLES', 'PAYABLES'] },
+  { title: 'Reports', codes: [
+    'SALES_REPORTS', 'SALES_ANALYTICS', 'PROFIT_REPORT', 'INVENTORY_SNAPSHOT', 'INVENTORY_VALUATION',
+    'INVENTORY_MOVEMENT', 'REORDER_REPORT', 'DEAD_STOCK_REPORT', 'CUSTOMER_REPORT', 'DISCOUNTS_REPORT',
+    'SHIFT_HISTORY_REPORT', 'GOODS_RECEIPTS_REPORT', 'PURCHASE_ORDERS_REPORT', 'STOCK_TRANSFER_REPORT',
+    'RECEIVABLES_REPORT', 'PAYABLES_REPORT',
+  ] },
+  { title: 'Administration', codes: [
+    'USERS', 'ROLES', 'SITES', 'SHIFTS_ADMIN', 'PAYMENT_MODES', 'DOC_SETTINGS', 'PDF_CONFIG',
+    'RECEIPT_CONFIG', 'EMAIL_CONFIG', 'AUDIT_LOG', 'ERROR_LOG',
+  ] },
+]
 
 export default function RolesPage() {
   const [roles, setRoles] = useState<RoleDetail[]>([])
@@ -121,6 +150,34 @@ function RoleForm({
     })
   }
 
+  // Bucket the API's modules into MODULE_GROUPS, keeping any unmapped code under
+  // "Other" so nothing can silently disappear from the picker.
+  const grouped = useMemo(() => {
+    const byCode = new Map(modules.map((m) => [m.code, m]))
+    const seen = new Set<string>()
+    const out = MODULE_GROUPS.map((g) => {
+      const items = g.codes.flatMap((c) => {
+        const m = byCode.get(c)
+        if (!m) return []
+        seen.add(c)
+        return [m]
+      })
+      return { title: g.title, items }
+    }).filter((g) => g.items.length > 0)
+    const rest = modules.filter((m) => !seen.has(m.code))
+    if (rest.length) out.push({ title: 'Other', items: rest })
+    return out
+  }, [modules])
+
+  /** Tick or untick a whole group at once — a role is usually "all reports" or none. */
+  function toggleGroup(items: ModuleInfo[], on: boolean) {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      items.forEach((m) => (on ? next.add(m.code) : next.delete(m.code)))
+      return next
+    })
+  }
+
   async function save() {
     if (selected.size === 0) { toast.error('Select at least one module'); return }
     setSaving(true)
@@ -164,13 +221,31 @@ function RoleForm({
             <button type="button" className="text-xs text-blue-600 hover:underline"
               onClick={() => setSelected(new Set(modules.map((m) => m.code)))}>Select all</button>
           </div>
-          <div className="grid max-h-72 grid-cols-1 gap-1 overflow-y-auto rounded-md border border-slate-200 p-2 sm:grid-cols-2">
-            {modules.map((m) => (
-              <label key={m.code} className="flex items-start gap-2 rounded px-2 py-1 text-sm hover:bg-slate-50">
-                <input type="checkbox" className="mt-0.5" checked={selected.has(m.code)} onChange={() => toggle(m.code)} />
-                <span><span className="text-slate-700">{m.name}</span> <span className="text-slate-400">· {m.code}</span></span>
-              </label>
-            ))}
+          <div className="max-h-72 space-y-3 overflow-y-auto rounded-md border border-slate-200 p-2">
+            {grouped.map((g) => {
+              const on = g.items.filter((m) => selected.has(m.code)).length
+              const all = on === g.items.length
+              return (
+                <div key={g.title}>
+                  <div className="sticky top-0 z-10 -mx-2 flex items-center gap-2 border-b border-slate-100 bg-white px-2 pb-1 pt-0.5">
+                    <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-slate-500">{g.title}</span>
+                    <span className="num text-[11px] text-slate-400">{on}/{g.items.length}</span>
+                    <button type="button" className="ml-auto text-[11px] text-blue-600 hover:underline"
+                      onClick={() => toggleGroup(g.items, !all)}>
+                      {all ? 'Clear' : 'Select all'}
+                    </button>
+                  </div>
+                  <div className="mt-1 grid grid-cols-1 gap-1 sm:grid-cols-2">
+                    {g.items.map((m) => (
+                      <label key={m.code} className="flex items-start gap-2 rounded px-2 py-1 text-sm hover:bg-slate-50">
+                        <input type="checkbox" className="mt-0.5" checked={selected.has(m.code)} onChange={() => toggle(m.code)} />
+                        <span><span className="text-slate-700">{m.name}</span> <span className="text-slate-400">· {m.code}</span></span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
         <div className="flex justify-end gap-2 pt-2">
