@@ -47,17 +47,18 @@ public class EmailService {
         return apiKey != null && !apiKey.isBlank();
     }
 
-    /** Send {@code body} to {@code to} with one file attachment. Throws if not configured or on API error. */
-    public void sendReportEmail(String to, String subject, String body, String filename, byte[] attachment) {
+    /** Send {@code body} to every address in {@code to}, with one file attachment. Throws if not configured or on API error. */
+    public void sendReportEmail(List<String> to, String subject, String body, String filename, byte[] attachment) {
         if (!isEnabled()) {
             throw new BadRequestException(
                 "Report email is not configured. An administrator must set app.mail.resend-api-key "
                 + "(and app.mail.from) to enable delivery.");
         }
+        if (to == null || to.isEmpty()) throw new BadRequestException("No email recipient given.");
         try {
             Map<String, Object> payload = Map.of(
                 "from", from,
-                "to", List.of(to),
+                "to", List.copyOf(to),
                 "subject", subject,
                 "text", body,
                 "attachments", List.of(Map.of(

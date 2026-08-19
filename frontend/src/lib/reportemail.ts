@@ -4,12 +4,20 @@ import type { AxiosError } from 'axios'
 export const emailErr = (e: unknown, f: string) =>
   (e as AxiosError<{ message?: string }>).response?.data?.message ?? f
 
+/** A user who can receive reports. `email` null = no address on file, so not selectable. */
+export interface RecipientUser {
+  userId: number
+  username: string
+  fullName: string
+  email: string | null
+}
 export interface ReportEmailConfig {
   reportCode: string
   label: string | null
   recipientEmail: string | null
   subject: string | null
   body: string | null
+  recipients: RecipientUser[]
   updatedBy: string | null
   updatedAt: string | null
 }
@@ -38,9 +46,15 @@ export async function getReportEmailState(): Promise<ReportEmailState> {
   return data
 }
 
+/** Active users pickable as recipients. */
+export async function listRecipientUsers(): Promise<RecipientUser[]> {
+  const { data } = await api.get<RecipientUser[]>('/admin/report-email/users')
+  return data
+}
+
 export async function saveReportEmailConfig(
   reportCode: string,
-  body: { label?: string; recipientEmail?: string; subject?: string; body?: string },
+  body: { label?: string; recipientEmail?: string; subject?: string; body?: string; userIds?: number[] },
 ): Promise<ReportEmailConfig> {
   const { data } = await api.put<ReportEmailConfig>(`/admin/report-email/${reportCode}`, body)
   return data

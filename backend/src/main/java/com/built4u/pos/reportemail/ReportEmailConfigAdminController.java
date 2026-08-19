@@ -1,5 +1,6 @@
 package com.built4u.pos.reportemail;
 
+import com.built4u.pos.reportemail.dto.RecipientUserDto;
 import com.built4u.pos.reportemail.dto.ReportEmailConfigDto;
 import com.built4u.pos.reportemail.dto.UpdateRecipientRequest;
 import jakarta.validation.Valid;
@@ -8,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,6 +30,12 @@ public class ReportEmailConfigAdminController {
         return ResponseEntity.ok(Map.of(
             "enabled", service.deliveryEnabled(),
             "configs", service.list()));
+    }
+
+    /** Active users pickable as recipients (a null email means "not selectable"). */
+    @GetMapping("/users")
+    public ResponseEntity<List<RecipientUserDto>> users() {
+        return ResponseEntity.ok(service.recipientCandidates());
     }
 
     @PutMapping("/{reportCode}")
