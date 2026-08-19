@@ -1,5 +1,6 @@
 import { useEffect, useRef, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from 'react'
 import { X } from 'lucide-react'
+import { useEscape } from '@/lib/useEscape'
 
 /** Minimal centered modal with a backdrop. Esc closes; Enter (from a text/select
  *  field) triggers the primary Save button. */
@@ -16,6 +17,10 @@ export default function Modal({
 }) {
   const ref = useRef<HTMLDivElement>(null)
 
+  // Esc closes from anywhere — a dialog with no focusable field (an empty list,
+  // say) would never see the key through a handler bound to this element.
+  useEscape(onClose)
+
   // Focus the first field on open so Enter/typing work immediately.
   useEffect(() => {
     const root = ref.current
@@ -24,7 +29,6 @@ export default function Modal({
   }, [])
 
   function onKeyDown(e: ReactKeyboardEvent<HTMLDivElement>) {
-    if (e.key === 'Escape') { e.stopPropagation(); onClose(); return }
     if (e.key === 'Enter' && !e.shiftKey) {
       // Only submit from a text/select field — never a textarea (newline) or a
       // list dialog (would fire a row action). Clicks the primary Save button.

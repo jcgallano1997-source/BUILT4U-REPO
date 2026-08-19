@@ -10,6 +10,7 @@ import {
 import { toast } from 'sonner'
 import { useAuthStore } from '@/store/authStore'
 import { logout as apiLogout } from '@/lib/auth'
+import { useEscape } from '@/lib/useEscape'
 
 type NavItem = { to: string; label: string; icon: ComponentType<{ size?: number; className?: string }>; module: string | string[] | null; end?: boolean }
 type NavGroup = { title: string | null; items: NavItem[] }
@@ -93,6 +94,9 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false) // mobile off-canvas sidebar
   const [showHelp, setShowHelp] = useState(false)
 
+  // Esc closes the mobile drawer, same as every other overlay.
+  useEscape(() => setOpen(false), open)
+
   async function handleLogout() {
     try {
       await apiLogout(refreshToken)
@@ -132,7 +136,9 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     function onKey(e: KeyboardEvent) {
       if (isTyping(e.target)) { if (e.key === 'Escape') (e.target as HTMLElement).blur() ; return }
       if (e.ctrlKey || e.metaKey || e.altKey) return
-      if (e.key === 'Escape') { setShowHelp(false); return }
+      // Esc is handled by useEscape in whichever overlay is open (it claims the
+      // key before this runs); with nothing open it has nothing to do here.
+      if (e.key === 'Escape') return
       if (e.key === '?') { e.preventDefault(); setShowHelp((s) => !s); return }
       if (awaitingG) {
         awaitingG = false
@@ -350,6 +356,7 @@ const SHORTCUT_GROUPS: { title: string; items: { keys: string[]; label: string }
 ]
 
 function ShortcutsHelp({ onClose }: { onClose: () => void }) {
+  useEscape(onClose)
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/50 p-4 backdrop-blur-sm" onClick={onClose}>
       <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
