@@ -135,21 +135,3 @@ export async function listPoApprovers(): Promise<PoApprover[]> {
 export async function setPoApprover(userId: number, approverUserId: number | null): Promise<void> {
   await api.put(`/po-approvers/${userId}`, { approverUserId })
 }
-
-/** A user who may be picked as an approver. `builtIn` marks the owner (not removable). */
-export interface Approver {
-  userId: number
-  username: string
-  fullName: string
-  builtIn: boolean
-}
-export async function listApprovers(): Promise<Approver[]> {
-  const { data } = await api.get<Approver[]>('/po-approvers/pool')
-  return data
-}
-export async function addApprover(userId: number): Promise<void> {
-  await api.post(`/po-approvers/pool/${userId}`)
-}
-export async function removeApprover(userId: number): Promise<void> {
-  await api.delete(`/po-approvers/pool/${userId}`)
-}
