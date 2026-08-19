@@ -285,9 +285,10 @@ export default function PosPage() {
         </div>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {results.map((it) => (
-            <button key={it.id} onClick={() => addToCart(it)}
+            <button key={it.id} onClick={() => addToCart(it)} title={it.name}
               className="rounded-lg border border-slate-200 bg-white p-3 text-left transition hover:border-blue-500 hover:shadow-sm hover:shadow-blue-600/10">
-              <div className="truncate text-sm font-medium text-slate-700">{it.name}</div>
+              {/* Two lines fit most hardware names; the rest is on hover (title). */}
+              <div className="line-clamp-2 text-sm font-medium leading-snug text-slate-700">{it.name}</div>
               <div className="num text-xs text-slate-400">{it.code} · {it.quantity} {it.uom}</div>
               <div className="num mt-1 text-sm font-semibold text-blue-700">{peso(it.sellingPrice)}</div>
             </button>
@@ -314,22 +315,22 @@ export default function PosPage() {
           </div>
         </div>
 
-        <div className="max-h-72 space-y-1 overflow-y-auto">
+        <div className="max-h-72 space-y-2 overflow-y-auto">
           {cart.length === 0 ? <p className="py-6 text-center text-sm text-slate-400">Tap items to add</p>
             : cart.map((l) => (
-              <div key={l.item.id} className="space-y-1">
+              <div key={l.item.id} className="space-y-1 border-b border-slate-100 pb-1.5 last:border-0">
+                {/* The name gets its own row: on one line it had to share ~100px
+                    with the steppers, which cut all but a few characters. */}
+                <div className="line-clamp-2 text-sm leading-snug text-slate-700" title={l.item.name}>{l.item.name}</div>
                 <div className="flex items-center gap-2 text-sm">
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-slate-700">{l.item.name}</div>
-                    <div className="flex items-center gap-1 text-xs text-slate-400">
-                      <span>₱</span>
-                      <input
-                        className={`w-16 rounded border px-1 py-0.5 text-xs ${isOverridden(l) ? 'border-amber-300 text-amber-700' : 'border-slate-200 text-slate-500'}`}
-                        type="number" min={0} value={l.overridePrice ?? Number(l.item.sellingPrice)}
-                        onChange={(e) => setOverridePrice(l.item.id, e.target.value)} title="Override the unit price" />
-                      <span>each</span>
-                      {isOverridden(l) && <span className="text-slate-400 line-through">{peso(l.item.sellingPrice)}</span>}
-                    </div>
+                  <div className="flex min-w-0 flex-1 items-center gap-1 text-xs text-slate-400">
+                    <span>₱</span>
+                    <input
+                      className={`w-14 rounded border px-1 py-0.5 text-xs ${isOverridden(l) ? 'border-amber-300 text-amber-700' : 'border-slate-200 text-slate-500'}`}
+                      type="number" min={0} value={l.overridePrice ?? Number(l.item.sellingPrice)}
+                      onChange={(e) => setOverridePrice(l.item.id, e.target.value)} title="Override the unit price" />
+                    <span>each</span>
+                    {isOverridden(l) && <span className="truncate text-slate-400 line-through">{peso(l.item.sellingPrice)}</span>}
                   </div>
                   <button className="rounded border border-slate-300 p-1 text-slate-500" onClick={() => setQty(l.item.id, l.qty - 1)}><Minus size={12} /></button>
                   <input className="w-12 rounded border border-slate-300 px-1 py-0.5 text-center" type="number"
