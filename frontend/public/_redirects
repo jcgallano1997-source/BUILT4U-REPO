@@ -1,0 +1,4 @@
+# SPA fallback. This is a client-routed app: only index.html exists on disk, so
+# any deep link (/admin/roles) or plain refresh would 404 on a static host
+# without this. Serve index.html and let React Router resolve the path.
+/*    /index.html   200

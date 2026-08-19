@@ -6,7 +6,7 @@
 #
 # It reads the BUILT4U DB password from (in order): an existing $env:DB_PASSWORD,
 # a gitignored backend/.env file (DB_PASSWORD=...), otherwise it prompts.
-# The app serves on http://localhost:8083  ->  smoke test: http://localhost:8083/api/ping
+# The app serves on http://localhost:8083  ->  smoke test: http://localhost:8083/actuator/health
 
 $ErrorActionPreference = 'Stop'
 
