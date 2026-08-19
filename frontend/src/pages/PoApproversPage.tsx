@@ -1,23 +1,33 @@
 import { useEffect, useState } from 'react'
-import { GitBranch } from 'lucide-react'
+import { GitBranch, Lock, Plus, X } from 'lucide-react'
 import { toast } from 'sonner'
-import { inputCls } from '@/components/Modal'
-import { listPoApprovers, procErr, setPoApprover, type PoApprover } from '@/lib/procurement'
+import { btnGhost, inputCls } from '@/components/Modal'
+import {
+  addApprover, listApprovers, listPoApprovers, procErr, removeApprover, setPoApprover,
+  type Approver, type PoApprover,
+} from '@/lib/procurement'
 
 /**
- * Per-user PO approver routing. A user with no approver auto-approves their own
- * POs on create; assigning an approver makes their POs start as DRAFT until the
- * designated approver (or an ADMIN) approves.
+ * PO approver admin, in two parts: who is allowed to approve (the pool — the
+ * business owner is built-in, the rest are added/removed here), and which
+ * approver each user's POs route to. A user with no approver auto-approves.
+ * The IT/system administrator account is excluded server-side.
  */
 export default function PoApproversPage() {
   const [rows, setRows] = useState<PoApprover[]>([])
+  const [approvers, setApprovers] = useState<Approver[]>([])
   const [loading, setLoading] = useState(true)
   const [savingId, setSavingId] = useState<number | null>(null)
+  const [busyPool, setBusyPool] = useState(false)
+  const [toAdd, setToAdd] = useState('')
 
   async function reload() {
     setLoading(true)
-    try { setRows(await listPoApprovers()) }
-    catch (e) { toast.error(procErr(e, 'Failed to load')) }
+    try {
+      const [r, a] = await Promise.all([listPoApprovers(), listApprovers()])
+      setRows(r)
+      setApprovers(a)
+    } catch (e) { toast.error(procErr(e, 'Failed to load')) }
     finally { setLoading(false) }
   }
   useEffect(() => { reload() }, [])
@@ -31,6 +41,29 @@ export default function PoApproversPage() {
     } catch (e) { toast.error(procErr(e, 'Update failed')) } finally { setSavingId(null) }
   }
 
+  async function add() {
+    if (!toAdd) return
+    setBusyPool(true)
+    try {
+      await addApprover(Number(toAdd))
+      toast.success('Approver added')
+      setToAdd('')
+      await reload()
+    } catch (e) { toast.error(procErr(e, 'Could not add approver')) } finally { setBusyPool(false) }
+  }
+
+  async function drop(a: Approver) {
+    setBusyPool(true)
+    try {
+      await removeApprover(a.userId)
+      toast.success(`${a.fullName} is no longer an approver`)
+      await reload()
+    } catch (e) { toast.error(procErr(e, 'Could not remove approver')) } finally { setBusyPool(false) }
+  }
+
+  const approverIds = new Set(approvers.map((a) => a.userId))
+  const candidates = rows.filter((u) => !approverIds.has(u.userId))
+
   return (
     <div className="space-y-4">
       <h1 className="flex items-center gap-2 text-xl font-semibold text-slate-800">
@@ -41,6 +74,51 @@ export default function PoApproversPage() {
         require sign-off before they can be received.
       </p>
 
+      {/* Who may approve */}
+      <div className="rounded-lg border border-slate-200 bg-white p-4">
+        <div className="mb-1 text-sm font-semibold text-slate-700">Who can approve</div>
+        <p className="mb-3 text-xs text-slate-500">
+          The business owner is always an approver. Add anyone else who should be able to sign off POs.
+        </p>
+
+        <div className="mb-3 flex flex-wrap gap-2">
+          {approvers.length === 0 && <span className="text-sm text-slate-400">No approvers yet.</span>}
+          {approvers.map((a) => (
+            <span key={a.userId}
+              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 py-1 pl-3 pr-2 text-sm">
+              <span className="font-medium text-slate-700">{a.fullName}</span>
+              <span className="text-xs text-slate-400">{a.username}</span>
+              {a.builtIn ? (
+                <span className="ml-0.5 inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-700"
+                  title="The business owner is a built-in approver and cannot be removed">
+                  <Lock size={10} /> Built-in
+                </span>
+              ) : (
+                <button type="button" disabled={busyPool} onClick={() => drop(a)}
+                  className="ml-0.5 rounded-full p-0.5 text-slate-400 hover:bg-slate-200 hover:text-slate-600 disabled:opacity-50"
+                  aria-label={`Remove ${a.fullName} as an approver`} title="Remove as approver">
+                  <X size={13} />
+                </button>
+              )}
+            </span>
+          ))}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <select className={`${inputCls} max-w-xs`} value={toAdd} disabled={busyPool || candidates.length === 0}
+            onChange={(e) => setToAdd(e.target.value)}>
+            <option value="">{candidates.length ? 'Add an approver…' : 'Everyone is already an approver'}</option>
+            {candidates.map((u) => (
+              <option key={u.userId} value={u.userId}>{u.fullName} ({u.username})</option>
+            ))}
+          </select>
+          <button className={btnGhost} disabled={!toAdd || busyPool} onClick={add}>
+            <Plus size={14} /> Add
+          </button>
+        </div>
+      </div>
+
+      {/* Routing */}
       <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-left text-slate-500">
@@ -66,8 +144,9 @@ export default function PoApproversPage() {
                       onChange={(e) => change(u.userId, e.target.value ? Number(e.target.value) : null)}
                     >
                       <option value="">Auto-approve (no approver)</option>
-                      {rows.filter((o) => o.userId !== u.userId).map((o) => (
-                        <option key={o.userId} value={o.userId}>{o.fullName} ({o.username})</option>
+                      {/* Only approvers may be routed to — and never yourself. */}
+                      {approvers.filter((a) => a.userId !== u.userId).map((a) => (
+                        <option key={a.userId} value={a.userId}>{a.fullName} ({a.username})</option>
                       ))}
                     </select>
                   </td>
