@@ -70,8 +70,8 @@ export default function PoApproversPage() {
         <GitBranch size={18} className="text-blue-600" /> PO approvers
       </h1>
       <p className="text-sm text-slate-500">
-        A user with no approver auto-approves their own purchase orders. Assign an approver to make their POs
-        require sign-off before they can be received.
+        Two separate things: who is <span className="font-medium text-slate-600">allowed to approve</span> POs,
+        and which of those approvers each user's POs are <span className="font-medium text-slate-600">sent to</span>.
       </p>
 
       {/* Who may approve */}
@@ -120,6 +120,13 @@ export default function PoApproversPage() {
 
       {/* Routing */}
       <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+        <div className="border-b border-slate-200 p-4">
+          <div className="text-sm font-semibold text-slate-700">Where each user's POs go</div>
+          <p className="mt-0.5 text-xs text-slate-500">
+            Everyone who can raise a purchase order is listed here — being listed does not make someone an
+            approver. A user left on auto-approve signs off their own POs.
+          </p>
+        </div>
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-left text-slate-500">
             <tr>
