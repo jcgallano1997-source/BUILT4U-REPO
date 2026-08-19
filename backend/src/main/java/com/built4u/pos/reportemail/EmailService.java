@@ -75,12 +75,28 @@ public class EmailService {
             HttpResponse<String> res = http.send(req, HttpResponse.BodyHandlers.ofString());
             if (res.statusCode() / 100 != 2) {
                 log.warn("Resend send failed ({}): {}", res.statusCode(), res.body());
-                throw new BadRequestException("Email delivery failed (provider returned " + res.statusCode() + ").");
+                // Pass the provider's own reason through: "domain not verified",
+                // "you can only send to your own address" and the like are all
+                // fixable by the admin, but only if they can read them.
+                throw new BadRequestException(
+                    "Email delivery failed (" + res.statusCode() + "): " + providerReason(res.body()));
             }
         } catch (BadRequestException e) {
             throw e;
         } catch (Exception e) {
             throw new BadRequestException("Email delivery failed: " + e.getMessage());
         }
+    }
+
+    /** Pull the human-readable reason out of the provider's error JSON, falling back to the raw body. */
+    private String providerReason(String body) {
+        if (body == null || body.isBlank()) return "no reason given";
+        try {
+            var node = objectMapper.readTree(body).get("message");
+            if (node != null && !node.asText().isBlank()) return node.asText();
+        } catch (Exception ignored) {
+            // Not JSON — fall through and show what we got.
+        }
+        return body.length() > 300 ? body.substring(0, 300) + "…" : body;
     }
 }
