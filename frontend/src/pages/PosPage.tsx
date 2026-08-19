@@ -17,6 +17,8 @@ interface CartLine { item: Item; qty: number; overridePrice?: number; overrideRe
 /** Effective unit price for a cart line — the override when set, else the catalog price. */
 const linePrice = (l: CartLine) => l.overridePrice ?? Number(l.item.sellingPrice)
 const isOverridden = (l: CartLine) => l.overridePrice != null && l.overridePrice !== Number(l.item.sellingPrice)
+/** Quantities are whole units most of the time, but some UOMs (KG, LITER) are sold in fractions. */
+const fmtQty = (n: number) => (Number.isInteger(n) ? String(n) : String(Number(n.toFixed(2))))
 
 export default function PosPage() {
   const [shift, setShift] = useState<Shift | null | 'loading'>('loading')
@@ -69,6 +71,9 @@ export default function PosPage() {
     () => cart.reduce((s, l) => s + linePrice(l) * l.qty, 0),
     [cart],
   )
+  // Total units across every line — what the cashier physically counts when
+  // checking the bag against the cart (cart.length is the number of lines).
+  const cartUnits = useMemo(() => cart.reduce((s, l) => s + (Number(l.qty) || 0), 0), [cart])
   const overriddenLines = cart.filter(isOverridden)
   const selMode = modes.find((m) => m.code === mode)
   const isAr = !!selMode?.accountsReceivable
@@ -302,6 +307,12 @@ export default function PosPage() {
         <div className="safety-stripe -mx-4 -mt-4 mb-1 h-1" />
         <div className="flex items-center gap-2 font-semibold text-slate-800">
           <ShoppingCart size={16} className="text-blue-600" /> Cart
+          {cart.length > 0 && (
+            <span className="num rounded-full bg-blue-50 px-2 py-0.5 text-xs font-bold text-blue-700"
+              title={`${fmtQty(cartUnits)} unit(s) across ${cart.length} item line(s)`}>
+              {fmtQty(cartUnits)}
+            </span>
+          )}
           <div className="ml-auto flex items-center gap-2">
             <button
               className="inline-flex items-center gap-1 rounded-md border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50"
@@ -347,6 +358,13 @@ export default function PosPage() {
               </div>
             ))}
         </div>
+
+        {cart.length > 0 && (
+          <div className="flex items-center justify-between text-xs text-slate-400">
+            <span>{cart.length} item{cart.length === 1 ? '' : 's'}</span>
+            <span className="num">{fmtQty(cartUnits)} unit{cartUnits === 1 ? '' : 's'} total</span>
+          </div>
+        )}
 
         <div className="flex items-center justify-between border-t border-slate-100 pt-2 text-sm text-slate-600">
           <span>Subtotal</span><span>{peso(grandTotal)}</span>
