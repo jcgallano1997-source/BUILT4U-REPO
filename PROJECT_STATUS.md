@@ -4,7 +4,7 @@
 > the checkboxes as phases complete. Committed to git so it survives across sessions
 > (if the chat/token context is lost, read this first).
 >
-> Last updated: **2026-08-15** · Current position: **Phase 14 deploy artifacts DONE (awaiting owner Render deploy); post-launch enhancements #2, #3, and most of #4 shipped — see §5. Migrations now V1–V26.**
+> Last updated: **2026-08-19** · Current position: **Live data loaded (3,066 items) and email delivery working on the real domain. Hosting decided — Cloudflare Pages + an OCI VM in Singapore — and blocked only on OCI Ampere capacity (see §6). Migrations now V1–V29.**
 
 ---
 
@@ -14,7 +14,7 @@ A **single-business** point-of-sale system: one business, many **sites** (branch
 It is a de-tenanted fork of **FreePOS** (a multi-tenant SaaS POS) — the ENTITY/tenant
 layer and the whole SaaS stack (plans, billing, superadmin, self-signup) are removed,
 and **`site_id` is the top data-isolation key**. Same tech stack (Java 21 / Spring Boot
-+ React/Vite). Local-only for now; hosting comes later.
++ React/Vite). Runs locally today; hosting is set up but not yet cut over — see §6.
 
 - **FreePOS source to port from (read-only reference):** `C:\CLAUDE CODE\FreePOS`
 - **This repo (local):** `C:\CLAUDE CODE\NEW_POS`
@@ -28,7 +28,8 @@ and **`site_id` is the top data-isolation key**. Same tech stack (Java 21 / Spri
 |---|---|
 | Backend package | `com.built4u.pos` |
 | DB object prefix | `pos_` |
-| Oracle schema | **`BUILT4U`** (empty, isolated) on ADB `G73342F118533B2_BUILT4U` (ap-singapore-1) |
+| Oracle schema | **`BUILT4U`** on ADB `G73342F118533B2_BUILT4U` (ap-singapore-1) — **production; holds live stock** (§6) |
+| Domain | `built4u-pos.com` (Cloudflare DNS; verified sender for Resend) |
 | ⛔ Do NOT touch | the **`FREEPOS`** schema (the live product) |
 | Backend port (local) | `http://localhost:8083` |
 | Seed login | user **`admin`** · pass **`admin123`** · site **`MAIN`** (must-change on first login) |
@@ -208,9 +209,11 @@ runs the real server locally for HTTP smoke tests.
 - [x] DataSeeder already **fails closed** on the weak default admin password under `prod` (verified)
 - [x] Full backend IT suite green with the hardening in place
 - [x] **Deploy artifacts (Render)** — `backend/Dockerfile` (+`.dockerignore`), `render.yaml` (Dockerized API + static React site), prod CSP that whitelists the API origin, and `DEPLOYMENT.md` runbook (wallet upload, env-var table, CORS loop, smoke check). Frontend builds verified for both local (`connect-src 'self'`) and hosted (`+ API origin`)
-- [ ] **Owner action:** create the Render services, upload the wallet as Secret Files, set prod env vars (per DEPLOYMENT.md), deploy
+- [x] **Report email delivery LIVE** — Resend + the real domain (see §6); no longer deferred
+- [x] **Cloudflare/OCI deploy runbook** — `CLOUDFLARE.md` (Pages + Always Free VM co-located with the ADB + Cloudflare Tunnel + print agent + Resend DNS), `frontend/public/_redirects` for the SPA fallback
+- [ ] **Owner action:** create the OCI VM — *blocked: Ampere A1 "out of host capacity" in Singapore* (§6 has the options)
 - [ ] **Owner+me:** prod smoke check (health → login → one sale) after first deploy
-- [ ] *(deferred)* SMTP config → wire report/receipt **email delivery**
+- ~~Render~~ — artifacts (`render.yaml`, `DEPLOYMENT.md`) kept as a fallback; Cloudflare + OCI is the chosen path because it puts the backend in the ADB's own region
 
 ---
 
@@ -233,6 +236,25 @@ From an assessment of gaps in the POS. Numbering kept from that review.
   - Receiving hardening: searchable **registered-supplier** picker + mandatory Supplier/Reference/Unit-cost; **reprice-on-receive** — when the moving-average cost rises, prompt a markup-preserving new selling price per item (`PUT /items/{id}/selling-price`)
 - **UI — "Hardware Edition" redesign** (frontend): amber accent + signature motifs (safety-stripe, blueprint-grid, amber active-nav inset); rebuilt Login (blueprint brand panel) and Change Password (live rule chips); safety-stripe headers on the shared `Modal` (all dialogs) + refined buttons/inputs app-wide; POS cart-rail stripe. Applied via shared components, so it lands across all screens.
 
+### ✅ Usability pass (2026-08-19, all verified live)
+Driven by real use of the app once it held 3,000 real items:
+- **Reports never auto-run.** Opening a report (or changing a date) used to fire a generation, so
+  tweaking a filter silently spammed the server. Every report now waits for **Generate**, and the
+  PDF/Excel/Email buttons show a spinner and disable while a build is in flight — previously they
+  looked dead and got clicked repeatedly.
+- **Esc closes any overlay.** `Modal` bound Esc to its own element, so a dialog with nothing
+  focusable (e.g. an empty "Held sales") could only be closed by mouse. New `useEscape` hook listens
+  on the document and keeps a stack, so nested overlays close one layer at a time.
+- **POS reads properly with long hardware names** — item cards clamp to two lines with the full name
+  on hover; the cart name gets its own full-width row (~320px instead of ~100px shared with the
+  steppers). Cart also shows a **unit count** badge (`N items · M units`) for auditing the bag.
+- **POS search matches barcode**, and **Enter (i.e. a barcode scan) adds straight to the cart** —
+  barcode is unique per site, so it's unambiguous; falls back to exact item code, and a non-unique
+  *name* never auto-adds.
+- **Roles: the 52-module picker is grouped** into Sell / Catalog & inventory / Procurement /
+  Customers & promos / Finance / Reports / Administration, each with a select-all. Unmapped codes
+  fall into "Other" so a new module can never go missing.
+
 ### ⬜ Open items
 - [ ] **#1 — BIR / PH tax compliance** *(biggest gap; legally required for a real PH store; should be switchable on/off since not every business is VAT-registered)*
   - VAT (12%) computation + receipt breakdown: VATable Sales, VAT Amount, VAT-Exempt, Zero-Rated
@@ -244,9 +266,56 @@ From an assessment of gaps in the POS. Numbering kept from that review.
 
 ---
 
+## 6. Go-live prep (2026-08-19)
+
+### Live data
+- **3,066 hardware items enrolled** into BUILT4U from `EMC2_INVENTORY_ENROLLMENT.xlsx` —
+  auto-generated codes (`EMC-00001`…), categories derived from the description, all in
+  **Main Warehouse**, UOMs normalised (19 units), selling price = **cost × 1.25**.
+  ₱40.16M at cost / ₱50.21M retail. One item (`EMC-02251`) has no cost — the source row was blank.
+- **This is production data.** Decision: the existing **BUILT4U** schema *is* production; there is
+  no separate PROD schema. A separate DEV schema is worth adding so testing stops hitting live stock.
+
+### Bugs found and fixed during enrolment
+- **Importer dropped every price** — `headerIndex()` lower-cases header keys but the code read
+  `col.get("sellingPrice")`, which never matched, so all prices silently became 0. Affected every
+  import, including the shipped template.
+- **One bad row lost the whole batch** — a caught per-row error still marked the transaction
+  rollback-only, so the commit threw `UnexpectedRollbackException` and ~3k rows vanished. Persistence
+  now runs in chunks of 200 (`InventoryImportWriter`, `REQUIRES_NEW`), retried row-by-row on failure.
+
+### Email (working end to end)
+- `built4u-pos.com` **verified in Resend**; SPF + DKIM + DMARC all live in Cloudflare DNS
+  (the DKIM record had to be swapped — it still held the *old* Resend team's key).
+- **Multi-recipient (V29)** — reports go to *users* picked by name, resolved to `pos_user.email`
+  at send time, so a changed address or a deactivated account takes effect immediately.
+  `recipient_email` remains as an extra address for someone with no account.
+- Verified live: a real Sales-overview PDF delivered to an address that is **not** the Resend
+  account owner — i.e. the sandbox restriction is genuinely lifted.
+
+### Printing from the cloud
+- A hosted backend has **no route** to a `192.168.x.x` printer, so `print-agent/` (dependency-free
+  Node, loopback-only) runs on the till PC and the browser relays the ESC/POS bytes to it.
+  `/printer/jobs/*` returns the same bytes instead of sending them; the frontend probes for an agent
+  and falls back to server-side printing, so a local install is unchanged.
+
+### DNS
+- Stale Render records removed (`api` CNAME); root + `www` still point at the dead Render app and
+  need a decision once Pages is up.
+
+### Blocked
+- **OCI Ampere A1 is out of capacity in Singapore.** Options, best first: upgrade to Pay As You Go
+  (Always Free stays free, but capacity priority improves), an AMD `E2.1.Micro` with a tuned JVM
+  (`-Xmx384m`, `DB_POOL_MAX=5`, swap), or Render Starter at $7/mo.
+
+### Reverted
+- A configurable **PO approver pool** (owner built-in, others add/remove) was built and then rolled
+  back at the owner's request — V27 is kept (already applied) and **V28 drops the table**.
+
+---
+
 ## 4. Notes / backlog
-- Email flows (forgot-password / reset / report email) were deferred out of Phase 2 —
-  add when the mail dependency + `EmailService` are ported (Phase 13 or when needed).
+- Email flows (forgot-password / reset) are still unwired; **report email is done** (§6).
 - `PasswordResetToken` table/entity exist from V1 but the issuing flow is not wired yet.
 - Frontend CSP, security headers, and the cross-domain refresh-cookie question are
   deferred to Phase 14 (deployment).
