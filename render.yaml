@@ -16,6 +16,13 @@ services:
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: prod
+      # Free/Starter instances are small. Without this the JVM takes only ~25% of
+      # the container for heap; 70% leaves room for the JVM's own overhead while
+      # giving reports and .xlsx handling (POI) something to work with.
+      - key: JAVA_OPTS
+        value: -XX:MaxRAMPercentage=70
+      - key: DB_POOL_MAX
+        value: "5"
       # Oracle wallet uploaded as Secret Files; point the thin driver at them.
       - key: TNS_ADMIN
         value: /etc/secrets
