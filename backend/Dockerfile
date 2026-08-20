@@ -19,6 +19,11 @@ COPY --from=build /app/target/*.jar app.jar
 # The Oracle wallet is NOT baked into the image (it's a secret). Mount the wallet
 # files at runtime (e.g. Render Secret Files at /etc/secrets) and point TNS_ADMIN
 # at that directory via an env var. The app binds to $PORT (Render injects it).
+# Unpacks a base64'd wallet when one is provided (hosts whose secret storage is
+# text-only can't carry the wallet's binary files), then starts the app.
+COPY docker-entrypoint.sh /app/docker-entrypoint.sh
+RUN chmod +x /app/docker-entrypoint.sh
+
 ENV JAVA_OPTS=""
 EXPOSE 8083
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
