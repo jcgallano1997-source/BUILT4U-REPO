@@ -86,7 +86,14 @@ redeploy the API. (Multiple origins: comma-separated, no spaces.)
   the branch Render auto-deploys.
 - **Rollback:** Render keeps deploy history — "Rollback" to a previous deploy,
   or push a revert commit.
-- **Email:** report/receipt email delivery is intentionally not wired yet; add
-  an SMTP provider + `spring.mail.*` env later (see PROJECT_STATUS backlog).
+- **Email:** working. Reports send via **Resend** from the verified domain
+  `built4u-pos.com` (SPF/DKIM/DMARC live in Cloudflare DNS). Set
+  `APP_MAIL_RESEND_API_KEY`; `APP_MAIL_FROM` defaults to
+  `Built4U <reports@built4u-pos.com>`. Recipients are picked per report as
+  *users* (Admin -> Report email) and resolved to their address at send time.
+- **Receipt printing:** a hosted API has no route to the shop's LAN printer, so run
+  `print-agent/` on the till PC (see its README), with `ALLOWED_ORIGIN` set to
+  the site's public URL. The frontend probes for the agent and falls back to
+  server-side printing when there isn't one.
 - **Wallet security:** the wallet lives only in Render Secret Files and your
   local machine — never in git (enforced by `.gitignore` / `.dockerignore`).

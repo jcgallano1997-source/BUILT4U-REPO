@@ -33,6 +33,11 @@ services:
         sync: false          # first-run admin bootstrap password (force-changed on first login)
       - key: APP_SECURITY_HSTS_ENABLED
         value: "true"
+      # Report email via Resend (domain built4u-pos.com is verified).
+      - key: APP_MAIL_RESEND_API_KEY
+        sync: false          # the re_... sending key
+      - key: APP_MAIL_FROM
+        value: Built4U <reports@built4u-pos.com>
 
   # ── Frontend: static React build ────────────────────────────────────────────
   - type: web
