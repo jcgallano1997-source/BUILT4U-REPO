@@ -8,6 +8,10 @@ services:
   - type: web
     name: built4u-pos-api
     runtime: docker
+    # MUST match the ADB's region — the app is chatty with the database, and a
+    # cross-Pacific hop turns every query into ~200ms. Region can't be changed
+    # after a service is created; it has to be recreated.
+    region: singapore
     rootDir: backend
     dockerfilePath: ./Dockerfile
     plan: free
