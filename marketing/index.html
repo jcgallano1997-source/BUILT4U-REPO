@@ -1,377 +1,930 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Built4U POS — Point of sale for hardware &amp; construction supply</title>
-<meta name="description" content="Point-of-sale and inventory built for Philippine hardware stores: thousands of SKUs, buy by box and sell by piece, supplier deliveries, customer credit, and receipts that print to your thermal printer." />
-<meta property="og:title" content="Built4U POS — made for hardware stores" />
-<meta property="og:description" content="Ring up sales, track thousands of SKUs, receive deliveries and collect utang — from one system." />
-<meta property="og:type" content="website" />
-<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="description" content="Point of sale and inventory built for Philippine hardware stores — thousands of SKUs, buy by box and sell by piece, supplier deliveries, and customers who pay on credit.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta property="og:title" content="Built4U POS — Point of sale for hardware &amp; construction supply">
+<meta property="og:description" content="Buy by box, sell by piece. Track utang. Know your real cost. Built for Philippine hardware stores.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://built4u-pos.com/">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --navy:#0b1220; --navy-2:#111c30; --ink:#0f172a; --slate:#475569; --muted:#64748b;
-  --line:#e2e8f0; --bg:#ffffff; --bg-soft:#f8fafc;
-  --amber:#f59e0b; --amber-600:#d97706;
-  --radius:16px; --wrap:1140px;
+  --paper:#F6F3EE; --paper-2:#EFEBE4; --paper-3:#FBFAF8;
+  --ink:#16130F; --dark:#1E1B17;
+  --body:#4A443C; --muted:#6B655C; --faint:#948C80;
+  --line:rgba(22,19,15,.10); --line-2:rgba(22,19,15,.14); --line-3:rgba(22,19,15,.06);
+  --accent:#E2521D; --accent-dk:#C8420F; --accent-deep:#B04A18; --accent-soft:#FBE9DF;
+  --green:#2F6B4F; --green-soft:#E4F0E9; --green-dim:#7FBE9B;
+  --dim:#A79E92; --dim-2:#8C8478; --dim-3:#6E675D;
+  --brand-blue:#2563eb;
+  --wrap:1220px;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --display:Archivo,'Helvetica Neue',Arial,sans-serif;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{margin:0;font-family:'Hanken Grotesk',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--ink);background:var(--bg);line-height:1.6;-webkit-font-smoothing:antialiased}
-.wrap{max-width:var(--wrap);margin:0 auto;padding:0 20px}
-a{color:inherit}
-h1,h2,h3{line-height:1.15;letter-spacing:-0.02em;margin:0}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  -webkit-font-smoothing:antialiased;text-wrap:pretty;overflow-x:hidden}
+a{color:var(--accent);text-decoration:none}
+a:hover{color:var(--accent-dk)}
+h1,h2,h3{font-family:var(--display);margin:0}
 p{margin:0}
-.stripe{height:4px;background:repeating-linear-gradient(45deg,var(--amber) 0 12px,var(--navy) 12px 24px)}
+img,svg{display:block}
+input,button,textarea,select{font:inherit}
+::selection{background:var(--accent);color:#fff}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+.wrap{max-width:var(--wrap);margin:0 auto;padding:0 28px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+.h2{font-weight:800;font-size:clamp(30px,3.6vw,44px);line-height:1.06;letter-spacing:-.035em;margin-top:14px}
+.h2-sm{font-weight:800;font-size:clamp(28px,3.2vw,38px);line-height:1.08;letter-spacing:-.035em;margin-top:14px}
+.lede{margin-top:16px;font-size:17px;line-height:1.62;color:var(--body)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
 
-header{position:sticky;top:0;z-index:50;background:rgba(11,18,32,.94);backdrop-filter:blur(8px);border-bottom:1px solid rgba(255,255,255,.08)}
-.nav{display:flex;align-items:center;gap:24px;height:64px}
-.brand{display:flex;align-items:center;gap:10px;font-weight:800;color:#fff;text-decoration:none;letter-spacing:-.02em}
-.brand .mark{width:30px;height:30px;display:grid;place-items:center;flex:none}
-.brand .mark svg{display:block}
-.brand small{display:block;font-size:10px;font-weight:600;letter-spacing:.14em;color:#94a3b8;text-transform:uppercase;line-height:1}
-.nav-links{margin-left:auto;display:flex;gap:26px;align-items:center}
-.nav-links a{color:#cbd5e1;text-decoration:none;font-size:14.5px;font-weight:500}
-.nav-links a:hover{color:#fff}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:10px;padding:11px 18px;font-weight:700;font-size:14.5px;text-decoration:none;border:0;cursor:pointer;transition:.15s}
-.btn-amber{background:var(--amber);color:#1a1205}
-.btn-amber:hover{background:var(--amber-600)}
-.btn-ghost{border:1px solid rgba(255,255,255,.22);color:#fff;background:transparent}
-.btn-ghost:hover{background:rgba(255,255,255,.08)}
-.nav-toggle{display:none}
+.js [data-reveal]{opacity:0;transform:translateY(14px)}
+.js [data-reveal].in{opacity:1;transform:none;transition:opacity .65s ease,transform .65s cubic-bezier(.2,.7,.3,1)}
+@media (prefers-reduced-motion:reduce){.js [data-reveal]{opacity:1;transform:none}}
 
-.hero{background:
-   radial-gradient(900px 420px at 78% -10%,rgba(245,158,11,.20),transparent 60%),
-   linear-gradient(180deg,var(--navy),var(--navy-2));
-  color:#fff;position:relative;overflow:hidden}
-.hero::before{content:"";position:absolute;inset:0;opacity:.4;
-  background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);
-  background-size:44px 44px}
-.hero .wrap{position:relative;display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center;padding:86px 20px 96px}
-.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:11.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--amber);margin-bottom:18px}
-.eyebrow::before{content:"";width:26px;height:2px;background:var(--amber)}
-.hero h1{font-size:clamp(34px,4.4vw,54px);font-weight:800}
-.hero h1 em{font-style:normal;color:var(--amber)}
-.hero p.lead{margin-top:20px;font-size:18px;color:#cbd5e1;max-width:36em}
-.hero-cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:30px}
-.trust{margin-top:26px;display:flex;gap:22px;flex-wrap:wrap;color:#94a3b8;font-size:13px}
-.trust b{color:#fff;font-weight:700}
+header{position:sticky;top:0;z-index:50;background:rgba(246,243,238,.88);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);transition:box-shadow .2s}
+header.stuck{box-shadow:0 10px 30px -22px rgba(22,19,15,.7)}
+.nav{height:68px;display:flex;align-items:center;gap:36px}
+.brand{display:flex;align-items:center;gap:11px;color:var(--ink);flex:none}
+.brand:hover{color:var(--ink)}
+.mark{width:30px;height:30px;border-radius:7px;background:var(--brand-blue);display:grid;place-items:center;flex:none}
+.brand-name{font-family:var(--display);font-weight:800;font-size:16.5px;letter-spacing:-.035em;line-height:1.05}
+.brand-name small{display:block;font-family:var(--mono);font-size:9px;font-weight:500;letter-spacing:.16em;color:var(--faint);text-transform:uppercase;margin-top:2px}
+.nav-links{display:flex;align-items:center;gap:28px;margin-left:4px}
+.nav-links a{font-size:14px;font-weight:500;color:var(--body)}
+.nav-links a:hover{color:var(--ink)}
+.nav-end{margin-left:auto;display:flex;align-items:center;gap:12px}
+.nav-toggle{display:none;background:none;border:1px solid var(--line-2);border-radius:7px;padding:7px 9px;cursor:pointer;color:var(--ink)}
 
-.receipt{background:#fff;color:var(--ink);border-radius:12px;padding:22px 20px;box-shadow:0 30px 60px rgba(0,0,0,.45);transform:rotate(1.4deg);max-width:330px;margin-left:auto;
-  clip-path:polygon(0 0,100% 0,100% calc(100% - 10px),94% 100%,88% calc(100% - 10px),82% 100%,76% calc(100% - 10px),70% 100%,64% calc(100% - 10px),58% 100%,52% calc(100% - 10px),46% 100%,40% calc(100% - 10px),34% 100%,28% calc(100% - 10px),22% 100%,16% calc(100% - 10px),10% 100%,4% calc(100% - 10px),0 100%)}
-.receipt h4{margin:0;text-align:center;font-size:15px;letter-spacing:.06em}
-.receipt .sub{text-align:center;font-size:11px;color:var(--muted);margin-bottom:14px}
-.receipt .row{display:flex;justify-content:space-between;font-size:12.5px;padding:3px 0}
-.receipt .row span:last-child{font-family:'JetBrains Mono',ui-monospace,monospace}
-.receipt hr{border:0;border-top:1px dashed var(--line);margin:10px 0}
-.receipt .tot{font-weight:800;font-size:14px}
-.receipt .foot{text-align:center;font-size:10.5px;color:var(--muted);margin-top:12px;letter-spacing:.08em}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;font-weight:600;border-radius:8px;border:0;cursor:pointer;transition:background .15s,border-color .15s,transform .15s,color .15s}
+.btn-dark{background:var(--ink);color:#fff;font-size:14px;padding:10px 18px;border-radius:7px}
+.btn-dark:hover{background:var(--accent);color:#fff}
+.btn-accent{background:var(--accent);color:#fff;font-size:15.5px;padding:15px 26px;
+  box-shadow:0 1px 0 rgba(255,255,255,.25) inset,0 8px 20px -8px rgba(226,82,29,.6)}
+.btn-accent:hover{background:var(--accent-dk);color:#fff}
+.btn-line{background:#fff;color:var(--ink);font-size:15.5px;padding:15px 24px;border:1px solid rgba(22,19,15,.16)}
+.btn-line:hover{border-color:var(--ink);color:var(--ink)}
 
-section{padding:82px 0}
-.sec-head{max-width:44em;margin-bottom:44px}
-.sec-head .eyebrow{color:var(--amber-600)}
-.sec-head .eyebrow::before{background:var(--amber-600)}
-.sec-head h2{font-size:clamp(26px,3.1vw,38px);font-weight:800}
-.sec-head p{margin-top:14px;color:var(--slate);font-size:17px}
-.soft{background:var(--bg-soft);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.hero{position:relative;padding:76px 0 0;overflow:hidden}
+.hero .grid-bg{position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(rgba(22,19,15,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(22,19,15,.045) 1px,transparent 1px);
+  background-size:64px 64px;
+  -webkit-mask-image:radial-gradient(ellipse 90% 70% at 50% 0%,#000 30%,transparent 78%);
+  mask-image:radial-gradient(ellipse 90% 70% at 50% 0%,#000 30%,transparent 78%)}
+.hero .wrap{position:relative}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.02fr);gap:56px;align-items:center}
+.pill{display:inline-flex;align-items:center;gap:9px;padding:6px 12px 6px 9px;border:1px solid var(--line-2);background:#fff;border-radius:100px;
+  font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--body)}
+.pill i{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2.4s ease-in-out infinite}
+.hero h1{font-weight:800;font-size:clamp(38px,5.2vw,68px);line-height:1;letter-spacing:-.042em;margin-top:22px}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.hero-lede{margin-top:24px;font-size:18.5px;line-height:1.6;color:var(--body);max-width:530px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px}
+.hero-meta{display:flex;flex-wrap:wrap;gap:14px;margin-top:26px;font-family:var(--mono);font-size:11.5px;letter-spacing:.04em;color:#7A7368;text-transform:uppercase}
+.hero-meta s{text-decoration:none;color:rgba(22,19,15,.22)}
 
-.grid{display:grid;gap:20px}
-.g3{grid-template-columns:repeat(3,1fr)}
-.g2{grid-template-columns:repeat(2,1fr)}
-.card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:24px}
-.card .ico{width:38px;height:38px;border-radius:10px;background:#fff7ed;color:var(--amber-600);display:grid;place-items:center;font-size:19px;margin-bottom:14px;border:1px solid #fed7aa}
-.card h3{font-size:16.5px;font-weight:700}
-.card p{margin-top:8px;color:var(--slate);font-size:14.5px}
+.mock-wrap{position:relative}
+.mock{background:var(--dark);border-radius:14px;padding:12px;box-shadow:0 40px 80px -40px rgba(22,19,15,.55),0 0 0 1px var(--line)}
+.mock-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 8px 12px}
+.mock-top span{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;color:var(--dim-2);text-transform:uppercase}
+.mock-top .live{display:inline-flex;align-items:center;gap:7px;color:var(--green-dim);letter-spacing:.08em}
+.mock-top .live i{width:6px;height:6px;border-radius:50%;background:var(--green-dim)}
+.screen{background:var(--paper-3);border-radius:8px;overflow:hidden}
+.scan{display:flex;align-items:center;gap:10px;padding:13px 15px;border-bottom:1px solid rgba(22,19,15,.09);background:#fff}
+.scan .ph{font-size:13.5px;color:#9A9287}
+.scan .key{margin-left:auto;font-family:var(--mono);font-size:10px;color:#B7AFA3;border:1px solid rgba(22,19,15,.12);padding:3px 6px;border-radius:4px}
+.li{display:flex;align-items:center;gap:12px;padding:12px 15px;border-bottom:1px solid var(--line-3)}
+.li.hl{background:#FFF7F2}
+.li .q{font-family:var(--mono);font-size:13px;font-weight:600;width:34px;flex:none}
+.li .m{flex:1;min-width:0}
+.li .nm{font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.li .sub{font-family:var(--mono);font-size:10.5px;color:var(--faint);margin-top:2px}
+.li .amt{font-family:var(--mono);font-size:13.5px;font-weight:600}
+.tag{font-family:var(--mono);font-size:9px;letter-spacing:.08em;background:var(--accent);color:#fff;padding:2px 5px;border-radius:3px;font-weight:500}
+.cust{padding:13px 15px;display:flex;align-items:center;gap:10px;background:#F3F0EB;border-bottom:1px solid rgba(22,19,15,.09)}
+.cust .av{width:26px;height:26px;border-radius:5px;background:#2E4257;color:#fff;display:grid;place-items:center;font-family:var(--mono);font-size:10px;font-weight:600;flex:none}
+.cust .m{flex:1;min-width:0}
+.cust .n{font-size:12.5px;font-weight:600}
+.cust .s{font-family:var(--mono);font-size:10px;color:#7A7368;margin-top:1px}
+.cust .ok{font-family:var(--mono);font-size:10px;color:var(--green);background:var(--green-soft);padding:3px 7px;border-radius:4px;flex:none}
+.tot{padding:14px 15px;display:grid;gap:7px}
+.tot .r{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted)}
+.tot .r b{font-family:var(--mono);font-weight:400}
+.tot .r .good{color:var(--green)}
+.tot .grand{display:flex;justify-content:space-between;align-items:baseline;padding-top:9px;margin-top:2px;border-top:1px solid rgba(22,19,15,.12)}
+.tot .grand span{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:-.02em;color:var(--ink)}
+.tot .grand b{font-family:var(--display);font-weight:800;font-size:26px;letter-spacing:-.035em;color:var(--ink)}
+.pay{display:grid;grid-template-columns:1.3fr 1fr;gap:8px;padding:0 15px 15px}
+.pay div{text-align:center;padding:12px;border-radius:7px;font-size:13.5px;font-weight:600}
+.pay .a{background:var(--accent);color:#fff}
+.pay .b{background:#fff;color:var(--ink);border:1px solid rgba(22,19,15,.16)}
+.float{position:absolute;left:-22px;bottom:-20px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:11px 14px;box-shadow:0 18px 36px -18px rgba(22,19,15,.4)}
+.float .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--faint);text-transform:uppercase}
+.float .v{display:flex;align-items:baseline;gap:6px;margin-top:3px}
+.float .v b{font-family:var(--display);font-weight:800;font-size:20px;letter-spacing:-.03em}
+.float .v span{font-size:11.5px;color:var(--muted)}
 
-.pain{display:grid;grid-template-columns:1fr 1fr;gap:14px 40px}
-.pain div{display:flex;gap:12px;align-items:flex-start;font-size:15.5px;color:var(--slate)}
-.pain b{color:var(--ink);font-weight:700}
-.tick{flex:none;width:22px;height:22px;border-radius:50%;background:#ecfdf5;color:#047857;display:grid;place-items:center;font-size:12px;font-weight:800;margin-top:2px}
+.band{margin-top:84px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--paper-2)}
+.band .wrap{display:grid;grid-template-columns:repeat(3,1fr)}
+.band .s{padding:26px 28px}
+.band .s+.s{border-left:1px solid var(--line)}
+.band .s:first-child{padding-left:0}
+.band .s:last-child{padding-right:0}
+.band b{display:block;font-family:var(--display);font-weight:800;font-size:26px;letter-spacing:-.03em}
+.band p{font-size:13.5px;color:var(--muted);margin-top:4px}
 
-.steps{counter-reset:s;display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
-.step{padding-top:22px;border-top:3px solid var(--line);position:relative}
-.step::before{counter-increment:s;content:"0" counter(s);position:absolute;top:-16px;left:0;background:var(--amber);color:#1a1205;font-family:'JetBrains Mono',ui-monospace,monospace;font-weight:700;font-size:12px;padding:2px 8px;border-radius:4px}
-.step h3{font-size:17px;margin-bottom:6px}
-.step p{color:var(--slate);font-size:14.5px}
+section.pad{padding:96px 0 0}
+.head{max-width:720px}
+.head-row{display:flex;align-items:flex-end;justify-content:space-between;gap:40px;flex-wrap:wrap}
+.head-row .t{max-width:620px}
+.link-arrow{font-size:14.5px;font-weight:600;color:var(--ink);display:inline-flex;align-items:center;gap:7px;padding-bottom:6px;border-bottom:1.5px solid var(--accent)}
+.link-arrow:hover{color:var(--accent)}
 
-details{border:1px solid var(--line);border-radius:12px;padding:16px 18px;background:#fff;margin-bottom:10px}
-details[open]{border-color:#fed7aa;background:#fffdf8}
-summary{cursor:pointer;font-weight:700;font-size:15.5px;list-style:none;display:flex;justify-content:space-between;gap:16px}
+.compare{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(22,19,15,.12);border:1px solid rgba(22,19,15,.12);border-radius:12px;overflow:hidden;margin-top:40px}
+.compare>div{background:var(--paper);padding:28px 26px}
+.compare .k{font-family:var(--mono);font-size:11px;letter-spacing:.08em}
+.compare .k.bad{color:var(--accent-deep)}
+.compare .k.good{color:var(--green);margin-top:18px}
+.compare p{margin:10px 0 18px;font-size:15px;line-height:1.55;color:var(--muted)}
+.compare .rule{height:1px;background:rgba(22,19,15,.12)}
+.compare p.yes{margin:10px 0 0;color:var(--ink);font-weight:500}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:44px}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:26px;transition:border-color .18s,transform .18s}
+.card:hover{border-color:rgba(22,19,15,.30);transform:translateY(-2px)}
+.card .top{display:flex;align-items:center;justify-content:space-between}
+.card .ico{width:34px;height:34px;border-radius:8px;background:var(--accent-soft);display:grid;place-items:center;flex:none}
+.card .num{font-family:var(--mono);font-size:11px;color:#C4BCB0}
+.card h3{font-weight:700;font-size:18px;letter-spacing:-.02em;margin-top:18px}
+.card p{margin-top:9px;font-size:14.5px;line-height:1.58;color:var(--muted)}
+.also{margin-top:22px;border:1px dashed var(--line-2);border-radius:12px;padding:20px 24px;font-size:14.5px;line-height:1.7;color:var(--muted)}
+.also b{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink);display:block;margin-bottom:8px;font-weight:600}
+
+.split{display:grid;gap:56px;align-items:center}
+.split.a{grid-template-columns:minmax(0,.86fr) minmax(0,1fr)}
+.split.b{grid-template-columns:minmax(0,1fr) minmax(0,.86fr);margin-top:96px}
+.ticks{display:grid;gap:13px;margin-top:26px}
+.ticks div{display:flex;gap:11px;align-items:flex-start}
+.ticks i{width:18px;height:18px;border-radius:50%;background:var(--green-soft);display:grid;place-items:center;flex:none;margin-top:2px}
+.ticks span{font-size:15px;line-height:1.5;color:var(--body)}
+
+.panel{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 30px 60px -40px rgba(22,19,15,.45)}
+.panel .ph{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid rgba(22,19,15,.09);flex-wrap:wrap}
+.panel .ph b{font-family:var(--display);font-weight:700;font-size:14px;letter-spacing:-.02em}
+.panel .ph .chip{font-family:var(--mono);font-size:10px;background:var(--accent-soft);color:var(--accent-deep);padding:3px 7px;border-radius:4px}
+.panel .ph .loc{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--faint)}
+.tr{display:grid;grid-template-columns:1.9fr .8fr .7fr .6fr .9fr;gap:10px;padding:12px 18px;border-bottom:1px solid var(--line-3);align-items:center}
+.tr.th{padding:9px 18px;background:#F3F0EB;font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;color:var(--dim-2);text-transform:uppercase;border-bottom:0}
+.tr .r{text-align:right}
+.tr .nm{font-size:13px;font-weight:600}
+.tr .sku{font-family:var(--mono);font-size:10px;color:var(--faint);margin-top:2px}
+.tr .mo{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
+.tr .lo{color:var(--accent-deep);font-weight:600}
+.tr .hi{color:var(--green);font-weight:600}
+.tr .sug{background:var(--accent);color:#fff;padding:3px 7px;border-radius:4px;font-family:var(--mono);font-size:11px}
+.panel .pf{display:flex;align-items:center;gap:10px;padding:14px 18px;border-top:1px solid rgba(22,19,15,.09);background:var(--paper-3);flex-wrap:wrap}
+.panel .pf span{font-size:12.5px;color:var(--muted)}
+.panel .pf b{margin-left:auto;background:var(--ink);color:#fff;font-size:12.5px;font-weight:600;padding:8px 14px;border-radius:6px}
+
+.acct{background:var(--dark);border-radius:12px;padding:26px 28px;color:var(--paper);box-shadow:0 30px 60px -40px rgba(22,19,15,.6)}
+.acct .r1{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+.acct .k{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--dim-2);text-transform:uppercase}
+.acct .n{font-family:var(--display);font-weight:800;font-size:21px;letter-spacing:-.03em;margin-top:4px}
+.acct .badge{font-family:var(--mono);font-size:10px;letter-spacing:.06em;background:rgba(127,190,155,.16);color:var(--green-dim);padding:5px 9px;border-radius:5px;flex:none}
+.acct .two{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:22px}
+.acct .box{background:rgba(246,243,238,.06);border-radius:9px;padding:14px 16px}
+.acct .box b{display:block;font-family:var(--display);font-weight:800;font-size:25px;letter-spacing:-.03em;margin-top:5px}
+.acct .bar{height:6px;border-radius:100px;background:rgba(246,243,238,.1);margin-top:16px;overflow:hidden}
+.acct .bar i{display:block;width:43%;height:100%;background:var(--accent);border-radius:100px}
+.acct .note{font-family:var(--mono);font-size:10px;color:var(--dim-2);margin-top:8px;letter-spacing:.05em}
+.acct .list{margin-top:22px;border-top:1px solid rgba(246,243,238,.12);padding-top:16px;display:grid;gap:11px}
+.acct .list div{display:flex;align-items:center;gap:12px}
+.acct .list .j{font-family:var(--mono);font-size:11px;color:var(--dim-2);width:78px;flex:none}
+.acct .list .d{font-size:13.5px;flex:1;min-width:0}
+.acct .list .a{font-family:var(--mono);font-size:13px}
+
+.dark{margin-top:104px;background:var(--dark);color:var(--paper)}
+.dark .wrap{padding-top:88px;padding-bottom:88px}
+.dark h2{color:var(--paper)}
+.dark .sub{max-width:340px;font-size:15px;line-height:1.6;color:var(--dim)}
+.tiles6{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(246,243,238,.14);border:1px solid rgba(246,243,238,.14);border-radius:12px;overflow:hidden;margin-top:40px}
+.tiles6>div{background:var(--dark);padding:26px}
+.tiles6 .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--dim-2)}
+.tiles6 b{display:block;font-family:var(--display);font-weight:700;font-size:17px;margin-top:10px;letter-spacing:-.02em}
+.tiles6 p{font-size:14px;line-height:1.55;color:var(--dim);margin-top:7px}
+
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;margin-top:48px}
+.step{border-top:2px solid var(--ink);padding-top:20px}
+.step .n{font-family:var(--display);font-weight:800;font-size:38px;letter-spacing:-.04em;color:var(--accent);line-height:1}
+.step h3{font-weight:700;font-size:19px;letter-spacing:-.025em;margin-top:12px}
+.step p{margin-top:9px;font-size:15px;line-height:1.6;color:var(--muted)}
+
+.promise{background:var(--paper-2);border:1px solid var(--line);border-radius:14px;padding:52px 56px;display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:48px;align-items:center}
+.promise .q{font-family:var(--display);font-weight:600;font-size:clamp(19px,2.2vw,26px);line-height:1.36;letter-spacing:-.025em;margin-top:20px}
+.promise .who{display:flex;align-items:center;gap:12px;margin-top:26px}
+.promise .who .av{width:38px;height:38px;border-radius:9px;background:var(--brand-blue);display:grid;place-items:center;flex:none}
+.promise .who b{font-size:14.5px;font-weight:600;display:block}
+.promise .who span{font-size:13px;color:var(--muted)}
+.promise .facts{display:grid;gap:18px;border-left:1px solid rgba(22,19,15,.12);padding-left:40px}
+.promise .facts b{font-family:var(--display);font-weight:800;font-size:30px;letter-spacing:-.035em;display:block}
+.promise .facts span{font-size:13px;color:var(--muted)}
+
+.faq-grid{display:grid;grid-template-columns:minmax(0,.7fr) minmax(0,1fr);gap:56px}
+.faq-list{border-top:1px solid var(--line-2)}
+details{border-bottom:1px solid var(--line-2)}
+summary{list-style:none;cursor:pointer;padding:20px 0;display:flex;align-items:center;gap:18px;
+  font-family:var(--display);font-weight:700;font-size:17px;letter-spacing:-.02em;color:var(--ink)}
 summary::-webkit-details-marker{display:none}
-summary::after{content:"+";color:var(--amber-600);font-weight:800}
-details[open] summary::after{content:"\2212"}
-details p{margin-top:10px;color:var(--slate);font-size:14.5px}
+summary .chev{width:26px;height:26px;border-radius:50%;flex:none;display:grid;place-items:center;
+  background:rgba(22,19,15,.07);color:var(--ink);margin-left:auto;transition:.18s}
+details[open] summary .chev{background:var(--accent);color:#fff;transform:rotate(180deg)}
+details .a{padding:0 60px 22px 0;font-size:15.5px;line-height:1.62;color:var(--body)}
 
-.contact{background:linear-gradient(180deg,var(--navy),var(--navy-2));color:#fff}
-.contact .sec-head h2{color:#fff}
-.contact .sec-head p{color:#cbd5e1}
-.contact .eyebrow{color:var(--amber)}
-.contact .eyebrow::before{background:var(--amber)}
-.form{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:var(--radius);padding:26px}
-.field{margin-bottom:14px}
-.field label{display:block;font-size:12.5px;font-weight:600;color:#cbd5e1;margin-bottom:6px}
-.field input,.field textarea{width:100%;padding:11px 13px;border-radius:10px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#fff;font:inherit;font-size:14.5px;outline:none}
-.field input:focus,.field textarea:focus{border-color:var(--amber);background:rgba(255,255,255,.1)}
-.field textarea{min-height:96px;resize:vertical}
-.direct{display:flex;flex-direction:column;gap:16px}
-.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.tile{display:flex;align-items:center;gap:13px;padding:16px;border:1px solid rgba(255,255,255,.12);border-radius:13px;text-decoration:none;background:rgba(255,255,255,.04);transition:transform .15s,border-color .15s,background .15s}
-.tile:hover{border-color:var(--amber);background:rgba(245,158,11,.09);transform:translateY(-2px)}
-.tile .ico{width:40px;height:40px;border-radius:11px;background:rgba(245,158,11,.15);color:var(--amber);display:grid;place-items:center;flex:none}
+.demo{margin-top:100px;background:var(--ink);color:var(--paper)}
+.demo .wrap{padding-top:88px;padding-bottom:88px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.92fr);gap:60px;align-items:start}
+.demo h2{font-weight:800;font-size:clamp(32px,4vw,50px);line-height:1.02;letter-spacing:-.04em;color:var(--paper)}
+.demo .lede{color:var(--dim);max-width:450px;font-size:17px;margin-top:20px}
+.demo .pts{display:grid;gap:12px;margin-top:30px}
+.demo .pts div{display:flex;gap:11px;align-items:flex-start;font-size:15px;color:#E7E1D8}
+.demo .pts i{color:var(--accent);font-style:normal;flex:none}
+.form{background:var(--paper-3);border-radius:13px;padding:28px;display:grid;gap:14px;color:var(--ink)}
+.form .two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+label{display:grid;gap:6px}
+label span{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#7A7368}
+input,select,textarea{border:1px solid rgba(22,19,15,.16);border-radius:7px;padding:11px 12px;font-size:14.5px;background:#fff;color:var(--ink);outline:none;width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+textarea{min-height:76px;resize:vertical}
+.form button{margin-top:4px;background:var(--accent);color:#fff;font-weight:600;font-size:15.5px;padding:14px;border-radius:8px;border:0;cursor:pointer}
+.form button:hover{background:var(--accent-dk)}
+.form .fine{font-size:12px;line-height:1.5;color:var(--dim-2);text-align:center;margin-top:2px}
+.or{display:flex;align-items:center;gap:14px;margin-top:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim-2)}
+.or::before,.or::after{content:"";flex:1;height:1px;background:rgba(246,243,238,.14)}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}
+.tile{display:flex;align-items:center;gap:13px;padding:15px;border:1px solid rgba(246,243,238,.14);border-radius:11px;background:rgba(246,243,238,.04);transition:.15s;color:var(--paper)}
+.tile:hover{border-color:var(--accent);background:rgba(226,82,29,.10);transform:translateY(-2px);color:var(--paper)}
+.tile .ic{width:38px;height:38px;border-radius:10px;background:rgba(226,82,29,.16);color:var(--accent);display:grid;place-items:center;flex:none}
 .tile .tx{min-width:0;flex:1}
-.tile b{display:block;font-size:14.5px;color:#fff;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tile .sm{display:block;font-size:12.5px;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tile .arw{color:#475569;font-size:16px;flex:none;transition:.15s}
-.tile:hover .arw{color:var(--amber);transform:translateX(3px)}
-.badge{font-style:normal;font-size:9.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;background:var(--amber);color:#1a1205;padding:2px 6px;border-radius:20px;vertical-align:middle;margin-left:4px}
-.hours{display:flex;gap:13px;align-items:flex-start;padding:17px;border:1px dashed rgba(255,255,255,.18);border-radius:13px;color:#94a3b8;font-size:13.5px;line-height:1.55}
-.hours b{display:block;color:#fff;margin-bottom:3px;font-size:14px}
-.hours .ico-sm{color:var(--amber);flex:none;margin-top:2px}
-.hours .sm{color:#64748b;font-size:12.5px}
-@media(max-width:520px){.tiles{grid-template-columns:1fr}}
+.tile b{display:block;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile small{display:block;font-size:12px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.tile .arw{color:var(--dim-3);flex:none;transition:.15s}
+.tile:hover .arw{color:var(--accent);transform:translateX(3px)}
+.hot{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;background:var(--accent);color:#fff;padding:2px 5px;border-radius:3px;margin-left:5px;vertical-align:1px}
+.where{display:flex;gap:13px;align-items:flex-start;margin-top:12px;padding:16px;border:1px dashed rgba(246,243,238,.18);border-radius:11px;color:var(--dim);font-size:13.5px;line-height:1.55}
+.where b{display:block;color:var(--paper);font-size:14px;margin-bottom:3px}
+.where .ic{color:var(--accent);flex:none;margin-top:2px}
 
-footer{background:var(--navy);color:#94a3b8;padding:34px 0;font-size:13.5px;border-top:1px solid rgba(255,255,255,.08)}
-.foot-row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center}
+footer{background:var(--ink);color:var(--dim);border-top:1px solid rgba(246,243,238,.12)}
+.f-top{display:grid;grid-template-columns:1.5fr 1fr 1fr 1.1fr;gap:40px;padding:52px 0 28px}
+.f-top .brand-name{color:var(--paper)}
+.f-top p{margin-top:14px;font-size:14px;line-height:1.6;max-width:290px}
+.f-col{display:grid;gap:10px;align-content:start}
+.f-col .k{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim-3)}
+.f-col a{font-size:14px;color:#C9C2B7}
+.f-col a:hover{color:var(--accent)}
+.f-col .plain{font-size:13.5px;color:var(--dim-2);line-height:1.5}
+.f-bot{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;font-size:12.5px;color:var(--dim-3);
+  border-top:1px solid rgba(246,243,238,.10);padding:20px 0 34px}
+.f-bot a{color:var(--dim-3)}
+.f-bot a:hover{color:var(--accent)}
 
-@media(max-width:900px){
-  .hero .wrap{grid-template-columns:1fr;gap:40px;padding:60px 20px 70px}
-  .receipt{margin:0 auto;transform:rotate(0)}
-  .g3,.g2,.steps,.pain{grid-template-columns:1fr}
+@media(max-width:1000px){
+  .hero-grid,.split.a,.split.b,.faq-grid,.demo .wrap{grid-template-columns:1fr;gap:44px}
+  .split.b{margin-top:64px}
+  .split.b .acct{order:2}
+  .cards,.compare,.tiles6,.steps{grid-template-columns:repeat(2,1fr)}
+  .promise{grid-template-columns:1fr;padding:36px 30px;gap:30px}
+  .promise .facts{border-left:0;border-top:1px solid rgba(22,19,15,.12);padding-left:0;padding-top:26px;
+    grid-template-columns:repeat(3,1fr)}
+  .float{left:auto;right:0;bottom:-16px}
   .nav-links{display:none}
-  .nav-links.open{display:flex;position:absolute;top:64px;left:0;right:0;background:var(--navy);flex-direction:column;padding:18px 20px;gap:16px;border-bottom:1px solid rgba(255,255,255,.1)}
-  .nav-toggle{display:inline-flex;margin-left:auto;background:none;border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:8px;padding:7px 11px;cursor:pointer;font-size:16px}
-  section{padding:60px 0}
+  .nav-links.open{display:flex;position:absolute;top:68px;left:0;right:0;background:var(--paper);
+    flex-direction:column;align-items:flex-start;padding:18px 28px 22px;gap:16px;border-bottom:1px solid var(--line);
+    box-shadow:0 16px 30px -24px rgba(22,19,15,.8)}
+  .nav-toggle{display:inline-grid;place-items:center}
+  .nav-end{gap:10px}
+}
+@media(max-width:720px){
+  .wrap{padding:0 20px}
+  .hero{padding-top:52px}
+  section.pad{padding-top:68px}
+  .band{margin-top:56px}
+  .band .wrap{grid-template-columns:1fr}
+  .band .s{padding:20px 0}
+  .band .s+.s{border-left:0;border-top:1px solid var(--line)}
+  .cards,.compare,.tiles6,.steps,.tiles,.form .two,.acct .two,.promise .facts{grid-template-columns:1fr}
+  .compare>div,.tiles6>div{padding:24px 22px}
+  .dark{margin-top:68px}
+  .dark .wrap{padding-top:60px;padding-bottom:60px}
+  .demo{margin-top:68px}
+  .demo .wrap{padding-top:60px;padding-bottom:60px}
+  .f-top{grid-template-columns:1fr;gap:28px}
+  .float{display:none}
+  .tr{grid-template-columns:1.7fr .8fr .7fr;gap:8px}
+  .hide-sm{display:none}
+  details .a{padding-right:0}
 }
 </style>
 </head>
 <body>
+<script>document.documentElement.className+=' js'</script>
 
-<header>
+<header id="nav">
   <div class="wrap nav">
     <a class="brand" href="#top">
       <span class="mark"><svg viewBox="0 0 64 64" width="30" height="30" aria-hidden="true"><g transform="translate(13,8) scale(0.066)" fill="#ffffff">
-    <path d="M1.1,1C.1,2.6.4,302.4,1.4,302.8c.8.2,23.5-20.3,50.2-45.5l8.4-8,.2-47.9c.1-26.3.3-48.2.3-48.7.1-1,136.1-.9,136.1.2,0,.4-2.6,3.2-5.7,6.2-3.2,2.9-13.2,12.3-22.3,20.9s-22.6,21.2-30,28.1c-7.4,6.8-18.4,17.1-24.5,22.9s-14.4,13.7-18.5,17.5c-4.1,3.9-14.9,14-24,22.5s-20.5,19.3-25.5,24.1c-4.9,4.7-14.8,14-22,20.6-7.1,6.6-15.5,14.5-18.6,17.4l-5.5,5.4.3,13c.1,7.1.2,18.1.3,24.2v11.3l114.3.2,114.2.3.5,99.5c.4,75.4.8,100.2,1.7,102.3l1.3,2.7h29.4c22.5,0,29.7-.3,30.3-1.3.4-.6,1-46.7,1.3-102.2l.5-101,7.5-.6c9.5-.8,18.1-3.3,20.5-5.9,3.1-3.4,3.8-32.5.9-37.2-1.5-2.4-10.1-5-19-5.8-5.1-.4-9.8-1.1-10.3-1.5-.8-.4-1.1-22.6-1.1-72,0-39.3-.3-71.6-.8-71.8-.4-.3-3.9,2.5-7.8,6.1-15,14.1-37.1,35.1-45.6,43.2l-8.8,8.5v86.5h-72.5c-41.4,0-72.5-.4-72.5-.9,0-.8,6.8-6.9,43.4-39,7.2-6.3,16.9-14.9,21.6-19,4.7-4.2,9.8-8.7,11.4-10.1s6.6-5.7,11-9.6c4.5-4,14.6-12.9,22.6-19.9,32.9-28.9,74.6-66.2,87.5-78.3l8.9-8.4,19.1.4c18.7.3,19.1.4,24.8,3.3,6.4,3.2,12.4,9.1,15.8,15.7,2.1,3.9,2.4,6,2.9,24.3.6,22.8-.3,29.2-4.8,35.7-6.8,9.8-16.1,15.2-29.9,17.3l-4.3.7-.1,14.6c-.1,8.1-.3,18.1-.5,22.2-.5,11.2-.7,11,8.9,11,9,0,22-2.5,34-6.4,28.2-9.3,47.3-27.3,54.9-51.6,2.2-7,2.3-9.1,2.3-33.5,0-21.9-.3-27-1.8-32.5-3.9-14.3-15.7-28.9-28.5-35.3-8.2-4.1-8.4-3.2,2-9.1s20.2-19.1,24.2-32.5c2.2-7.5,2.2-29.1,0-38-.9-3.6-3.7-10.7-6.2-15.6-3.7-7.2-6.3-10.7-13.3-17.7-7.4-7.3-10.2-9.4-19.1-13.7-11.3-5.6-17.3-7.4-32-9.6-8.3-1.3-34.2-1.5-173.7-1.5C61.1,0,1.5.4,1.1,1ZM333.8,49.1c14.8,3.2,20.8,11.1,20.8,27.8,0,13.3-5.2,21.1-17,25.3l-6.5,2.3h-134.7c-74,0-134.9-.2-135.2-.5-.4-.4-1-48.9-.7-54.8.1-1.7,265.2-1.8,273.3-.1Z"></path>
-    <path d="M405.6,289.1c-12,11.1-36.4,26.5-50.7,32l-2.2.8-.3,131.3-.3,131.3-2.3,7.9c-5.3,18.9-18.1,34.1-35.4,42-15,6.9-12,6.8-104.3,6.4l-83-.4-7-2.8c-11.3-4.4-18.1-8.5-25-14.8-11.2-10.3-18.5-24.5-20.5-40.1-.5-4-1-43.1-1-86.9,0-54.4-.3-79.9-1-80.3-1.5-.9-44-1.4-59.3-.6l-12.8.6v85.5c.1,51,.5,87.6,1,90.5,6,30.3,17.8,53.4,37.6,73.2,14,13.9,29.9,23.7,49,30.1,21.5,7.2,12.3,6.7,121,6.7h98l9.4-2.4c41.5-10.6,69-32.9,86.6-70.5,5.3-11.2,6.3-14.2,9.2-27.6,1.5-6.7,1.7-23.1,2.2-158.1.6-148.9.5-160.9-.7-160.9-.4.1-4.1,3.2-8.2,7.1Z"></path>
-  </g></svg></span>
-      <span>Built4U<small>POS System</small></span>
+        <path d="M1.1,1C.1,2.6.4,302.4,1.4,302.8c.8.2,23.5-20.3,50.2-45.5l8.4-8,.2-47.9c.1-26.3.3-48.2.3-48.7.1-1,136.1-.9,136.1.2,0,.4-2.6,3.2-5.7,6.2-3.2,2.9-13.2,12.3-22.3,20.9s-22.6,21.2-30,28.1c-7.4,6.8-18.4,17.1-24.5,22.9s-14.4,13.7-18.5,17.5c-4.1,3.9-14.9,14-24,22.5s-20.5,19.3-25.5,24.1c-4.9,4.7-14.8,14-22,20.6-7.1,6.6-15.5,14.5-18.6,17.4l-5.5,5.4.3,13c.1,7.1.2,18.1.3,24.2v11.3l114.3.2,114.2.3.5,99.5c.4,75.4.8,100.2,1.7,102.3l1.3,2.7h29.4c22.5,0,29.7-.3,30.3-1.3.4-.6,1-46.7,1.3-102.2l.5-101,7.5-.6c9.5-.8,18.1-3.3,20.5-5.9,3.1-3.4,3.8-32.5.9-37.2-1.5-2.4-10.1-5-19-5.8-5.1-.4-9.8-1.1-10.3-1.5-.8-.4-1.1-22.6-1.1-72,0-39.3-.3-71.6-.8-71.8-.4-.3-3.9,2.5-7.8,6.1-15,14.1-37.1,35.1-45.6,43.2l-8.8,8.5v86.5h-72.5c-41.4,0-72.5-.4-72.5-.9,0-.8,6.8-6.9,43.4-39,7.2-6.3,16.9-14.9,21.6-19,4.7-4.2,9.8-8.7,11.4-10.1s6.6-5.7,11-9.6c4.5-4,14.6-12.9,22.6-19.9,32.9-28.9,74.6-66.2,87.5-78.3l8.9-8.4,19.1.4c18.7.3,19.1.4,24.8,3.3,6.4,3.2,12.4,9.1,15.8,15.7,2.1,3.9,2.4,6,2.9,24.3.6,22.8-.3,29.2-4.8,35.7-6.8,9.8-16.1,15.2-29.9,17.3l-4.3.7-.1,14.6c-.1,8.1-.3,18.1-.5,22.2-.5,11.2-.7,11,8.9,11,9,0,22-2.5,34-6.4,28.2-9.3,47.3-27.3,54.9-51.6,2.2-7,2.3-9.1,2.3-33.5,0-21.9-.3-27-1.8-32.5-3.9-14.3-15.7-28.9-28.5-35.3-8.2-4.1-8.4-3.2,2-9.1s20.2-19.1,24.2-32.5c2.2-7.5,2.2-29.1,0-38-.9-3.6-3.7-10.7-6.2-15.6-3.7-7.2-6.3-10.7-13.3-17.7-7.4-7.3-10.2-9.4-19.1-13.7-11.3-5.6-17.3-7.4-32-9.6-8.3-1.3-34.2-1.5-173.7-1.5C61.1,0,1.5.4,1.1,1ZM333.8,49.1c14.8,3.2,20.8,11.1,20.8,27.8,0,13.3-5.2,21.1-17,25.3l-6.5,2.3h-134.7c-74,0-134.9-.2-135.2-.5-.4-.4-1-48.9-.7-54.8.1-1.7,265.2-1.8,273.3-.1Z"></path>
+        <path d="M405.6,289.1c-12,11.1-36.4,26.5-50.7,32l-2.2.8-.3,131.3-.3,131.3-2.3,7.9c-5.3,18.9-18.1,34.1-35.4,42-15,6.9-12,6.8-104.3,6.4l-83-.4-7-2.8c-11.3-4.4-18.1-8.5-25-14.8-11.2-10.3-18.5-24.5-20.5-40.1-.5-4-1-43.1-1-86.9,0-54.4-.3-79.9-1-80.3-1.5-.9-44-1.4-59.3-.6l-12.8.6v85.5c.1,51,.5,87.6,1,90.5,6,30.3,17.8,53.4,37.6,73.2,14,13.9,29.9,23.7,49,30.1,21.5,7.2,12.3,6.7,121,6.7h98l9.4-2.4c41.5-10.6,69-32.9,86.6-70.5,5.3-11.2,6.3-14.2,9.2-27.6,1.5-6.7,1.7-23.1,2.2-158.1.6-148.9.5-160.9-.7-160.9-.4.1-4.1,3.2-8.2,7.1Z"></path>
+      </g></svg></span>
+      <span class="brand-name">Built4U<small>POS System</small></span>
     </a>
-    <button class="nav-toggle" aria-label="Menu" onclick="document.getElementById('nav').classList.toggle('open')">&#9776;</button>
-    <nav class="nav-links" id="nav">
+    <nav class="nav-links" id="links">
       <a href="#why">Why Built4U</a>
       <a href="#features">Features</a>
-      <a href="#how">How it works</a>
+      <a href="#inventory">Inventory</a>
+      <a href="#setup">Getting started</a>
       <a href="#faq">FAQ</a>
-      <a class="btn btn-amber" href="#demo">Request a demo</a>
     </nav>
+    <div class="nav-end">
+      <a class="btn btn-dark" href="#demo">Request a demo
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <button class="nav-toggle" id="toggle" aria-label="Menu" aria-expanded="false" aria-controls="links">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
   </div>
 </header>
-<div class="stripe"></div>
 
-<div class="hero" id="top">
+<section class="hero" id="top">
+  <div class="grid-bg"></div>
   <div class="wrap">
-    <div>
-      <div class="eyebrow">Built for hardware &amp; construction supply</div>
-      <h1>The counter moves fast.<br>Your <em>system should too</em>.</h1>
-      <p class="lead">
-        Built4U is a point-of-sale and inventory system made for Philippine hardware stores —
-        thousands of SKUs, buy by box and sell by piece, deliveries from suppliers, and customers
-        who pay on credit. All of it in one place, on the same screen your cashier already uses.
-      </p>
-      <div class="hero-cta">
-        <a class="btn btn-amber" href="#demo">Request a free demo</a>
-        <a class="btn btn-ghost" href="#features">See what&rsquo;s inside</a>
-      </div>
-      <div class="trust">
-        <div><b>3,000+</b> items per branch, tested</div>
-        <div><b>Barcode</b> scan straight to cart</div>
-        <div><b>Thermal</b> receipt &amp; cash drawer</div>
-      </div>
-    </div>
-
-    <div class="receipt" aria-hidden="true">
-      <h4>BUILT4U HARDWARE</h4>
-      <div class="sub">Main Branch &middot; Sales Slip</div>
-      <div class="row"><span>Anchor Bolt M12</span><span>240.00</span></div>
-      <div class="row"><span>PVC Pipe 1" &times; 3</span><span>435.00</span></div>
-      <div class="row"><span>Gypsum Putty (gal)</span><span>381.25</span></div>
-      <div class="row"><span>Cutting Disc &times; 10</span><span>312.50</span></div>
-      <hr>
-      <div class="row tot"><span>TOTAL</span><span>1,368.75</span></div>
-      <div class="row"><span>Cash</span><span>1,500.00</span></div>
-      <div class="row"><span>Change</span><span>131.25</span></div>
-      <hr>
-      <div class="foot">SALESLIP #000842 &middot; SALAMAT PO</div>
-    </div>
-  </div>
-</div>
-
-<section id="why">
-  <div class="wrap">
-    <div class="sec-head">
-      <div class="eyebrow">The problem</div>
-      <h2>Generic POS software was never made for a hardware store.</h2>
-      <p>
-        Most systems assume you sell a handful of neat products. A hardware store sells bolts by the piece
-        and by the box, cement by the bag, wire by the meter — to walk-ins and to contractors who pay later.
-        Built4U was built around that reality.
-      </p>
-    </div>
-    <div class="pain">
-      <div><span class="tick">&#10003;</span><span><b>Buy by box, sell by piece.</b> Receive a box of 100 and the system converts it to pieces automatically — no mental math at the counter.</span></div>
-      <div><span class="tick">&#10003;</span><span><b>Thousands of SKUs, found fast.</b> Search by code, name or barcode. Scan an item and it drops straight into the cart.</span></div>
-      <div><span class="tick">&#10003;</span><span><b>Customers on utang.</b> Track credit per customer, accept partial payments, and see at a glance who owes what.</span></div>
-      <div><span class="tick">&#10003;</span><span><b>Real cost, not guesswork.</b> Moving-average costing updates as supplier prices rise, so your margins are honest.</span></div>
-      <div><span class="tick">&#10003;</span><span><b>Deliveries, handled.</b> Raise a purchase order, receive against it, and stock and costs update themselves.</span></div>
-      <div><span class="tick">&#10003;</span><span><b>Cash that reconciles.</b> Open and close each shift with a denomination count, so you know if the drawer is short.</span></div>
-    </div>
-  </div>
-</section>
-
-<section class="soft" id="features">
-  <div class="wrap">
-    <div class="sec-head">
-      <div class="eyebrow">What&rsquo;s inside</div>
-      <h2>One system, from the counter to the back office.</h2>
-      <p>Everything below is included — not modules you unlock later.</p>
-    </div>
-    <div class="grid g3">
-      <div class="card"><div class="ico">&#128722;</div><h3>Point of sale</h3><p>Barcode scanning, split payments, price override with manager approval, held sales and discounts — built for speed at a busy counter.</p></div>
-      <div class="card"><div class="ico">&#128241;</div><h3>Your numbers, anywhere</h3><p>Open the dashboard on your phone and see today&rsquo;s sales, transactions, average basket and the last seven days — without ringing the store.</p></div>
-      <div class="card"><div class="ico">&#128230;</div><h3>Inventory</h3><p>Thousands of items across categories, locations and units. Low-stock alerts, stocktake and adjustments, each with an audit trail.</p></div>
-      <div class="card"><div class="ico">&#128181;</div><h3>Shift &amp; cash control</h3><p>Cashiers open and close a shift with a denomination count, and any cash taken in or out mid-shift is recorded. You see immediately if the drawer is short, and whose shift it was.</p></div>
-      <div class="card"><div class="ico">&#128179;</div><h3>Cash, GCash, card or charge</h3><p>Accept the ways people actually pay, split one sale across two of them, and send the balance to a customer&rsquo;s account when they&rsquo;re short.</p></div>
-      <div class="card"><div class="ico">&#128666;</div><h3>Purchasing &amp; receiving</h3><p>Purchase orders with approval routing, deliveries received against the PO, and costs updated as stock arrives.</p></div>
-      <div class="card"><div class="ico">&#129534;</div><h3>Receipts &amp; cash drawer</h3><p>Prints to a standard thermal printer and kicks the drawer — with your store name, logo and footer message on every slip.</p></div>
-      <div class="card"><div class="ico">&#129309;</div><h3>Customer credit</h3><p>Track utang per customer, take partial payments, and see aging so nothing quietly goes uncollected. Supplier payables work the same way.</p></div>
-      <div class="card"><div class="ico">&#127991;</div><h3>Vouchers &amp; loyalty</h3><p>Issue discount vouchers, and award points that regulars can redeem for rewards — the reason a contractor comes back to you instead of the store down the road.</p></div>
-      <div class="card"><div class="ico">&#128202;</div><h3>Reports that answer questions</h3><p>Profit and margin, sales by cashier or by hour, dead stock, reorder suggestions, inventory valuation — on screen, exported to PDF or Excel, or emailed to whoever needs them.</p></div>
-      <div class="card"><div class="ico">&#127978;</div><h3>More than one branch</h3><p>Each branch keeps its own stock and cash, with transfers between them and one place to see everything.</p></div>
-      <div class="card"><div class="ico">&#128101;</div><h3>Staff &amp; permissions</h3><p>Roles decide who can discount, adjust stock or view cost prices. Sensitive actions are logged against a name, so questions have answers.</p></div>
-    </div>
-
-    <p style="margin-top:34px;color:var(--slate);font-size:14.5px">
-      <b style="color:var(--ink)">Also included:</b>
-      bulk item import from your existing spreadsheet &middot; barcode lookup &middot; stocktake &middot;
-      stock transfers between branches &middot; supplier records &middot; customer purchase history &middot;
-      scheduled report email &middot; full audit log &middot; automatic cloud backup
-    </p>
-  </div>
-</section>
-
-<section id="how">
-  <div class="wrap">
-    <div class="sec-head">
-      <div class="eyebrow">Getting started</div>
-      <h2>You don&rsquo;t have to encode 3,000 items by hand.</h2>
-      <p>Most stores are running within a week — the heavy lifting is on our side.</p>
-    </div>
-    <div class="steps">
-      <div class="step"><h3>Send us your item list</h3><p>An Excel file, an export from an old system, even a printed price list. We clean it up, sort it into categories and load it for you.</p></div>
-      <div class="step"><h3>We set up your branch</h3><p>Your units, categories, suppliers, staff accounts and printer — configured and tested before you go live.</p></div>
-      <div class="step"><h3>Your team starts selling</h3><p>The counter screen is simple enough to learn in an afternoon, and we stay reachable while you settle in.</p></div>
-    </div>
-  </div>
-</section>
-
-<section class="soft" id="faq">
-  <div class="wrap">
-    <div class="sec-head">
-      <div class="eyebrow">Questions</div>
-      <h2>Fair questions before you commit.</h2>
-    </div>
-    <div class="grid g2">
-      <div>
-        <details open><summary>Do I need to buy new hardware?</summary><p>Usually not. Built4U runs in a web browser on a normal PC or laptop, and works with standard USB barcode scanners and network thermal printers. If you already have a counter setup, it most likely works as is.</p></details>
-        <details><summary>What happens if the internet goes down?</summary><p>Being straight with you: the system needs a connection, so a long outage stops sales. Most stores keep a mobile hotspot as backup. Offline mode is on the roadmap — ask us where it stands.</p></details>
-        <details><summary>Can I bring my existing data in?</summary><p>Yes. Send whatever you have — spreadsheets, exports, or lists — and we handle the import, including cleaning up duplicates and inconsistent units.</p></details>
-      </div>
-      <div>
-        <details><summary>Who can see what?</summary><p>You decide. Cashiers can be limited to selling, while discounts, stock adjustments, cost prices and reports stay with you. Sensitive actions are recorded against the staff member&rsquo;s name.</p></details>
-        <details><summary>How much does it cost?</summary><p>It depends on how many branches you run and how much setup help you need. Request a demo and we&rsquo;ll quote you plainly — no lock-in contract.</p></details>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="contact" id="demo">
-  <div class="wrap">
-    <div class="sec-head">
-      <div class="eyebrow">Let&rsquo;s talk</div>
-      <h2>See it running on your own items.</h2>
-      <p>Send a few details and we&rsquo;ll set up a walkthrough — screen share, or in person if you&rsquo;re nearby. No obligation.</p>
-    </div>
-    <div class="grid g2">
-      <form class="form" onsubmit="return sendEnquiry(event)">
-        <div class="field"><label for="f-name">Your name</label><input id="f-name" required placeholder="Juan Dela Cruz"></div>
-        <div class="field"><label for="f-store">Store name &amp; location</label><input id="f-store" required placeholder="JDC Hardware — Dasmari&ntilde;as, Cavite"></div>
-        <div class="field"><label for="f-contact">Mobile or email</label><input id="f-contact" required placeholder="+63 992 286 2068"></div>
-        <div class="field"><label for="f-msg">What are you using now? (optional)</label><textarea id="f-msg" placeholder="Notebook and calculator / an old POS / Excel&hellip;"></textarea></div>
-        <button class="btn btn-amber" style="width:100%" type="submit">Request a demo</button>
-        <p style="margin-top:12px;font-size:12.5px;color:#94a3b8">This opens your email app with the details filled in — or use the direct options beside.</p>
-      </form>
-
-      <div class="direct">
-        <div class="tiles">
-        <a class="tile" href="https://www.facebook.com/profile.php?id=61582125780879" target="_blank" rel="noopener">
-          <span class="ico"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06c0 5 3.66 9.15 8.44 9.94v-7.03H7.9v-2.9h2.54V9.85c0-2.52 1.5-3.91 3.77-3.91 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.78-1.63 1.57v1.89h2.78l-.45 2.9h-2.33V22c4.78-.79 8.44-4.93 8.44-9.94z"/></svg></span>
-          <span class="tx"><b>Facebook <em class="badge">fastest</em></b><span class="sm">Message our Page</span></span>
-          <span class="arw" aria-hidden="true">&rarr;</span>
-        </a>
-        <a class="tile" href="https://wa.me/639922862068" target="_blank" rel="noopener">
-          <span class="ico"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M17.47 14.38c-.3-.15-1.75-.86-2.02-.96-.27-.1-.47-.15-.67.15-.2.3-.77.96-.94 1.16-.17.2-.35.22-.64.07-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.47-1.75-1.64-2.05-.17-.3-.02-.46.13-.6.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.6-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.06 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.63.71.22 1.36.19 1.87.12.57-.09 1.75-.72 2-1.41.25-.7.25-1.29.17-1.41-.07-.13-.27-.2-.57-.35zM12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21h.01c5.46 0 9.91-4.45 9.91-9.91C21.96 6.45 17.5 2 12.04 2zm0 18.13h-.01c-1.52 0-3.02-.41-4.32-1.18l-.31-.18-3.21.84.86-3.13-.2-.32a8.21 8.21 0 0 1-1.26-4.38c0-4.54 3.7-8.23 8.25-8.23 2.2 0 4.27.86 5.83 2.42a8.19 8.19 0 0 1 2.41 5.82c0 4.54-3.7 8.24-8.24 8.24z"/></svg></span>
-          <span class="tx"><b>WhatsApp</b><span class="sm">Send a photo of your item list</span></span>
-          <span class="arw" aria-hidden="true">&rarr;</span>
-        </a>
-        <a class="tile" href="tel:+639922862068">
-          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>
-          <span class="tx"><b>+63 992 286 2068</b><span class="sm">Call or text</span></span>
-          <span class="arw" aria-hidden="true">&rarr;</span>
-        </a>
-        <a class="tile" href="mailto:customer_service@built4u-pos.com">
-          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg></span>
-          <span class="tx"><b>Email us</b><span class="sm">customer_service@built4u-pos.com</span></span>
-          <span class="arw" aria-hidden="true">&rarr;</span>
-        </a>
+    <div class="hero-grid">
+      <div data-reveal>
+        <div class="pill"><i></i>Built for hardware &amp; construction supply</div>
+        <h1>The counter moves fast.<br>Your system <em>should too.</em></h1>
+        <p class="hero-lede">Built4U is a point-of-sale and inventory system made for Philippine hardware stores — thousands of SKUs, buy by box and sell by piece, deliveries from suppliers, and customers who pay on credit. All of it on the same screen your cashier already uses.</p>
+        <div class="hero-cta">
+          <a class="btn btn-accent" href="#demo">Request a free demo
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+          <a class="btn btn-line" href="#features">See what&rsquo;s inside</a>
         </div>
-        <div class="hours">
-          <span class="ico-sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
-          <div>
-            <b>Based in Cavite &middot; serving the whole Philippines</b>
-            Remote setup nationwide, on-site around Cavite and Metro Manila by arrangement.<br>
-            <span class="sm">Mon&ndash;Sat, 8am&ndash;6pm &middot; we usually reply the same day</span>
+        <div class="hero-meta">
+          <span>3,000+ items per branch</span><s>/</s><span>Keeps your scanner</span><s>/</s><span>We load your item list</span>
+        </div>
+      </div>
+
+      <div class="mock-wrap" data-reveal>
+        <div class="mock" aria-hidden="true">
+          <div class="mock-top">
+            <span>Terminal 02 &middot; Main branch</span>
+            <span class="live"><i></i>Shift open &middot; RJ</span>
+          </div>
+          <div class="screen">
+            <div class="scan">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2M7 8v8M11 8v8M15 8v8M18 8v8" stroke="#B7AFA3" stroke-width="1.8" stroke-linecap="round"/></svg>
+              <span class="ph">Scan barcode, or type item code / name</span>
+              <span class="key">F2</span>
+            </div>
+
+            <div class="li">
+              <span class="q">12</span>
+              <div class="m">
+                <div class="nm">Anchor Bolt M12 &times; 100</div>
+                <div class="sub">HW-1042 &middot; RACK B-3 &middot; 20.00/pc</div>
+              </div>
+              <span class="amt">240.00</span>
+            </div>
+            <div class="li hl">
+              <span class="q">3</span>
+              <div class="m">
+                <div class="nm">PVC Pipe 1&quot; &times; 3m <span class="tag">BOX &rarr; PC</span></div>
+                <div class="sub">PL-0771 &middot; from box of 10 &middot; 145.00/pc</div>
+              </div>
+              <span class="amt">435.00</span>
+            </div>
+            <div class="li">
+              <span class="q">5</span>
+              <div class="m">
+                <div class="nm">Gypsum Putty, gallon</div>
+                <div class="sub">FN-2210 &middot; BODEGA 2 &middot; 76.25/gal</div>
+              </div>
+              <span class="amt">381.25</span>
+            </div>
+            <div class="li">
+              <span class="q">10</span>
+              <div class="m">
+                <div class="nm">Cutting Disc 4&quot;</div>
+                <div class="sub">TL-3305 &middot; BIN A-14 &middot; 31.25/pc</div>
+              </div>
+              <span class="amt">312.50</span>
+            </div>
+
+            <div class="cust">
+              <span class="av">DC</span>
+              <div class="m">
+                <div class="n">Dela Cruz Construction</div>
+                <div class="s">CHARGE ACCT &middot; PO 4417 &middot; SITE: MOLINO</div>
+              </div>
+              <span class="ok">UTANG OK</span>
+            </div>
+
+            <div class="tot">
+              <div class="r"><span>Subtotal</span><b>1,368.75</b></div>
+              <div class="r"><span>Contractor price (&minus;5%)</span><b class="good">&minus;68.44</b></div>
+              <div class="grand"><span>Total</span><b>&#8369;1,300.31</b></div>
+            </div>
+            <div class="pay">
+              <div class="a">Charge to account</div>
+              <div class="b">Cash &middot; GCash</div>
+            </div>
           </div>
         </div>
+        <div class="float" aria-hidden="true">
+          <div class="k">Bin A-14</div>
+          <div class="v"><b>312</b><span>on hand</span></div>
+        </div>
       </div>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <div class="s" data-reveal><b>3,000+</b><p>items per branch, tested — searchable by code, name or barcode</p></div>
+    <div class="s" data-reveal><b>Box &rarr; piece</b><p>Receive by the box, sell by the piece, with the maths done for you</p></div>
+    <div class="s" data-reveal><b>One afternoon</b><p>Typical cashier training before your first day live</p></div>
+  </div>
+</section>
+
+<section class="pad" id="why">
+  <div class="wrap">
+    <div class="head" data-reveal>
+      <div class="eyebrow">The problem</div>
+      <h2 class="h2">Generic POS software was never made for a hardware store.</h2>
+      <p class="lede">Most systems assume you sell a handful of neat products. A hardware store sells bolts by the piece and by the box, cement by the bag, wire by the meter — to walk-ins and to contractors who pay later. Built4U was built around that reality.</p>
+    </div>
+    <div class="compare">
+      <div data-reveal>
+        <div class="k bad">GENERIC POS</div>
+        <p>One item, one unit, one price. Selling a piece out of a box means a calculator and a guess.</p>
+        <div class="rule"></div>
+        <div class="k good">BUILT4U</div>
+        <p class="yes">Receive a box of 100 and it converts to pieces automatically — no mental math at the counter.</p>
+      </div>
+      <div data-reveal>
+        <div class="k bad">GENERIC POS</div>
+        <p>Utang lives in a notebook beside the register, and nobody is sure who still owes what.</p>
+        <div class="rule"></div>
+        <div class="k good">BUILT4U</div>
+        <p class="yes">Credit per customer, partial payments and aging — on screen at the counter, with a paper trail.</p>
+      </div>
+      <div data-reveal>
+        <div class="k bad">GENERIC POS</div>
+        <p>Costs are whatever was typed in last year, so your margin is a story, not a number.</p>
+        <div class="rule"></div>
+        <div class="k good">BUILT4U</div>
+        <p class="yes">Moving-average costing updates as supplier prices rise, so the margin you see is honest.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pad" id="features">
+  <div class="wrap">
+    <div class="head-row" data-reveal>
+      <div class="t">
+        <div class="eyebrow">What&rsquo;s inside</div>
+        <h2 class="h2">One system, from the counter to the back office.</h2>
+        <p class="lede">Everything below is included — not modules you unlock later.</p>
+      </div>
+      <a class="link-arrow" href="#demo">Walk through it live
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+
+    <div class="cards">
+      <div class="card" data-reveal>
+        <div class="top"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><rect x="2.5" y="4" width="19" height="12" rx="2" stroke="#E2521D" stroke-width="1.9"/><path d="M8 20h8M12 16v4" stroke="#E2521D" stroke-width="1.9" stroke-linecap="round"/></svg></span><span class="num">01</span></div>
+        <h3>Point of sale</h3>
+        <p>Barcode scanning, split payments, price override with manager approval, held sales and discounts — built for speed at a busy counter.</p>
+      </div>
+      <div class="card" data-reveal>
+        <div class="top"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M3 8l9-5 9 5v8l-9 5-9-5V8z" stroke="#E2521D" stroke-width="1.9" stroke-linejoin="round"/><path d="M3 8l9 5 9-5M12 13v8" stroke="#E2521D" stroke-width="1.9" stroke-linejoin="round"/></svg></span><span class="num">02</span></div>
+        <h3>Buy by box, sell by piece</h3>
+        <p>Set the conversion once. Receive a box of 100, sell singles, and stock, cost and margin all follow without anyone doing arithmetic.</p>
+      </div>
+      <div class="card" data-reveal>
+        <div class="top"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h9" stroke="#E2521D" stroke-width="1.9" stroke-linecap="round"/><circle cx="18" cy="18" r="3" stroke="#E2521D" stroke-width="1.9"/></svg></span><span class="num">03</span></div>
+        <h3>Inventory</h3>
+        <p>Thousands of items across categories, locations and units. Low-stock alerts, stocktake and adjustments, each with an audit trail.</p>
+      </div>
+      <div class="card" data-reveal>
+        <div class="top"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M16 20v-1.5A3.5 3.5 0 0012.5 15h-5A3.5 3.5 0 004 18.5V20" stroke="#E2521D" stroke-width="1.9" stroke-linecap="round"/><circle cx="10" cy="8" r="3.4" stroke="#E2521D" stroke-width="1.9"/><path d="M19 11h3M20.5 9.5v3" stroke="#E2521D" stroke-width="1.9" stroke-linecap="round"/></svg></span><span class="num">04</span></div>
+        <h3>Customer credit</h3>
+        <p>Track utang per customer, take partial payments, and see aging so nothing quietly goes uncollected. Supplier payables work the same way.</p>
+      </div>
+      <div class="card" data-reveal>
+        <div class="top"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><rect x="3" y="7" width="18" height="12" rx="2" stroke="#E2521D" stroke-width="1.9"/><path d="M3 11h18M7 15h4" stroke="#E2521D" stroke-width="1.9" stroke-linecap="round"/><path d="M7 7V5.5A1.5 1.5 0 018.5 4h7A1.5 1.5 0 0117 5.5V7" stroke="#E2521D" stroke-width="1.9"/></svg></span><span class="num">05</span></div>
+        <h3>Shift &amp; cash control</h3>
+        <p>Cashiers open and close a shift with a denomination count, and cash taken in or out mid-shift is recorded. You see if the drawer is short, and whose shift it was.</p>
+      </div>
+      <div class="card" data-reveal>
+        <div class="top"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M2.5 7.5h11v9h-11z" stroke="#E2521D" stroke-width="1.9" stroke-linejoin="round"/><path d="M13.5 10.5h4l4 3.5v2.5h-8z" stroke="#E2521D" stroke-width="1.9" stroke-linejoin="round"/><circle cx="7" cy="18" r="1.8" stroke="#E2521D" stroke-width="1.9"/><circle cx="17.5" cy="18" r="1.8" stroke="#E2521D" stroke-width="1.9"/></svg></span><span class="num">06</span></div>
+        <h3>Purchasing &amp; receiving</h3>
+        <p>Purchase orders with approval routing, deliveries received against the PO, and costs updated as stock arrives.</p>
+      </div>
+      <div class="card" data-reveal>
+        <div class="top"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M7 8V3.5h10V8" stroke="#E2521D" stroke-width="1.9" stroke-linejoin="round"/><rect x="3" y="8" width="18" height="7" rx="1.8" stroke="#E2521D" stroke-width="1.9"/><path d="M7 13h10v7.5H7z" stroke="#E2521D" stroke-width="1.9" stroke-linejoin="round"/></svg></span><span class="num">07</span></div>
+        <h3>Receipts &amp; cash drawer</h3>
+        <p>Prints to a standard thermal printer and kicks the drawer — with your store name, logo and footer message on every slip.</p>
+      </div>
+      <div class="card" data-reveal>
+        <div class="top"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><rect x="2.5" y="5" width="19" height="14" rx="2.2" stroke="#E2521D" stroke-width="1.9"/><path d="M2.5 9.5h19M6 15h4" stroke="#E2521D" stroke-width="1.9" stroke-linecap="round"/></svg></span><span class="num">08</span></div>
+        <h3>Cash, GCash, card or charge</h3>
+        <p>Accept the ways people actually pay, split one sale across two of them, and send the balance to a customer&rsquo;s account when they&rsquo;re short.</p>
+      </div>
+      <div class="card" data-reveal>
+        <div class="top"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M3 17l5-5 4 3 5-6 4 4" stroke="#E2521D" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 21h18" stroke="#E2521D" stroke-width="1.9" stroke-linecap="round"/></svg></span><span class="num">09</span></div>
+        <h3>Reports that answer questions</h3>
+        <p>Profit and margin, sales by cashier or by hour, dead stock, reorder suggestions, inventory valuation — on screen, exported to PDF or Excel, or emailed to whoever needs them.</p>
+      </div>
+      <div class="card" data-reveal>
+        <div class="top"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><rect x="6.5" y="2.5" width="11" height="19" rx="2.2" stroke="#E2521D" stroke-width="1.9"/><path d="M10.5 18.5h3" stroke="#E2521D" stroke-width="1.9" stroke-linecap="round"/></svg></span><span class="num">10</span></div>
+        <h3>Your numbers, anywhere</h3>
+        <p>Open the dashboard on your phone and see today&rsquo;s sales, transactions, average basket and the last seven days — without ringing the store.</p>
+      </div>
+      <div class="card" data-reveal>
+        <div class="top"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="7" height="7" rx="1.5" stroke="#E2521D" stroke-width="1.9"/><rect x="14" y="4" width="7" height="7" rx="1.5" stroke="#E2521D" stroke-width="1.9"/><rect x="3" y="15" width="7" height="5" rx="1.5" stroke="#E2521D" stroke-width="1.9"/><path d="M14 17.5h7M18.5 15l2.5 2.5-2.5 2.5" stroke="#E2521D" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="num">11</span></div>
+        <h3>More than one branch</h3>
+        <p>Each branch keeps its own stock and cash, with transfers between them and one place to see everything.</p>
+      </div>
+      <div class="card" data-reveal>
+        <div class="top"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 3l7.5 3v5.5c0 5-3.2 8.4-7.5 10-4.3-1.6-7.5-5-7.5-10V6L12 3z" stroke="#E2521D" stroke-width="1.9" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke="#E2521D" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="num">12</span></div>
+        <h3>Staff &amp; permissions</h3>
+        <p>Roles decide who can discount, adjust stock or view cost prices. Sensitive actions are logged against a name, so questions have answers.</p>
+      </div>
+    </div>
+
+    <div class="also" data-reveal>
+      <b>Also included</b>
+      Bulk item import from your existing spreadsheet &middot; barcode lookup &middot; stocktake &middot; stock transfers between branches &middot; supplier records &middot; customer purchase history &middot; vouchers and loyalty points &middot; scheduled report email &middot; full audit log &middot; automatic cloud backup
+    </div>
+  </div>
+</section>
+
+<section class="pad" id="inventory">
+  <div class="wrap">
+    <div class="split a" data-reveal>
+      <div>
+        <div class="eyebrow">Inventory</div>
+        <h2 class="h2-sm">Know what&rsquo;s on the shelf before the customer asks.</h2>
+        <p class="lede">Every delivery, transfer, sale and adjustment updates one count. Items running low surface themselves — with the supplier, the last cost and a suggested quantity already attached.</p>
+        <div class="ticks">
+          <div><i><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#2F6B4F" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></i><span>Stocktake by category or location, with the variance recorded against a name</span></div>
+          <div><i><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#2F6B4F" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></i><span>Moving-average cost and margin on every line, updated as prices move</span></div>
+          <div><i><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#2F6B4F" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></i><span>Dead stock and reorder reports you can export, or have emailed every week</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ph">
+          <b>Reorder suggestions</b>
+          <span class="chip">14 ITEMS</span>
+          <span class="loc">MAIN BRANCH</span>
+        </div>
+        <div class="tr th"><span>Item</span><span>Location</span><span class="r">On hand</span><span class="r hide-sm">Min</span><span class="r hide-sm">Suggest</span></div>
+        <div class="tr">
+          <div><div class="nm">Deck Screw 3&quot;, per kilo</div><div class="sku">HW-4188</div></div>
+          <span class="mo">RACK C-07</span>
+          <span class="mo r lo">4</span>
+          <span class="mo r hide-sm">18</span>
+          <span class="r hide-sm"><span class="sug">+36</span></span>
+        </div>
+        <div class="tr">
+          <div><div class="nm">PVC Elbow 90&deg;, 1/2&quot;</div><div class="sku">PL-2077</div></div>
+          <span class="mo">BIN P-21</span>
+          <span class="mo r lo">11</span>
+          <span class="mo r hide-sm">40</span>
+          <span class="r hide-sm"><span class="sug">+120</span></span>
+        </div>
+        <div class="tr">
+          <div><div class="nm">Portland Cement, 40kg</div><div class="sku">CN-9001 &middot; by the bag</div></div>
+          <span class="mo">BODEGA 2</span>
+          <span class="mo r lo">6</span>
+          <span class="mo r hide-sm">24</span>
+          <span class="r hide-sm"><span class="sug">+48</span></span>
+        </div>
+        <div class="tr" style="border-bottom:0">
+          <div><div class="nm">THHN Wire 3.5mm</div><div class="sku">EL-3305 &middot; per meter</div></div>
+          <span class="mo">REEL 2</span>
+          <span class="mo r hi">210m</span>
+          <span class="mo r hide-sm">150m</span>
+          <span class="mo r hide-sm">&mdash;</span>
+        </div>
+        <div class="pf"><span>Draft purchase order &middot; est. &#8369;18,420.00</span><b>Send for approval</b></div>
+      </div>
+    </div>
+
+    <div class="split b" data-reveal>
+      <div class="acct">
+        <div class="r1">
+          <div>
+            <div class="k">Account 1042</div>
+            <div class="n">Dela Cruz Construction</div>
+          </div>
+          <span class="badge">CONTRACTOR &middot; 30 DAYS</span>
+        </div>
+        <div class="two">
+          <div class="box"><div class="k">Balance</div><b>&#8369;64,180</b></div>
+          <div class="box"><div class="k">Credit limit</div><b>&#8369;150,000</b></div>
+        </div>
+        <div class="bar"><i></i></div>
+        <div class="note">43% USED &middot; 2 INVOICES OVER 30 DAYS</div>
+        <div class="list">
+          <div><span class="j">SITE 118</span><span class="d">Molino townhouse</span><span class="a">&#8369;32,041.80</span></div>
+          <div><span class="j">SITE 121</span><span class="d">Warehouse extension</span><span class="a">&#8369;20,906.20</span></div>
+          <div><span class="j">SITE 124</span><span class="d">Perimeter fence, Imus</span><span class="a">&#8369;11,232.00</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="eyebrow">Accounts</div>
+        <h2 class="h2-sm">Your best customers rarely pay in cash.</h2>
+        <p class="lede">Open an account at the counter in under a minute. Set the credit limit, the price tier and who is allowed to charge on it. Balances and aging come out of the same system that rang up the sale.</p>
+        <div class="ticks">
+          <div><i><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#2F6B4F" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></i><span>Purchase history per customer, so a disputed charge takes a minute to settle</span></div>
+          <div><i><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#2F6B4F" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></i><span>Partial payments, so a contractor can pay what they have today</span></div>
+          <div><i><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#2F6B4F" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></i><span>Supplier payables tracked the same way, on the other side of the ledger</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="dark" id="hardware">
+  <div class="wrap">
+    <div class="head-row" data-reveal>
+      <div class="t" style="max-width:600px">
+        <div class="eyebrow">What it runs on</div>
+        <h2 class="h2-sm">Most stores already own the hardware.</h2>
+      </div>
+      <p class="sub">Built4U runs in a web browser, so a normal PC or laptop is enough. Send us a photo of your counter setup and we&rsquo;ll tell you straight whether it works as is.</p>
+    </div>
+    <div class="tiles6">
+      <div data-reveal><div class="k">01 / TERMINAL</div><b>Any PC or laptop</b><p>Runs in Chrome or Edge on the machine you already have. Nothing to install at the counter.</p></div>
+      <div data-reveal><div class="k">02 / SCANNING</div><b>Standard USB scanner</b><p>The kind that types the barcode for you. Scan, and the item drops straight into the cart.</p></div>
+      <div data-reveal><div class="k">03 / PRINTING</div><b>Thermal receipt printer</b><p>Network or USB thermal printers, with your store name, logo and footer on every slip.</p></div>
+      <div data-reveal><div class="k">04 / DRAWER</div><b>Cash drawer that kicks</b><p>Wired through the receipt printer, the way most counters are already set up.</p></div>
+      <div data-reveal><div class="k">05 / PAYMENTS</div><b>Cash, GCash, card</b><p>Record how each sale was paid, split it across two methods, or charge the balance to an account.</p></div>
+      <div data-reveal><div class="k">06 / MOBILE</div><b>The owner&rsquo;s phone</b><p>The dashboard opens in a phone browser. Check today&rsquo;s sales from anywhere.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="pad" id="setup">
+  <div class="wrap">
+    <div style="text-align:center;max-width:660px;margin:0 auto" data-reveal>
+      <div class="eyebrow">Getting started</div>
+      <h2 class="h2">You don&rsquo;t have to encode 3,000 items by hand.</h2>
+      <p class="lede">Most stores are running within a week — the heavy lifting is on our side.</p>
+    </div>
+    <div class="steps">
+      <div class="step" data-reveal>
+        <div class="n">01</div>
+        <h3>Send us your item list</h3>
+        <p>An Excel file, an export from an old system, even a printed price list. We clean it up, sort it into categories and load it for you.</p>
+      </div>
+      <div class="step" data-reveal>
+        <div class="n">02</div>
+        <h3>We set up your branch</h3>
+        <p>Your units, categories, suppliers, staff accounts and printer — configured and tested before you go live.</p>
+      </div>
+      <div class="step" data-reveal>
+        <div class="n">03</div>
+        <h3>Your team starts selling</h3>
+        <p>The counter screen is simple enough to learn in an afternoon, and we stay reachable while you settle in.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pad">
+  <div class="wrap">
+    <div class="promise" data-reveal>
+      <div>
+        <div class="eyebrow">Straight up</div>
+        <p class="q">We&rsquo;re a small Philippine team, not a call centre in another timezone. You get the people who actually built the system — and if Built4U isn&rsquo;t the right fit for your store, we&rsquo;ll say so on the first call instead of selling you a contract.</p>
+        <div class="who">
+          <span class="av"><svg viewBox="0 0 64 64" width="22" height="22" aria-hidden="true"><g transform="translate(13,8) scale(0.066)" fill="#ffffff"><path d="M1.1,1C.1,2.6.4,302.4,1.4,302.8c.8.2,23.5-20.3,50.2-45.5l8.4-8,.2-47.9c.1-26.3.3-48.2.3-48.7.1-1,136.1-.9,136.1.2,0,.4-2.6,3.2-5.7,6.2-3.2,2.9-13.2,12.3-22.3,20.9s-22.6,21.2-30,28.1c-7.4,6.8-18.4,17.1-24.5,22.9s-14.4,13.7-18.5,17.5c-4.1,3.9-14.9,14-24,22.5s-20.5,19.3-25.5,24.1c-4.9,4.7-14.8,14-22,20.6-7.1,6.6-15.5,14.5-18.6,17.4l-5.5,5.4.3,13c.1,7.1.2,18.1.3,24.2v11.3l114.3.2,114.2.3.5,99.5c.4,75.4.8,100.2,1.7,102.3l1.3,2.7h29.4c22.5,0,29.7-.3,30.3-1.3.4-.6,1-46.7,1.3-102.2l.5-101,7.5-.6c9.5-.8,18.1-3.3,20.5-5.9,3.1-3.4,3.8-32.5.9-37.2-1.5-2.4-10.1-5-19-5.8-5.1-.4-9.8-1.1-10.3-1.5-.8-.4-1.1-22.6-1.1-72,0-39.3-.3-71.6-.8-71.8-.4-.3-3.9,2.5-7.8,6.1-15,14.1-37.1,35.1-45.6,43.2l-8.8,8.5v86.5h-72.5c-41.4,0-72.5-.4-72.5-.9,0-.8,6.8-6.9,43.4-39,7.2-6.3,16.9-14.9,21.6-19,4.7-4.2,9.8-8.7,11.4-10.1s6.6-5.7,11-9.6c4.5-4,14.6-12.9,22.6-19.9,32.9-28.9,74.6-66.2,87.5-78.3l8.9-8.4,19.1.4c18.7.3,19.1.4,24.8,3.3,6.4,3.2,12.4,9.1,15.8,15.7,2.1,3.9,2.4,6,2.9,24.3.6,22.8-.3,29.2-4.8,35.7-6.8,9.8-16.1,15.2-29.9,17.3l-4.3.7-.1,14.6c-.1,8.1-.3,18.1-.5,22.2-.5,11.2-.7,11,8.9,11,9,0,22-2.5,34-6.4,28.2-9.3,47.3-27.3,54.9-51.6,2.2-7,2.3-9.1,2.3-33.5,0-21.9-.3-27-1.8-32.5-3.9-14.3-15.7-28.9-28.5-35.3-8.2-4.1-8.4-3.2,2-9.1s20.2-19.1,24.2-32.5c2.2-7.5,2.2-29.1,0-38-.9-3.6-3.7-10.7-6.2-15.6-3.7-7.2-6.3-10.7-13.3-17.7-7.4-7.3-10.2-9.4-19.1-13.7-11.3-5.6-17.3-7.4-32-9.6-8.3-1.3-34.2-1.5-173.7-1.5C61.1,0,1.5.4,1.1,1ZM333.8,49.1c14.8,3.2,20.8,11.1,20.8,27.8,0,13.3-5.2,21.1-17,25.3l-6.5,2.3h-134.7c-74,0-134.9-.2-135.2-.5-.4-.4-1-48.9-.7-54.8.1-1.7,265.2-1.8,273.3-.1Z"/><path d="M405.6,289.1c-12,11.1-36.4,26.5-50.7,32l-2.2.8-.3,131.3-.3,131.3-2.3,7.9c-5.3,18.9-18.1,34.1-35.4,42-15,6.9-12,6.8-104.3,6.4l-83-.4-7-2.8c-11.3-4.4-18.1-8.5-25-14.8-11.2-10.3-18.5-24.5-20.5-40.1-.5-4-1-43.1-1-86.9,0-54.4-.3-79.9-1-80.3-1.5-.9-44-1.4-59.3-.6l-12.8.6v85.5c.1,51,.5,87.6,1,90.5,6,30.3,17.8,53.4,37.6,73.2,14,13.9,29.9,23.7,49,30.1,21.5,7.2,12.3,6.7,121,6.7h98l9.4-2.4c41.5-10.6,69-32.9,86.6-70.5,5.3-11.2,6.3-14.2,9.2-27.6,1.5-6.7,1.7-23.1,2.2-158.1.6-148.9.5-160.9-.7-160.9-.4.1-4.1,3.2-8.2,7.1Z"/></g></svg></span>
+          <div><b>The Built4U team</b><span>Based in Cavite &middot; serving the whole Philippines</span></div>
+        </div>
+      </div>
+      <div class="facts">
+        <div><b>1 week</b><span>typical setup, start to live</span></div>
+        <div><b>No lock-in</b><span>your data stays yours, exportable</span></div>
+        <div><b>Mon&ndash;Sat</b><span>8am&ndash;6pm, usually a same-day reply</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pad" id="faq">
+  <div class="wrap faq-grid">
+    <div data-reveal>
+      <div class="eyebrow">Questions</div>
+      <h2 class="h2-sm">Fair questions before you commit.</h2>
+      <p class="lede" style="font-size:15.5px;color:var(--muted)">Something specific to your store? Bring it to the demo — we&rsquo;d rather answer it with your own items on the screen.</p>
+    </div>
+    <div class="faq-list" data-reveal>
+      <details open>
+        <summary>Do I need to buy new hardware?<span class="chev"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>
+        <p class="a">Usually not. Built4U runs in a web browser on a normal PC or laptop, and works with standard USB barcode scanners and network thermal printers. If you already have a counter setup, it most likely works as is.</p>
+      </details>
+      <details>
+        <summary>What happens if the internet goes down?<span class="chev"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>
+        <p class="a">Being straight with you: the system needs a connection, so a long outage stops sales. Most stores keep a mobile hotspot as backup. Offline mode is on the roadmap — ask us where it stands.</p>
+      </details>
+      <details>
+        <summary>Can I bring my existing data in?<span class="chev"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>
+        <p class="a">Yes. Send whatever you have — spreadsheets, exports, or lists — and we handle the import, including cleaning up duplicates and inconsistent units.</p>
+      </details>
+      <details>
+        <summary>Who can see what?<span class="chev"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>
+        <p class="a">You decide. Cashiers can be limited to selling, while discounts, stock adjustments, cost prices and reports stay with you. Sensitive actions are recorded against the staff member&rsquo;s name.</p>
+      </details>
+      <details>
+        <summary>How much does it cost?<span class="chev"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>
+        <p class="a">It depends on how many branches you run and how much setup help you need. Request a demo and we&rsquo;ll quote you plainly — no lock-in contract.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section class="demo" id="demo">
+  <div class="wrap">
+    <div data-reveal>
+      <h2>See it ring up<br>your own items.</h2>
+      <p class="lede">Send a few details and we&rsquo;ll set up a walkthrough — screen share, or in person if you&rsquo;re nearby. Send your item list ahead and we&rsquo;ll load it first. No obligation.</p>
+      <div class="pts">
+        <div><i>&rarr;</i>A real walkthrough of the counter, not a recorded tour</div>
+        <div><i>&rarr;</i>Straight answers on migration, cost and timeline</div>
+        <div><i>&rarr;</i>We&rsquo;ll tell you if you&rsquo;re not a fit</div>
+      </div>
+      <div class="or">Or reach us directly</div>
+      <div class="tiles">
+        <a class="tile" href="https://www.facebook.com/profile.php?id=61582125780879" target="_blank" rel="noopener">
+          <span class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor"><path d="M22 12a10 10 0 10-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.4v7A10 10 0 0022 12z"/></svg></span>
+          <span class="tx"><b>Facebook<span class="hot">fastest</span></b><small>Message our Page</small></span>
+          <span class="arw"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </a>
+        <a class="tile" href="https://wa.me/639922862068" target="_blank" rel="noopener">
+          <span class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1012 2zm5.8 14.2c-.2.7-1.4 1.3-2 1.4-.5.1-1.1.1-1.8-.1-.4-.1-1-.3-1.7-.6-3-1.3-4.9-4.3-5-4.5-.2-.2-1.2-1.6-1.2-3s.7-2.1 1-2.4c.3-.3.6-.4.8-.4h.6c.2 0 .4 0 .7.5l.9 2.2c.1.2.1.4 0 .5l-.4.5-.3.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.1 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1l.9-1c.2-.2.4-.2.6-.1l2.1 1c.3.1.5.2.5.3.1.2.1.7-.1 1.3z"/></svg></span>
+          <span class="tx"><b>WhatsApp</b><small>Send a photo of your item list</small></span>
+          <span class="arw"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </a>
+        <a class="tile" href="tel:+639922862068">
+          <span class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M4.5 4.5h3.2l1.6 4-2 1.4a12 12 0 005.8 5.8l1.4-2 4 1.6v3.2a1.5 1.5 0 01-1.7 1.5A16 16 0 013 6.2a1.5 1.5 0 011.5-1.7z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></svg></span>
+          <span class="tx"><b>+63 992 286 2068</b><small>Call or text</small></span>
+          <span class="arw"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </a>
+        <a class="tile" href="mailto:customer_service@built4u-pos.com">
+          <span class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2.2" stroke="currentColor" stroke-width="1.9"/><path d="M3.8 6.5l8.2 6 8.2-6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg></span>
+          <span class="tx"><b>Email us</b><small>customer_service@built4u-pos.com</small></span>
+          <span class="arw"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </a>
+      </div>
+      <div class="where">
+        <span class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-5.6 7-11a7 7 0 10-14 0c0 5.4 7 11 7 11z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/><circle cx="12" cy="10" r="2.6" stroke="currentColor" stroke-width="1.9"/></svg></span>
+        <div>
+          <b>Based in Cavite &middot; serving the whole Philippines</b>
+          Remote setup nationwide, on-site around Cavite and Metro Manila by arrangement.<br>
+          Mon&ndash;Sat, 8am&ndash;6pm &middot; we usually reply the same day.
+        </div>
+      </div>
+    </div>
+
+    <div data-reveal>
+      <form class="form" id="demoForm">
+        <div class="two">
+          <label><span>Your name</span><input id="f-name" required placeholder="Juan Dela Cruz"></label>
+          <label><span>Store name</span><input id="f-store" required placeholder="JDC Hardware"></label>
+        </div>
+        <label><span>Mobile or email</span><input id="f-contact" required placeholder="+63 992 286 2068"></label>
+        <div class="two">
+          <label><span>Location</span><input id="f-loc" placeholder="Imus, Cavite"></label>
+          <label><span>Branches</span>
+            <select id="f-branch"><option>1</option><option>2&ndash;3</option><option>4 or more</option><option>Not open yet</option></select>
+          </label>
+        </div>
+        <label><span>What are you using now? (optional)</span><textarea id="f-now" placeholder="Excel, notebook, another POS&hellip;"></textarea></label>
+        <button type="submit">Request a demo</button>
+        <p class="fine">This opens your email app with the details filled in — or use the direct options beside.</p>
+      </form>
     </div>
   </div>
 </section>
 
 <footer>
-  <div class="wrap foot-row">
-    <div>&copy; <span id="yr">2026</span> Built4U POS &middot; Made in the Philippines</div>
-    <div><a href="#why" style="text-decoration:none">Why Built4U</a> &middot; <a href="#features" style="text-decoration:none">Features</a> &middot; <a href="#demo" style="text-decoration:none">Request a demo</a></div>
+  <div class="wrap f-top">
+    <div>
+      <a class="brand" href="#top">
+        <span class="mark" style="width:26px;height:26px;border-radius:6px"><svg viewBox="0 0 64 64" width="26" height="26" aria-hidden="true"><g transform="translate(13,8) scale(0.066)" fill="#ffffff">
+          <path d="M1.1,1C.1,2.6.4,302.4,1.4,302.8c.8.2,23.5-20.3,50.2-45.5l8.4-8,.2-47.9c.1-26.3.3-48.2.3-48.7.1-1,136.1-.9,136.1.2,0,.4-2.6,3.2-5.7,6.2-3.2,2.9-13.2,12.3-22.3,20.9s-22.6,21.2-30,28.1c-7.4,6.8-18.4,17.1-24.5,22.9s-14.4,13.7-18.5,17.5c-4.1,3.9-14.9,14-24,22.5s-20.5,19.3-25.5,24.1c-4.9,4.7-14.8,14-22,20.6-7.1,6.6-15.5,14.5-18.6,17.4l-5.5,5.4.3,13c.1,7.1.2,18.1.3,24.2v11.3l114.3.2,114.2.3.5,99.5c.4,75.4.8,100.2,1.7,102.3l1.3,2.7h29.4c22.5,0,29.7-.3,30.3-1.3.4-.6,1-46.7,1.3-102.2l.5-101,7.5-.6c9.5-.8,18.1-3.3,20.5-5.9,3.1-3.4,3.8-32.5.9-37.2-1.5-2.4-10.1-5-19-5.8-5.1-.4-9.8-1.1-10.3-1.5-.8-.4-1.1-22.6-1.1-72,0-39.3-.3-71.6-.8-71.8-.4-.3-3.9,2.5-7.8,6.1-15,14.1-37.1,35.1-45.6,43.2l-8.8,8.5v86.5h-72.5c-41.4,0-72.5-.4-72.5-.9,0-.8,6.8-6.9,43.4-39,7.2-6.3,16.9-14.9,21.6-19,4.7-4.2,9.8-8.7,11.4-10.1s6.6-5.7,11-9.6c4.5-4,14.6-12.9,22.6-19.9,32.9-28.9,74.6-66.2,87.5-78.3l8.9-8.4,19.1.4c18.7.3,19.1.4,24.8,3.3,6.4,3.2,12.4,9.1,15.8,15.7,2.1,3.9,2.4,6,2.9,24.3.6,22.8-.3,29.2-4.8,35.7-6.8,9.8-16.1,15.2-29.9,17.3l-4.3.7-.1,14.6c-.1,8.1-.3,18.1-.5,22.2-.5,11.2-.7,11,8.9,11,9,0,22-2.5,34-6.4,28.2-9.3,47.3-27.3,54.9-51.6,2.2-7,2.3-9.1,2.3-33.5,0-21.9-.3-27-1.8-32.5-3.9-14.3-15.7-28.9-28.5-35.3-8.2-4.1-8.4-3.2,2-9.1s20.2-19.1,24.2-32.5c2.2-7.5,2.2-29.1,0-38-.9-3.6-3.7-10.7-6.2-15.6-3.7-7.2-6.3-10.7-13.3-17.7-7.4-7.3-10.2-9.4-19.1-13.7-11.3-5.6-17.3-7.4-32-9.6-8.3-1.3-34.2-1.5-173.7-1.5C61.1,0,1.5.4,1.1,1ZM333.8,49.1c14.8,3.2,20.8,11.1,20.8,27.8,0,13.3-5.2,21.1-17,25.3l-6.5,2.3h-134.7c-74,0-134.9-.2-135.2-.5-.4-.4-1-48.9-.7-54.8.1-1.7,265.2-1.8,273.3-.1Z"></path>
+          <path d="M405.6,289.1c-12,11.1-36.4,26.5-50.7,32l-2.2.8-.3,131.3-.3,131.3-2.3,7.9c-5.3,18.9-18.1,34.1-35.4,42-15,6.9-12,6.8-104.3,6.4l-83-.4-7-2.8c-11.3-4.4-18.1-8.5-25-14.8-11.2-10.3-18.5-24.5-20.5-40.1-.5-4-1-43.1-1-86.9,0-54.4-.3-79.9-1-80.3-1.5-.9-44-1.4-59.3-.6l-12.8.6v85.5c.1,51,.5,87.6,1,90.5,6,30.3,17.8,53.4,37.6,73.2,14,13.9,29.9,23.7,49,30.1,21.5,7.2,12.3,6.7,121,6.7h98l9.4-2.4c41.5-10.6,69-32.9,86.6-70.5,5.3-11.2,6.3-14.2,9.2-27.6,1.5-6.7,1.7-23.1,2.2-158.1.6-148.9.5-160.9-.7-160.9-.4.1-4.1,3.2-8.2,7.1Z"></path>
+        </g></svg></span>
+        <span class="brand-name">Built4U<small>POS System</small></span>
+      </a>
+      <p>Point of sale, inventory and customer credit for Philippine hardware stores, construction supply and building materials.</p>
+    </div>
+    <div class="f-col">
+      <div class="k">Product</div>
+      <a href="#features">Features</a>
+      <a href="#inventory">Inventory</a>
+      <a href="#hardware">What it runs on</a>
+      <a href="#setup">Getting started</a>
+    </div>
+    <div class="f-col">
+      <div class="k">Company</div>
+      <a href="#demo">Request a demo</a>
+      <a href="#faq">FAQ</a>
+      <a href="#why">Why Built4U</a>
+    </div>
+    <div class="f-col">
+      <div class="k">Talk to a human</div>
+      <a href="tel:+639922862068">+63 992 286 2068</a>
+      <a href="mailto:customer_service@built4u-pos.com">customer_service@built4u-pos.com</a>
+      <div class="plain">Mon&ndash;Sat, 8am&ndash;6pm<br>Based in Cavite</div>
+    </div>
+  </div>
+  <div class="wrap f-bot">
+    <span>&copy; <span id="yr">2026</span> Built4U POS &middot; Made in the Philippines</span>
+    <span style="display:flex;gap:20px"><a href="#why">Why Built4U</a><a href="#features">Features</a><a href="#demo">Contact</a></span>
   </div>
 </footer>
 
 <script>
-document.getElementById('yr').textContent = new Date().getFullYear();
-function sendEnquiry(e){
-  e.preventDefault();
-  function v(id){ return document.getElementById(id).value.trim(); }
-  var body =
-    'Name: '    + v('f-name')    + '\n' +
-    'Store: '   + v('f-store')   + '\n' +
-    'Contact: ' + v('f-contact') + '\n\n' +
-    'Currently using:\n' + (v('f-msg') || '(not specified)') + '\n';
-  window.location.href = 'mailto:customer_service@built4u-pos.com'
-    + '?subject=' + encodeURIComponent('Demo request - ' + v('f-store'))
-    + '&body='    + encodeURIComponent(body);
-  return false;
-}
+(function(){
+  document.getElementById('yr').textContent = new Date().getFullYear();
+
+  var nav = document.getElementById('nav');
+  var onScroll = function(){ nav.classList.toggle('stuck', window.scrollY > 8) };
+  onScroll(); window.addEventListener('scroll', onScroll, {passive:true});
+
+  var toggle = document.getElementById('toggle'), links = document.getElementById('links');
+  toggle.addEventListener('click', function(){
+    var open = links.classList.toggle('open');
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  links.addEventListener('click', function(e){
+    if (e.target.tagName === 'A') { links.classList.remove('open'); toggle.setAttribute('aria-expanded','false') }
+  });
+
+  var items = document.querySelectorAll('[data-reveal]');
+  // Dropping the `js` class removes the rule that hides un-revealed elements,
+  // so content appears immediately without depending on a transition running.
+  var showAll = function(){ document.documentElement.classList.remove('js') };
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce || !('IntersectionObserver' in window)) {
+    showAll();
+  } else {
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target) }
+      });
+    }, {rootMargin:'0px 0px -8% 0px', threshold:0.06});
+    Array.prototype.forEach.call(items, function(el){ io.observe(el) });
+    // Fail-safe: the animation is decoration, the content is the point. If the
+    // observer never fires (throttled tab, headless renderer, odd browser),
+    // show everything rather than leaving a blank page.
+    setTimeout(showAll, 1500);
+  }
+
+  document.getElementById('demoForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var v = function(id){ return (document.getElementById(id).value || '').trim() };
+    var lines = [
+      'Name: ' + v('f-name'),
+      'Store: ' + v('f-store'),
+      'Mobile / email: ' + v('f-contact'),
+      'Location: ' + (v('f-loc') || '-'),
+      'Branches: ' + v('f-branch'),
+      'Currently using: ' + (v('f-now') || '-'),
+      '',
+      'Please get in touch about a Built4U POS demo.'
+    ];
+    window.location.href = 'mailto:customer_service@built4u-pos.com'
+      + '?subject=' + encodeURIComponent('Demo request - ' + (v('f-store') || v('f-name')))
+      + '&body=' + encodeURIComponent(lines.join('\n'));
+  });
+})();
 </script>
 </body>
 </html>
