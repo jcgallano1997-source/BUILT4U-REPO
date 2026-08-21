@@ -8,19 +8,22 @@ Aimed at Philippine hardware / construction-supply stores, with one goal —
 **getting a demo request**. It uses the same visual identity as the app (amber on
 navy, safety stripe), so the site and the product read as one brand.
 
-## Fill these in before publishing
+## Contact details
 
-Search `index.html` for each:
+Live in the page already:
 
-| Placeholder | Replace with |
+| Channel | Value |
 |---|---|
-| `https://m.me/YOUR_PAGE` | your Facebook Page's Messenger link |
-| `0917 000 0000` | the real mobile number (appears twice: link + label) |
-| `hello@built4u-pos.com` | your address, if different (appears three times) |
+| Facebook Page | `facebook.com/profile.php?id=61582125780879` |
+| Phone / WhatsApp | `0992 286 2068` |
+| Email | `built4usolutions@gmail.com` |
 
-`hello@built4u-pos.com` doesn't exist yet — set it up free with **Cloudflare
-Email Routing** (Cloudflare → Email → Email Routing) forwarding to your Gmail.
-That looks far better on a quote than a personal address.
+To change any of them, search `index.html` — the email appears three times
+(contact card, its `mailto:`, and the form script).
+
+**Worth doing later:** a domain address such as `hello@built4u-pos.com` reads
+better on a quote than a Gmail one. It's free — Cloudflare → Email → **Email
+Routing** forwards it to the same inbox, and you keep replying from Gmail.
 
 ## Deploy on Cloudflare Pages
 
