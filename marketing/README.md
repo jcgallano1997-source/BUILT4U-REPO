@@ -15,7 +15,7 @@ Live in the page already:
 | Channel | Value |
 |---|---|
 | Facebook Page | `facebook.com/profile.php?id=61582125780879` |
-| Phone / WhatsApp | `0992 286 2068` |
+| Phone / WhatsApp | `+63 992 286 2068` |
 | Email | `customer_service@built4u-pos.com` |
 
 To change any of them, search `index.html` — the email appears three times
