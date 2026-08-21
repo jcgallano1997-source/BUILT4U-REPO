@@ -327,9 +327,9 @@ footer{background:var(--navy);color:#94a3b8;padding:34px 0;font-size:13.5px;bord
           <span class="tx"><b>0992 286 2068</b><span class="sm">Call or text</span></span>
           <span class="arw" aria-hidden="true">&rarr;</span>
         </a>
-        <a class="tile" href="mailto:built4usolutions@gmail.com">
+        <a class="tile" href="mailto:customer_service@built4u-pos.com">
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg></span>
-          <span class="tx"><b>Email us</b><span class="sm">built4usolutions@gmail.com</span></span>
+          <span class="tx"><b>Email us</b><span class="sm">customer_service@built4u-pos.com</span></span>
           <span class="arw" aria-hidden="true">&rarr;</span>
         </a>
         </div>
@@ -363,7 +363,7 @@ function sendEnquiry(e){
     'Store: '   + v('f-store')   + '\n' +
     'Contact: ' + v('f-contact') + '\n\n' +
     'Currently using:\n' + (v('f-msg') || '(not specified)') + '\n';
-  window.location.href = 'mailto:built4usolutions@gmail.com'
+  window.location.href = 'mailto:customer_service@built4u-pos.com'
     + '?subject=' + encodeURIComponent('Demo request - ' + v('f-store'))
     + '&body='    + encodeURIComponent(body);
   return false;

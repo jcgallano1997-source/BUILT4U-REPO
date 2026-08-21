@@ -16,14 +16,17 @@ Live in the page already:
 |---|---|
 | Facebook Page | `facebook.com/profile.php?id=61582125780879` |
 | Phone / WhatsApp | `0992 286 2068` |
-| Email | `built4usolutions@gmail.com` |
+| Email | `customer_service@built4u-pos.com` |
 
 To change any of them, search `index.html` — the email appears three times
 (contact card, its `mailto:`, and the form script).
 
-**Worth doing later:** a domain address such as `hello@built4u-pos.com` reads
-better on a quote than a Gmail one. It's free — Cloudflare → Email → **Email
-Routing** forwards it to the same inbox, and you keep replying from Gmail.
+The domain address runs on **Cloudflare Email Routing** (free), which forwards
+mail to `built4usolutions@gmail.com`. It is receive-only — replies go out from
+Gmail unless you configure Gmail's "Send mail as".
+
+More addresses can be added any time (Cloudflare → Email → Email Routing →
+Routing rules), all forwarding to the same inbox.
 
 ## Deploy on Cloudflare Pages
 
