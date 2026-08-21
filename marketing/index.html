@@ -115,12 +115,22 @@ details p{margin-top:10px;color:var(--slate);font-size:14.5px}
 .field input,.field textarea{width:100%;padding:11px 13px;border-radius:10px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#fff;font:inherit;font-size:14.5px;outline:none}
 .field input:focus,.field textarea:focus{border-color:var(--amber);background:rgba(255,255,255,.1)}
 .field textarea{min-height:96px;resize:vertical}
-.direct{display:flex;flex-direction:column;gap:14px}
-.direct a{display:flex;gap:14px;align-items:center;padding:16px 18px;border:1px solid rgba(255,255,255,.12);border-radius:12px;text-decoration:none;background:rgba(255,255,255,.04);transition:.15s}
-.direct a:hover{border-color:var(--amber);background:rgba(245,158,11,.08)}
-.direct .ico{width:40px;height:40px;border-radius:10px;background:rgba(245,158,11,.15);color:var(--amber);display:grid;place-items:center;font-size:18px;flex:none}
-.direct b{display:block;font-size:15px;color:#fff}
-.direct span.sm{font-size:13px;color:#94a3b8}
+.direct{display:flex;flex-direction:column;gap:16px}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tile{display:flex;align-items:center;gap:13px;padding:16px;border:1px solid rgba(255,255,255,.12);border-radius:13px;text-decoration:none;background:rgba(255,255,255,.04);transition:transform .15s,border-color .15s,background .15s}
+.tile:hover{border-color:var(--amber);background:rgba(245,158,11,.09);transform:translateY(-2px)}
+.tile .ico{width:40px;height:40px;border-radius:11px;background:rgba(245,158,11,.15);color:var(--amber);display:grid;place-items:center;flex:none}
+.tile .tx{min-width:0;flex:1}
+.tile b{display:block;font-size:14.5px;color:#fff;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .sm{display:block;font-size:12.5px;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .arw{color:#475569;font-size:16px;flex:none;transition:.15s}
+.tile:hover .arw{color:var(--amber);transform:translateX(3px)}
+.badge{font-style:normal;font-size:9.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;background:var(--amber);color:#1a1205;padding:2px 6px;border-radius:20px;vertical-align:middle;margin-left:4px}
+.hours{display:flex;gap:13px;align-items:flex-start;padding:17px;border:1px dashed rgba(255,255,255,.18);border-radius:13px;color:#94a3b8;font-size:13.5px;line-height:1.55}
+.hours b{display:block;color:#fff;margin-bottom:3px;font-size:14px}
+.hours .ico-sm{color:var(--amber);flex:none;margin-top:2px}
+.hours .sm{color:#64748b;font-size:12.5px}
+@media(max-width:520px){.tiles{grid-template-columns:1fr}}
 
 footer{background:var(--navy);color:#94a3b8;padding:34px 0;font-size:13.5px;border-top:1px solid rgba(255,255,255,.08)}
 .foot-row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center}
@@ -301,21 +311,35 @@ footer{background:var(--navy);color:#94a3b8;padding:34px 0;font-size:13.5px;bord
       </form>
 
       <div class="direct">
-        <a href="https://www.facebook.com/profile.php?id=61582125780879" target="_blank" rel="noopener">
-          <span class="ico">&#128172;</span><span><b>Message us on Facebook</b><span class="sm">Usually the fastest reply</span></span>
+        <div class="tiles">
+        <a class="tile" href="https://www.facebook.com/profile.php?id=61582125780879" target="_blank" rel="noopener">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06c0 5 3.66 9.15 8.44 9.94v-7.03H7.9v-2.9h2.54V9.85c0-2.52 1.5-3.91 3.77-3.91 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.78-1.63 1.57v1.89h2.78l-.45 2.9h-2.33V22c4.78-.79 8.44-4.93 8.44-9.94z"/></svg></span>
+          <span class="tx"><b>Facebook <em class="badge">fastest</em></b><span class="sm">Message our Page</span></span>
+          <span class="arw" aria-hidden="true">&rarr;</span>
         </a>
-        <a href="tel:+639922862068">
-          <span class="ico">&#128222;</span><span><b>0992 286 2068</b><span class="sm">Call or text, Mon&ndash;Sat 8am&ndash;6pm</span></span>
+        <a class="tile" href="https://wa.me/639922862068" target="_blank" rel="noopener">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M17.47 14.38c-.3-.15-1.75-.86-2.02-.96-.27-.1-.47-.15-.67.15-.2.3-.77.96-.94 1.16-.17.2-.35.22-.64.07-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.47-1.75-1.64-2.05-.17-.3-.02-.46.13-.6.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.6-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.06 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.63.71.22 1.36.19 1.87.12.57-.09 1.75-.72 2-1.41.25-.7.25-1.29.17-1.41-.07-.13-.27-.2-.57-.35zM12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21h.01c5.46 0 9.91-4.45 9.91-9.91C21.96 6.45 17.5 2 12.04 2zm0 18.13h-.01c-1.52 0-3.02-.41-4.32-1.18l-.31-.18-3.21.84.86-3.13-.2-.32a8.21 8.21 0 0 1-1.26-4.38c0-4.54 3.7-8.23 8.25-8.23 2.2 0 4.27.86 5.83 2.42a8.19 8.19 0 0 1 2.41 5.82c0 4.54-3.7 8.24-8.24 8.24z"/></svg></span>
+          <span class="tx"><b>WhatsApp</b><span class="sm">Send a photo of your item list</span></span>
+          <span class="arw" aria-hidden="true">&rarr;</span>
         </a>
-        <a href="https://wa.me/639922862068" target="_blank" rel="noopener">
-          <span class="ico">&#128241;</span><span><b>WhatsApp</b><span class="sm">Same number &mdash; send photos of your item list</span></span>
+        <a class="tile" href="tel:+639922862068">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>
+          <span class="tx"><b>0992 286 2068</b><span class="sm">Call or text</span></span>
+          <span class="arw" aria-hidden="true">&rarr;</span>
         </a>
-        <a href="mailto:built4usolutions@gmail.com">
-          <span class="ico">&#9993;</span><span><b>built4usolutions@gmail.com</b><span class="sm">For quotes and questions</span></span>
+        <a class="tile" href="mailto:built4usolutions@gmail.com">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg></span>
+          <span class="tx"><b>Email us</b><span class="sm">built4usolutions@gmail.com</span></span>
+          <span class="arw" aria-hidden="true">&rarr;</span>
         </a>
-        <div style="padding:18px;border:1px dashed rgba(255,255,255,.18);border-radius:12px;color:#94a3b8;font-size:13.5px">
-          <b style="color:#fff;display:block;margin-bottom:6px">Based in Cavite, serving the Philippines</b>
-          Remote setup nationwide. On-site visits around Cavite and Metro Manila by arrangement.
+        </div>
+        <div class="hours">
+          <span class="ico-sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
+          <div>
+            <b>Based in Cavite &middot; serving the whole Philippines</b>
+            Remote setup nationwide, on-site around Cavite and Metro Manila by arrangement.<br>
+            <span class="sm">Mon&ndash;Sat, 8am&ndash;6pm &middot; we usually reply the same day</span>
+          </div>
         </div>
       </div>
     </div>
