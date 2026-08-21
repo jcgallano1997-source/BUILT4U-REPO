@@ -61,3 +61,13 @@ Philippines most enquiries will come through Messenger anyway.
 If you later want a proper form that posts silently, the options are a Cloudflare
 Pages Function calling Resend (you already have a verified sending domain), or a
 free service like Formspree. Not needed to launch.
+
+## Logo
+
+The mark in the nav and the favicon come from `favicon.svg` — the same file the
+app uses, so both carry one identity.
+
+**Brand blue `#2563eb` is fixed.** The logo sits on its own blue plate and must
+not be re-coloured or placed on a coloured tile; the site's amber is an accent
+for buttons and highlights only. To update the logo, replace `favicon.svg` here
+and the inline `<svg>` inside the nav's `<span class="mark">` in `index.html`.
