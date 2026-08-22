@@ -272,6 +272,20 @@ textarea{min-height:76px;resize:vertical}
 .form button{margin-top:4px;background:var(--accent);color:#fff;font-weight:600;font-size:15.5px;padding:14px;border-radius:8px;border:0;cursor:pointer}
 .form button:hover{background:var(--accent-dk)}
 .form .fine{font-size:12px;line-height:1.5;color:var(--dim-2);text-align:center;margin-top:2px}
+.sent{display:none;background:var(--paper-3);border-radius:13px;padding:30px 28px;color:var(--ink)}
+.sent.on{display:block}
+.sent .cap{width:44px;height:44px;border-radius:50%;background:var(--green-soft);display:grid;place-items:center}
+.sent h3{font-weight:800;font-size:21px;letter-spacing:-.03em;margin-top:16px}
+.sent .msg{margin-top:9px;font-size:14.5px;line-height:1.6;color:var(--muted)}
+.sent .acts{display:grid;gap:9px;margin-top:20px}
+.sent .acts a,.sent .acts button{display:flex;align-items:center;justify-content:center;gap:9px;
+  padding:12px 14px;border-radius:8px;font-size:14.5px;font-weight:600;border:1px solid rgba(22,19,15,.16);
+  background:#fff;color:var(--ink);cursor:pointer;text-align:center}
+.sent .acts a:hover,.sent .acts button:hover{border-color:var(--ink);color:var(--ink)}
+.sent .acts .primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.sent .acts .primary:hover{background:var(--accent-dk);color:#fff;border-color:var(--accent-dk)}
+.sent .back{display:block;text-align:center;margin-top:16px;font-size:13px;color:var(--muted);
+  background:none;border:0;cursor:pointer;width:100%;text-decoration:underline}
 .or{display:flex;align-items:center;gap:14px;margin-top:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim-2)}
 .or::before,.or::after{content:"";flex:1;height:1px;background:rgba(246,243,238,.14)}
 .tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}
@@ -834,6 +848,21 @@ footer{background:var(--ink);color:var(--dim);border-top:1px solid rgba(246,243,
         <button type="submit">Request a demo</button>
         <p class="fine">This opens your email app with the details filled in — or use the direct options beside.</p>
       </form>
+
+      <!-- Shown after submit. A mailto: does nothing at all on a machine with no
+           mail app configured, and a silent dead button reads as a broken site,
+           so always offer a way through that doesn't depend on one. -->
+      <div class="sent" id="sent">
+        <span class="cap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#2F6B4F" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <h3>Your details are ready</h3>
+        <p class="msg">We tried to open your email app. <b>If nothing happened</b>, this computer probably has no email app set up — send it to us one of these ways instead. Your details are already filled in.</p>
+        <div class="acts">
+          <a class="primary" id="waSend" href="#" target="_blank" rel="noopener">Send on WhatsApp</a>
+          <a href="https://www.facebook.com/profile.php?id=61582125780879" target="_blank" rel="noopener">Message our Facebook Page</a>
+          <button type="button" id="copyBtn">Copy my details</button>
+        </div>
+        <button type="button" class="back" id="backBtn">Back to the form</button>
+      </div>
     </div>
   </div>
 </section>
@@ -913,22 +942,54 @@ footer{background:var(--ink);color:var(--dim);border-top:1px solid rgba(246,243,
     setTimeout(showAll, 1500);
   }
 
-  document.getElementById('demoForm').addEventListener('submit', function(e){
+  var form = document.getElementById('demoForm'), sent = document.getElementById('sent');
+  var copyBtn = document.getElementById('copyBtn'), waSend = document.getElementById('waSend');
+  var body = '';
+
+  form.addEventListener('submit', function(e){
     e.preventDefault();
     var v = function(id){ return (document.getElementById(id).value || '').trim() };
-    var lines = [
+    body = [
+      'Demo request - Built4U POS',
+      '',
       'Name: ' + v('f-name'),
       'Store: ' + v('f-store'),
       'Mobile / email: ' + v('f-contact'),
       'Location: ' + (v('f-loc') || '-'),
       'Branches: ' + v('f-branch'),
-      'Currently using: ' + (v('f-now') || '-'),
-      '',
-      'Please get in touch about a Built4U POS demo.'
-    ];
+      'Currently using: ' + (v('f-now') || '-')
+    ].join('\n');
+
+    waSend.href = 'https://wa.me/639922862068?text=' + encodeURIComponent(body);
+
+    // Try the mail app, then show the fallback either way — there is no reliable
+    // way to detect whether a mailto: actually opened anything.
     window.location.href = 'mailto:customer_service@built4u-pos.com'
       + '?subject=' + encodeURIComponent('Demo request - ' + (v('f-store') || v('f-name')))
-      + '&body=' + encodeURIComponent(lines.join('\n'));
+      + '&body=' + encodeURIComponent(body);
+
+    form.style.display = 'none';
+    sent.classList.add('on');
+    sent.scrollIntoView({block:'nearest', behavior:'smooth'});
+  });
+
+  copyBtn.addEventListener('click', function(){
+    var done = function(){ copyBtn.textContent = 'Copied — paste it to us'; setTimeout(function(){ copyBtn.textContent = 'Copy my details' }, 2500) };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(body).then(done, fallbackCopy);
+    } else { fallbackCopy() }
+    function fallbackCopy(){
+      var ta = document.createElement('textarea');
+      ta.value = body; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); done() } catch (err) { copyBtn.textContent = 'Press Ctrl+C to copy'; ta.style.opacity = '1' }
+      setTimeout(function(){ if (ta.parentNode) ta.parentNode.removeChild(ta) }, 4000);
+    }
+  });
+
+  document.getElementById('backBtn').addEventListener('click', function(){
+    sent.classList.remove('on');
+    form.style.display = 'grid';
   });
 })();
 </script>
