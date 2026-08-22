@@ -65,3 +65,15 @@ services:
       - type: rewrite
         source: /*
         destination: /index.html
+
+  # ── Marketing: the public site at built4u-pos.com ───────────────────────────
+  # Plain static HTML — no build step, no dependencies. Static sites take no
+  # `plan` key (the blueprint is rejected with "no such plan free" if you add
+  # one) and no `region`: Render serves them from its CDN, not an instance.
+  - type: web
+    name: built4u-pos-marketing
+    runtime: static
+    rootDir: marketing
+    buildCommand: echo "static site, nothing to build"
+    staticPublishPath: .
+    autoDeploy: true
