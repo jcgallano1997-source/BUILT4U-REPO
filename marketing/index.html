@@ -262,39 +262,13 @@ details .a{padding:0 60px 22px 0;font-size:15.5px;line-height:1.62;color:var(--b
 .demo .pts{display:grid;gap:12px;margin-top:30px}
 .demo .pts div{display:flex;gap:11px;align-items:flex-start;font-size:15px;color:#E7E1D8}
 .demo .pts i{color:var(--accent);font-style:normal;flex:none}
-.form{background:var(--paper-3);border-radius:13px;padding:28px;display:grid;gap:14px;color:var(--ink)}
-.form .two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-label{display:grid;gap:6px}
-label span{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#7A7368}
-input,select,textarea{border:1px solid rgba(22,19,15,.16);border-radius:7px;padding:11px 12px;font-size:14.5px;background:#fff;color:var(--ink);outline:none;width:100%}
-input:focus,select:focus,textarea:focus{border-color:var(--accent)}
-textarea{min-height:76px;resize:vertical}
-.form button{margin-top:4px;background:var(--accent);color:#fff;font-weight:600;font-size:15.5px;padding:14px;border-radius:8px;border:0;cursor:pointer}
-.form button:hover{background:var(--accent-dk)}
-.form .fine{font-size:12px;line-height:1.5;color:var(--dim-2);text-align:center;margin-top:2px}
-.sent{display:none;background:var(--paper-3);border-radius:13px;padding:30px 28px;color:var(--ink)}
-.sent.on{display:block}
-.sent .cap{width:44px;height:44px;border-radius:50%;background:var(--green-soft);display:grid;place-items:center}
-.sent h3{font-weight:800;font-size:21px;letter-spacing:-.03em;margin-top:16px}
-.sent .msg{margin-top:9px;font-size:14.5px;line-height:1.6;color:var(--muted)}
-.sent .acts{display:grid;gap:9px;margin-top:20px}
-.sent .acts a,.sent .acts button{display:flex;align-items:center;justify-content:center;gap:9px;
-  padding:12px 14px;border-radius:8px;font-size:14.5px;font-weight:600;border:1px solid rgba(22,19,15,.16);
-  background:#fff;color:var(--ink);cursor:pointer;text-align:center}
-.sent .acts a:hover,.sent .acts button:hover{border-color:var(--ink);color:var(--ink)}
-.sent .acts .primary{background:var(--accent);color:#fff;border-color:var(--accent)}
-.sent .acts .primary:hover{background:var(--accent-dk);color:#fff;border-color:var(--accent-dk)}
-.sent .back{display:block;text-align:center;margin-top:16px;font-size:13px;color:var(--muted);
-  background:none;border:0;cursor:pointer;width:100%;text-decoration:underline}
-.or{display:flex;align-items:center;gap:14px;margin-top:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim-2)}
-.or::before,.or::after{content:"";flex:1;height:1px;background:rgba(246,243,238,.14)}
-.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}
-.tile{display:flex;align-items:center;gap:13px;padding:15px;border:1px solid rgba(246,243,238,.14);border-radius:11px;background:rgba(246,243,238,.04);transition:.15s;color:var(--paper)}
+.tiles{display:grid;gap:12px}
+.tile{display:flex;align-items:center;gap:15px;padding:18px;border:1px solid rgba(246,243,238,.14);border-radius:12px;background:rgba(246,243,238,.04);transition:.15s;color:var(--paper)}
 .tile:hover{border-color:var(--accent);background:rgba(226,82,29,.10);transform:translateY(-2px);color:var(--paper)}
-.tile .ic{width:38px;height:38px;border-radius:10px;background:rgba(226,82,29,.16);color:var(--accent);display:grid;place-items:center;flex:none}
+.tile .ic{width:44px;height:44px;border-radius:11px;background:rgba(226,82,29,.16);color:var(--accent);display:grid;place-items:center;flex:none}
 .tile .tx{min-width:0;flex:1}
-.tile b{display:block;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tile small{display:block;font-size:12px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.tile b{display:block;font-size:15.5px;font-weight:600}
+.tile small{display:block;font-size:13px;color:var(--dim);margin-top:2px;line-height:1.4}
 .tile .arw{color:var(--dim-3);flex:none;transition:.15s}
 .tile:hover .arw{color:var(--accent);transform:translateX(3px)}
 .hot{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;background:var(--accent);color:#fff;padding:2px 5px;border-radius:3px;margin-left:5px;vertical-align:1px}
@@ -374,7 +348,7 @@ footer{background:var(--ink);color:var(--dim);border-top:1px solid rgba(246,243,
       <a href="#faq">FAQ</a>
     </nav>
     <div class="nav-end">
-      <a class="btn btn-dark" href="#demo">Request a demo
+      <a class="btn btn-dark" href="#contact">Contact us
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </a>
       <button class="nav-toggle" id="toggle" aria-label="Menu" aria-expanded="false" aria-controls="links">
@@ -393,7 +367,7 @@ footer{background:var(--ink);color:var(--dim);border-top:1px solid rgba(246,243,
         <h1>The counter moves fast.<br>Your system <em>should too.</em></h1>
         <p class="hero-lede">Built4U is a point-of-sale and inventory system made for Philippine hardware stores — thousands of SKUs, buy by box and sell by piece, deliveries from suppliers, and customers who pay on credit. All of it on the same screen your cashier already uses.</p>
         <div class="hero-cta">
-          <a class="btn btn-accent" href="#demo">Request a free demo
+          <a class="btn btn-accent" href="#contact">Contact us
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </a>
           <a class="btn btn-line" href="#features">See what&rsquo;s inside</a>
@@ -527,7 +501,7 @@ footer{background:var(--ink);color:var(--dim);border-top:1px solid rgba(246,243,
         <h2 class="h2">One system, from the counter to the back office.</h2>
         <p class="lede">Everything below is included — not modules you unlock later.</p>
       </div>
-      <a class="link-arrow" href="#demo">Walk through it live
+      <a class="link-arrow" href="#contact">Talk to us about it
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </a>
     </div>
@@ -761,7 +735,7 @@ footer{background:var(--ink);color:var(--dim);border-top:1px solid rgba(246,243,
     <div data-reveal>
       <div class="eyebrow">Questions</div>
       <h2 class="h2-sm">Fair questions before you commit.</h2>
-      <p class="lede" style="font-size:15.5px;color:var(--muted)">Something specific to your store? Bring it to the demo — we&rsquo;d rather answer it with your own items on the screen.</p>
+      <p class="lede" style="font-size:15.5px;color:var(--muted)">Something specific to your store? Ask us — we&rsquo;d rather answer it with your own items on the screen.</p>
     </div>
     <div class="faq-list" data-reveal>
       <details open>
@@ -782,23 +756,27 @@ footer{background:var(--ink);color:var(--dim);border-top:1px solid rgba(246,243,
       </details>
       <details>
         <summary>How much does it cost?<span class="chev"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>
-        <p class="a">It depends on how many branches you run and how much setup help you need. Request a demo and we&rsquo;ll quote you plainly — no lock-in contract.</p>
+        <p class="a">It depends on how many branches you run and how much setup help you need. Message us and we&rsquo;ll quote you plainly — no lock-in contract.</p>
       </details>
     </div>
   </div>
 </section>
 
-<section class="demo" id="demo">
+<section class="demo" id="contact">
   <div class="wrap">
     <div data-reveal>
-      <h2>See it ring up<br>your own items.</h2>
-      <p class="lede">Send a few details and we&rsquo;ll set up a walkthrough — screen share, or in person if you&rsquo;re nearby. Send your item list ahead and we&rsquo;ll load it first. No obligation.</p>
+      <div class="eyebrow">Contact us</div>
+      <h2>Talk to us about<br>your store.</h2>
+      <p class="lede">Message us on any of these — whichever is easiest for you. We&rsquo;ll set up a walkthrough on your own items: screen share, or in person if you&rsquo;re nearby. No obligation.</p>
       <div class="pts">
         <div><i>&rarr;</i>A real walkthrough of the counter, not a recorded tour</div>
         <div><i>&rarr;</i>Straight answers on migration, cost and timeline</div>
+        <div><i>&rarr;</i>Send your item list ahead and we&rsquo;ll load it first</div>
         <div><i>&rarr;</i>We&rsquo;ll tell you if you&rsquo;re not a fit</div>
       </div>
-      <div class="or">Or reach us directly</div>
+    </div>
+
+    <div data-reveal>
       <div class="tiles">
         <a class="tile" href="https://www.facebook.com/profile.php?id=61582125780879" target="_blank" rel="noopener">
           <span class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor"><path d="M22 12a10 10 0 10-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.4v7A10 10 0 0022 12z"/></svg></span>
@@ -830,40 +808,6 @@ footer{background:var(--ink);color:var(--dim);border-top:1px solid rgba(246,243,
         </div>
       </div>
     </div>
-
-    <div data-reveal>
-      <form class="form" id="demoForm">
-        <div class="two">
-          <label><span>Your name</span><input id="f-name" required placeholder="Juan Dela Cruz"></label>
-          <label><span>Store name</span><input id="f-store" required placeholder="JDC Hardware"></label>
-        </div>
-        <label><span>Mobile or email</span><input id="f-contact" required placeholder="+63 992 286 2068"></label>
-        <div class="two">
-          <label><span>Location</span><input id="f-loc" placeholder="Imus, Cavite"></label>
-          <label><span>Branches</span>
-            <select id="f-branch"><option>1</option><option>2&ndash;3</option><option>4 or more</option><option>Not open yet</option></select>
-          </label>
-        </div>
-        <label><span>What are you using now? (optional)</span><textarea id="f-now" placeholder="Excel, notebook, another POS&hellip;"></textarea></label>
-        <button type="submit">Request a demo</button>
-        <p class="fine">This opens your email app with the details filled in — or use the direct options beside.</p>
-      </form>
-
-      <!-- Shown after submit. A mailto: does nothing at all on a machine with no
-           mail app configured, and a silent dead button reads as a broken site,
-           so always offer a way through that doesn't depend on one. -->
-      <div class="sent" id="sent">
-        <span class="cap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#2F6B4F" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-        <h3>Your details are ready</h3>
-        <p class="msg">We tried to open your email app. <b>If nothing happened</b>, this computer probably has no email app set up — send it to us one of these ways instead. Your details are already filled in.</p>
-        <div class="acts">
-          <a class="primary" id="waSend" href="#" target="_blank" rel="noopener">Send on WhatsApp</a>
-          <a href="https://www.facebook.com/profile.php?id=61582125780879" target="_blank" rel="noopener">Message our Facebook Page</a>
-          <button type="button" id="copyBtn">Copy my details</button>
-        </div>
-        <button type="button" class="back" id="backBtn">Back to the form</button>
-      </div>
-    </div>
   </div>
 </section>
 
@@ -888,7 +832,7 @@ footer{background:var(--ink);color:var(--dim);border-top:1px solid rgba(246,243,
     </div>
     <div class="f-col">
       <div class="k">Company</div>
-      <a href="#demo">Request a demo</a>
+      <a href="#contact">Contact us</a>
       <a href="#faq">FAQ</a>
       <a href="#why">Why Built4U</a>
     </div>
@@ -901,7 +845,7 @@ footer{background:var(--ink);color:var(--dim);border-top:1px solid rgba(246,243,
   </div>
   <div class="wrap f-bot">
     <span>&copy; <span id="yr">2026</span> Built4U POS &middot; Made in the Philippines</span>
-    <span style="display:flex;gap:20px"><a href="#why">Why Built4U</a><a href="#features">Features</a><a href="#demo">Contact</a></span>
+    <span style="display:flex;gap:20px"><a href="#why">Why Built4U</a><a href="#features">Features</a><a href="#contact">Contact</a></span>
   </div>
 </footer>
 
@@ -942,55 +886,6 @@ footer{background:var(--ink);color:var(--dim);border-top:1px solid rgba(246,243,
     setTimeout(showAll, 1500);
   }
 
-  var form = document.getElementById('demoForm'), sent = document.getElementById('sent');
-  var copyBtn = document.getElementById('copyBtn'), waSend = document.getElementById('waSend');
-  var body = '';
-
-  form.addEventListener('submit', function(e){
-    e.preventDefault();
-    var v = function(id){ return (document.getElementById(id).value || '').trim() };
-    body = [
-      'Demo request - Built4U POS',
-      '',
-      'Name: ' + v('f-name'),
-      'Store: ' + v('f-store'),
-      'Mobile / email: ' + v('f-contact'),
-      'Location: ' + (v('f-loc') || '-'),
-      'Branches: ' + v('f-branch'),
-      'Currently using: ' + (v('f-now') || '-')
-    ].join('\n');
-
-    waSend.href = 'https://wa.me/639922862068?text=' + encodeURIComponent(body);
-
-    // Try the mail app, then show the fallback either way — there is no reliable
-    // way to detect whether a mailto: actually opened anything.
-    window.location.href = 'mailto:customer_service@built4u-pos.com'
-      + '?subject=' + encodeURIComponent('Demo request - ' + (v('f-store') || v('f-name')))
-      + '&body=' + encodeURIComponent(body);
-
-    form.style.display = 'none';
-    sent.classList.add('on');
-    sent.scrollIntoView({block:'nearest', behavior:'smooth'});
-  });
-
-  copyBtn.addEventListener('click', function(){
-    var done = function(){ copyBtn.textContent = 'Copied — paste it to us'; setTimeout(function(){ copyBtn.textContent = 'Copy my details' }, 2500) };
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(body).then(done, fallbackCopy);
-    } else { fallbackCopy() }
-    function fallbackCopy(){
-      var ta = document.createElement('textarea');
-      ta.value = body; ta.style.position = 'fixed'; ta.style.opacity = '0';
-      document.body.appendChild(ta); ta.select();
-      try { document.execCommand('copy'); done() } catch (err) { copyBtn.textContent = 'Press Ctrl+C to copy'; ta.style.opacity = '1' }
-      setTimeout(function(){ if (ta.parentNode) ta.parentNode.removeChild(ta) }, 4000);
-    }
-  });
-
-  document.getElementById('backBtn').addEventListener('click', function(){
-    sent.classList.remove('on');
-    form.style.display = 'grid';
-  });
 })();
 </script>
 </body>
