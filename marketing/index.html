@@ -414,21 +414,149 @@ header::before{opacity:.38}
 .float{animation:bob 6.5s ease-in-out infinite}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 
-/* ── Capability ticker ──────────────────────────────────────────────────────
-   The vocabulary of what the system actually does, moving past. The list is
-   duplicated in the markup so translating by -50% loops seamlessly; hovering
-   pauses it so a name can actually be read. */
-.ticker{position:relative;overflow:hidden;background:var(--bg-2);padding:15px 0;
-  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
-  -webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);
-  mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent)}
-.ticker ul{display:flex;margin:0;padding:0;list-style:none;width:max-content;
-  animation:slide 52s linear infinite}
-.ticker:hover ul{animation-play-state:paused}
-.ticker li{display:flex;align-items:center;gap:16px;padding:0 16px;white-space:nowrap;
-  font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
-.ticker li::after{content:'';width:5px;height:5px;border-radius:50%;background:var(--cyan);opacity:.5;flex:none}
-@keyframes slide{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+/* ── Box → piece, demonstrated ──────────────────────────────────────────────
+   The one claim worth showing rather than stating. One 9s loop: a box of ten
+   arrives, ten pieces pop out, three sell, and the on-hand figure swaps from
+   10 to 7. Same item and price as the hero terminal, so the two agree. */
+.conv{position:relative;background:var(--bg-2);border:1px solid var(--line);border-radius:16px;
+  padding:32px 30px;overflow:hidden}
+.conv::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--grad)}
+.conv .cap{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.conv .box{display:flex;align-items:center;gap:14px;margin-top:13px}
+.conv .box .g{width:46px;height:46px;border-radius:11px;background:var(--brand-soft);
+  border:1px solid rgba(37,99,235,.3);color:var(--brand-lt);display:grid;place-items:center;flex:none}
+.conv .box b{font-family:var(--display);font-weight:800;font-size:18px;letter-spacing:-.03em;display:block;color:var(--ink)}
+.conv .box em{font-style:normal;display:block;font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:3px}
+.conv .arrow{display:flex;align-items:center;gap:11px;margin:17px 0 2px}
+.conv .arrow .ln{height:1px;flex:1;background:linear-gradient(90deg,rgba(34,211,238,.5),rgba(34,211,238,.05))}
+.conv .x{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--cyan);flex:none;
+  border:1px solid rgba(34,211,238,.35);border-radius:100px;padding:3px 11px;
+  animation:xPulse 9s ease-in-out infinite}
+@keyframes xPulse{0%,24%,100%{box-shadow:0 0 0 0 rgba(34,211,238,0)}
+  30%{box-shadow:0 0 0 5px rgba(34,211,238,.16)}38%{box-shadow:0 0 0 0 rgba(34,211,238,0)}}
+
+.conv .chips{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin-top:15px}
+.conv .chip{height:42px;border-radius:9px;border:1px solid var(--line-2);background:var(--surface);
+  display:grid;place-items:center;font-family:var(--mono);font-size:10.5px;color:var(--body);
+  opacity:0;animation:chipIn 9s ease-in-out infinite}
+@keyframes chipIn{
+  0%{opacity:0;transform:scale(.86)}
+  7%{opacity:1;transform:scale(1)}
+  93%{opacity:1;transform:scale(1)}
+  100%{opacity:0;transform:scale(.86)}}
+/* The last three are the ones sold: same entrance, then they dim away. */
+@keyframes chipSold{
+  0%{opacity:0;transform:scale(.86)}
+  7%{opacity:1;transform:scale(1);border-color:var(--line-2)}
+  48%{opacity:1;transform:scale(1);border-color:var(--line-2)}
+  56%{opacity:.22;transform:scale(.9);border-color:rgba(34,211,238,.4)}
+  93%{opacity:.22;transform:scale(.9)}
+  100%{opacity:0;transform:scale(.86)}}
+.conv .chip:nth-child(1){animation-delay:.05s}
+.conv .chip:nth-child(2){animation-delay:.19s}
+.conv .chip:nth-child(3){animation-delay:.33s}
+.conv .chip:nth-child(4){animation-delay:.47s}
+.conv .chip:nth-child(5){animation-delay:.61s}
+.conv .chip:nth-child(6){animation-delay:.75s}
+.conv .chip:nth-child(7){animation-delay:.89s}
+.conv .chip:nth-child(8){animation-name:chipSold;animation-delay:1.03s}
+.conv .chip:nth-child(9){animation-name:chipSold;animation-delay:1.17s}
+.conv .chip:nth-child(10){animation-name:chipSold;animation-delay:1.31s}
+
+.conv .read{display:flex;align-items:center;gap:11px;margin-top:18px;
+  border-top:1px solid var(--line);padding-top:16px;flex-wrap:wrap}
+.conv .read .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.conv .read .n{position:relative;display:inline-block;min-width:2.2ch;height:30px;line-height:30px;
+  font-family:var(--display);font-weight:800;font-size:28px;letter-spacing:-.035em;color:var(--ink)}
+.conv .read .n i{font-style:normal;position:absolute;left:0;top:0}
+.conv .read .n i.a{animation:swapA 9s ease-in-out infinite}
+.conv .read .n i.b{opacity:0;animation:swapB 9s ease-in-out infinite}
+@keyframes swapA{0%,49%{opacity:1}56%,100%{opacity:0}}
+@keyframes swapB{0%,49%{opacity:0}56%,93%{opacity:1}100%{opacity:0}}
+.conv .sale{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--cyan);
+  border:1px solid rgba(34,211,238,.3);background:rgba(34,211,238,.08);border-radius:100px;padding:5px 12px;
+  opacity:0;animation:saleIn 9s ease-in-out infinite}
+@keyframes saleIn{0%,47%{opacity:0;transform:translateY(5px)}
+  56%,91%{opacity:1;transform:none}100%{opacity:0;transform:translateY(5px)}}
+
+/* ── What's inside, on rotation ─────────────────────────────────────────────
+   Six capabilities on a 27s cycle, 4.5s each — slow enough to actually read,
+   which the marquee this replaced was not. Slides are stacked in .stage and
+   cross-fade; the base state shows the first one, so with animation off (or
+   reduced motion) the card is still a sensible static card. */
+.spot{position:relative;max-width:780px;margin:42px auto 0;background:var(--bg-2);
+  border:1px solid var(--line);border-radius:16px;padding:32px 34px 26px;overflow:hidden}
+.spot::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--grad)}
+.spot .stage{display:grid}
+.spot .s{grid-area:1/1;opacity:0;animation:spot 27s ease-in-out infinite}
+.spot .s:first-child{opacity:1}
+.spot .s .ic{width:36px;height:36px;border-radius:9px;background:var(--brand-soft);
+  border:1px solid rgba(37,99,235,.28);color:var(--brand-lt);display:grid;place-items:center}
+.spot .s .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--cyan);margin-top:15px}
+.spot .s h3{font-weight:700;font-size:21px;letter-spacing:-.025em;margin-top:7px;color:var(--ink)}
+.spot .s p{margin-top:9px;font-size:15.5px;line-height:1.6;color:var(--muted);max-width:620px}
+@keyframes spot{
+  0%{opacity:0;transform:translateY(10px)}
+  2%{opacity:1;transform:none}
+  14.4%{opacity:1;transform:none}
+  16.6%{opacity:0;transform:translateY(-10px)}
+  100%{opacity:0;transform:translateY(-10px)}}
+.spot .s:nth-child(2){animation-delay:4.5s}
+.spot .s:nth-child(3){animation-delay:9s}
+.spot .s:nth-child(4){animation-delay:13.5s}
+.spot .s:nth-child(5){animation-delay:18s}
+.spot .s:nth-child(6){animation-delay:22.5s}
+
+.spot .dots{display:flex;gap:7px;margin-top:20px}
+.spot .dots i{position:relative;width:26px;height:3px;border-radius:2px;background:var(--line-2);overflow:hidden}
+.spot .dots i::after{content:'';position:absolute;inset:0;background:var(--grad);
+  transform:scaleX(0);transform-origin:0 50%;animation:dotFill 27s linear infinite}
+@keyframes dotFill{0%{transform:scaleX(0)}16.6%{transform:scaleX(1)}16.61%,100%{transform:scaleX(0)}}
+.spot .dots i:nth-child(2)::after{animation-delay:4.5s}
+.spot .dots i:nth-child(3)::after{animation-delay:9s}
+.spot .dots i:nth-child(4)::after{animation-delay:13.5s}
+.spot .dots i:nth-child(5)::after{animation-delay:18s}
+.spot .dots i:nth-child(6)::after{animation-delay:22.5s}
+
+/* The rest of the list, stated plainly. Readable, unlike a marquee. */
+.also-line{max-width:780px;margin:20px auto 0;text-align:center;font-size:13.5px;line-height:1.75;color:var(--faint)}
+.also-line b{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--cyan);font-weight:600;margin-right:6px}
+
+/* Two-up layout for the conversion block, and the tick list it uses — both
+   went with the inventory section and are needed again here. */
+.split-c{display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1fr);gap:52px;align-items:center}
+.ticks{display:grid;gap:13px;margin-top:26px}
+.ticks div{display:flex;gap:11px;align-items:flex-start}
+.ticks i{width:19px;height:19px;border-radius:50%;background:var(--green-soft);color:var(--green);
+  display:grid;place-items:center;flex:none;margin-top:2px}
+.ticks span{font-size:15px;line-height:1.5;color:var(--body)}
+
+@media(max-width:1000px){
+  .split-c{grid-template-columns:1fr;gap:38px}
+}
+@media(max-width:720px){
+  .conv{padding:24px 18px}
+  .conv .chips{gap:7px}
+  .conv .chip{height:38px;font-size:10px}
+  .conv .read .n{font-size:24px}
+  .conv .sale{margin-left:0}
+  .spot{padding:26px 22px 22px}
+  .spot .s h3{font-size:19px}
+  .spot .s p{font-size:15px}
+  .also-line{font-size:13px}
+}
+@media (prefers-reduced-motion:reduce){
+  .conv .chip,.conv .sale,.conv .x,.conv .read .n i,
+  .spot .s,.spot .dots i::after{animation:none!important}
+  .conv .chip{opacity:1;transform:none}
+  .conv .sale{opacity:1;transform:none}
+  .conv .read .n i.b{display:none}
+  .spot .s{opacity:0;transform:none}
+  .spot .s:first-child{opacity:1}
+  .spot .dots i:first-child::after{transform:scaleX(1)}
+}
 
 /* ── Hardware tiles ─────────────────────────────────────────────────────────
    An icon each, and a glow that follows the pointer across the tile — the
@@ -463,15 +591,13 @@ header::before{opacity:.38}
 
 @media (prefers-reduced-motion:reduce){
   .hero .glow,.demo::after,.mock,.screen::after,.li::after,.scan .ph::after,.tag,
-  .pay .a::after,.float,.ticker ul,.promise .circuit .pulse,.promise .circuit .node{
+  .pay .a::after,.float,.promise .circuit .pulse,.promise .circuit .node{
     animation:none!important}
   .screen::after,.li::after,.pay .a::after,.scan .ph::after{display:none}
   .promise .circuit .pulse{display:none}
   .prog i{transition:none}
 }
 @media(max-width:720px){
-  .ticker li{font-size:11px;gap:13px;padding:0 13px}
-  .ticker ul{animation-duration:38s}
 }
 </style>
 </head>
@@ -640,52 +766,97 @@ header::before{opacity:.38}
   </div>
 </section>
 
-<!-- The vocabulary of what the system does, moving past. The list is repeated
-     verbatim so a -50% translate loops seamlessly; the copy is hidden from
-     assistive tech so the names are not announced twice. -->
-<section class="ticker" aria-label="What Built4U handles">
-  <ul>
-    <li>Barcode scanning</li>
-    <li>Box &rarr; piece</li>
-    <li>Utang &amp; customer credit</li>
-    <li>Split payments</li>
-    <li>Shift &amp; cash count</li>
-    <li>Purchase orders</li>
-    <li>Goods receiving</li>
-    <li>Stock transfers</li>
-    <li>Moving-average cost</li>
-    <li>Low-stock alerts</li>
-    <li>Stocktake</li>
-    <li>Vouchers &amp; loyalty</li>
-    <li>Thermal receipts</li>
-    <li>Cash drawer</li>
-    <li>Multi-branch</li>
-    <li>Roles &amp; permissions</li>
-    <li>Audit log</li>
-    <li>Scheduled report email</li>
-    <li>Bulk item import</li>
-    <li>Cloud backup</li>
-    <li aria-hidden="true">Barcode scanning</li>
-    <li aria-hidden="true">Box &rarr; piece</li>
-    <li aria-hidden="true">Utang &amp; customer credit</li>
-    <li aria-hidden="true">Split payments</li>
-    <li aria-hidden="true">Shift &amp; cash count</li>
-    <li aria-hidden="true">Purchase orders</li>
-    <li aria-hidden="true">Goods receiving</li>
-    <li aria-hidden="true">Stock transfers</li>
-    <li aria-hidden="true">Moving-average cost</li>
-    <li aria-hidden="true">Low-stock alerts</li>
-    <li aria-hidden="true">Stocktake</li>
-    <li aria-hidden="true">Vouchers &amp; loyalty</li>
-    <li aria-hidden="true">Thermal receipts</li>
-    <li aria-hidden="true">Cash drawer</li>
-    <li aria-hidden="true">Multi-branch</li>
-    <li aria-hidden="true">Roles &amp; permissions</li>
-    <li aria-hidden="true">Audit log</li>
-    <li aria-hidden="true">Scheduled report email</li>
-    <li aria-hidden="true">Bulk item import</li>
-    <li aria-hidden="true">Cloud backup</li>
-  </ul>
+<section class="pad" id="conversion">
+  <div class="wrap">
+    <div class="split-c" data-reveal>
+      <div>
+        <div class="eyebrow">The maths, handled</div>
+        <h2 class="h2-sm">Buy by the box. Sell by the piece.</h2>
+        <p class="lede">Set the conversion once and the system carries it everywhere — receiving, stock, cost, margin and the receipt. Nobody at the counter does arithmetic, and nobody guesses what a single piece costs.</p>
+        <div class="ticks">
+          <div><i><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></i><span>Receive in the unit your supplier ships, sell in the unit your customer wants</span></div>
+          <div><i><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></i><span>Cost per piece is derived from the box price, so margin stays honest</span></div>
+          <div><i><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></i><span>Works for bags of cement, reels of wire and gallons of putty just the same</span></div>
+        </div>
+      </div>
+
+      <div class="conv" aria-hidden="true">
+        <div class="cap">Goods receipt &middot; 1 delivery</div>
+        <div class="box">
+          <span class="g"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 8l9-5 9 5v8l-9 5-9-5V8z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M3 8l9 5 9-5M12 13v8" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></span>
+          <span><b>1 box &middot; PVC Pipe 1&quot; &times; 3m</b><em>PL-0771 &middot; 1,450.00 per box</em></span>
+        </div>
+        <div class="arrow">
+          <span class="x">&times; 10 per box</span>
+          <span class="ln"></span>
+        </div>
+        <div class="chips">
+          <div class="chip">1 pc</div><div class="chip">1 pc</div><div class="chip">1 pc</div><div class="chip">1 pc</div><div class="chip">1 pc</div>
+          <div class="chip">1 pc</div><div class="chip">1 pc</div><div class="chip">1 pc</div><div class="chip">1 pc</div><div class="chip">1 pc</div>
+        </div>
+        <div class="read">
+          <span class="k">On hand</span>
+          <span class="n"><i class="a">10</i><i class="b">7</i></span>
+          <span class="k">&times; 145.00/pc</span>
+          <span class="sale">Sold 3 pc &middot; &#8369;435.00</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pad" id="inside">
+  <div class="wrap">
+    <div style="text-align:center;max-width:680px;margin:0 auto" data-reveal>
+      <div class="eyebrow">What&rsquo;s inside</div>
+      <h2 class="h2">One system, from the counter to the back office.</h2>
+      <p class="lede">Everything here is included — not modules you unlock later.</p>
+    </div>
+
+    <div class="spot" data-reveal>
+      <div class="stage">
+        <div class="s">
+          <span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="2.5" y="4" width="19" height="12" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 20h8M12 16v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+          <div class="k">01 / Point of sale</div>
+          <h3>Fast enough for a queue</h3>
+          <p>Barcode scanning, split payments, held sales, and price overrides that need a manager&rsquo;s approval — built for speed at a busy counter.</p>
+        </div>
+        <div class="s">
+          <span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="18" cy="18" r="3" stroke="currentColor" stroke-width="1.8"/></svg></span>
+          <div class="k">02 / Inventory</div>
+          <h3>One count, always current</h3>
+          <p>Thousands of items across categories, locations and units. Every delivery, transfer, sale and adjustment updates the same figure, with an audit trail behind it.</p>
+        </div>
+        <div class="s">
+          <span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M16 20v-1.5A3.5 3.5 0 0012.5 15h-5A3.5 3.5 0 004 18.5V20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="10" cy="8" r="3.4" stroke="currentColor" stroke-width="1.8"/><path d="M19 11h3M20.5 9.5v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+          <div class="k">03 / Customer credit</div>
+          <h3>Utang, with a paper trail</h3>
+          <p>Track what each customer owes, take partial payments, and see aging so nothing quietly goes uncollected. Supplier payables work the same way.</p>
+        </div>
+        <div class="s">
+          <span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="7" width="18" height="12" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M3 11h18M7 15h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M7 7V5.5A1.5 1.5 0 018.5 4h7A1.5 1.5 0 0117 5.5V7" stroke="currentColor" stroke-width="1.8"/></svg></span>
+          <div class="k">04 / Shift &amp; cash control</div>
+          <h3>You know if the drawer is short</h3>
+          <p>Cashiers open and close a shift with a denomination count, and cash taken in or out mid-shift is recorded against a name.</p>
+        </div>
+        <div class="s">
+          <span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M2.5 7.5h11v9h-11z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M13.5 10.5h4l4 3.5v2.5h-8z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="7" cy="18" r="1.8" stroke="currentColor" stroke-width="1.8"/><circle cx="17.5" cy="18" r="1.8" stroke="currentColor" stroke-width="1.8"/></svg></span>
+          <div class="k">05 / Purchasing &amp; receiving</div>
+          <h3>From order to shelf</h3>
+          <p>Purchase orders with approval routing, deliveries received against the PO, and costs updated as the stock actually arrives.</p>
+        </div>
+        <div class="s">
+          <span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 17l5-5 4 3 5-6 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 21h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+          <div class="k">06 / Reports</div>
+          <h3>Questions that get answers</h3>
+          <p>Profit and margin, sales by cashier or by hour, dead stock, reorder suggestions, inventory valuation — on screen, exported, or emailed on a schedule.</p>
+        </div>
+      </div>
+      <div class="dots"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    </div>
+
+    <p class="also-line" data-reveal><b>Also</b> goods receiving &middot; stock transfers between branches &middot; stocktake &middot; supplier records &middot; customer purchase history &middot; vouchers and loyalty points &middot; multi-branch &middot; roles and permissions &middot; full audit log &middot; bulk item import &middot; automatic cloud backup</p>
+  </div>
 </section>
 
 <section class="dark" id="hardware">

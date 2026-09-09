@@ -48,7 +48,8 @@ no GIFs, no video, no library, nothing downloaded.
 | Header bar | the gradient dims to a track and fills left-to-right with scroll |
 | Hero + contact | the glows drift on a ~20s `aurora` cycle |
 | Hero terminal | a beam crossing the screen, a highlight walking the four cart rows on a shared 7s cycle, a blinking caret, a sheen on the pay button, and a bobbing stock badge |
-| Ticker | the capability list slides on a 52s loop and **pauses on hover** so a name can be read |
+| Conversion block | a 9s loop: a box of ten arrives, ten pieces pop out on staggered delays, the last three dim as sold, and the on-hand figure swaps 10 → 7. Same item and price as the hero terminal, so the two agree |
+| Feature spotlight | six capabilities cross-fading on a 27s cycle, 4.5s each, with a progress dot filling per slide |
 | Hardware tiles | a glow that follows the pointer, positioned from `--mx`/`--my` |
 | Promise block | pulses travelling the circuit traces; `pathLength="100"` normalises every path so one dash animation fits all of them |
 | Stat band | `3,000+` counts up the first time it scrolls into view |
@@ -59,9 +60,17 @@ outright rather than merely paused, and the count-up never starts, so the
 number is simply the value in the markup. If you add motion, add it to that
 block too.
 
-One layout constraint worth keeping: `overflow-x:hidden` belongs on `html`,
-**not** `body`. On `body` it makes the scroll container ambiguous — `scrollY`
-reads 0 and the progress bar never moves.
+Two layout constraints worth keeping:
+
+- `overflow-x:hidden` belongs on `html`, **not** `body`. On `body` it makes the
+  scroll container ambiguous — `scrollY` reads 0 and the progress bar never
+  moves.
+- The spotlight slides are **grid-stacked** (`.stage{display:grid}` with every
+  slide at `grid-area:1/1`), not absolutely positioned over a fixed height. The
+  row then sizes itself to the tallest slide at every width. Absolute
+  positioning needs a `min-height` guess, which was overflowing below ~620px
+  and again under 360px — and would break again the next time the copy is
+  edited. Don't reintroduce it.
 
 Type: **Archivo** 700/800 for headings, **IBM Plex Sans** for body, **IBM Plex
 Mono** for labels, item codes and figures. All three come from Google Fonts; if
