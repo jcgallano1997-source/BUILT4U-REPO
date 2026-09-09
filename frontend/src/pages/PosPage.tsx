@@ -304,7 +304,7 @@ export default function PosPage() {
 
       {/* Cart + payment */}
       <div className="space-y-3 overflow-hidden rounded-xl border border-slate-200 bg-white p-4">
-        <div className="safety-stripe -mx-4 -mt-4 mb-1 h-1" />
+        <div className="brand-stripe -mx-4 -mt-4 mb-1 h-1" />
         <div className="flex items-center gap-2 font-semibold text-slate-800">
           <ShoppingCart size={16} className="text-blue-600" /> Cart
           {cart.length > 0 && (

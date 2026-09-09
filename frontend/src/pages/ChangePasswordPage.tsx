@@ -76,7 +76,7 @@ export default function ChangePasswordPage() {
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-sm">
-        <div className="safety-stripe h-1" />
+        <div className="brand-stripe h-1" />
         <div className="space-y-4 p-6">
           <Field label="Current password" error={errors.currentPassword?.message}>
             <input type="password" {...register('currentPassword')} className={inputCls} autoFocus />

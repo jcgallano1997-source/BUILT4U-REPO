@@ -42,8 +42,8 @@ export default function Modal({
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/50 p-4" onKeyDown={onKeyDown}>
       <div ref={ref} className={`mt-12 w-full ${width} overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-2xl`}>
-        {/* Signature safety-stripe header accent. */}
-        <div className="safety-stripe h-1" />
+        {/* Signature brand-stripe header accent. */}
+        <div className="brand-stripe h-1" />
         <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3.5">
           <h2 className="text-[15px] font-bold text-slate-800">{title}</h2>
           <button onClick={onClose} className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600" aria-label="Close">

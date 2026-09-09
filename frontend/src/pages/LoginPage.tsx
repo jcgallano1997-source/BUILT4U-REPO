@@ -120,7 +120,7 @@ export default function LoginPage() {
             <div className="text-[20px] font-extrabold tracking-tight">Built4U</div>
             <div className="num mt-1.5 text-[10px] tracking-[0.22em] text-slate-500">POS SYSTEM</div>
           </div>
-          <div className="num ml-auto rounded-md border border-accent/40 px-2.5 py-1.5 text-[10px] font-semibold tracking-[0.12em] text-accent">
+          <div className="num ml-auto rounded-md border border-cyan/40 px-2.5 py-1.5 text-[10px] font-semibold tracking-[0.12em] text-cyan">
             HARDWARE&nbsp;ED.
           </div>
         </div>
@@ -132,7 +132,7 @@ export default function LoginPage() {
               POINT OF SALE · HARDWARE &amp; BUILDING SUPPLY
             </div>
             <h2 className="m-0 mb-[18px] max-w-[14ch] text-[40px] font-extrabold leading-[1.1] tracking-[-0.025em]">
-              Every sale — <span className="text-accent">on paper &amp; in the cloud.</span>
+              Every sale — <span className="text-cyan">on paper &amp; in the cloud.</span>
             </h2>
             <p className="m-0 max-w-[34ch] text-[15.5px] leading-relaxed text-slate-400">
               Printed receipts, live inventory, and a clean audit trail — from one register, across every branch.
@@ -172,7 +172,7 @@ export default function LoginPage() {
 
       {/* ── Form panel ──────────────────────────────────────────────── */}
       <div className="relative flex flex-1 items-center justify-center bg-canvas px-6 py-10">
-        <div className="safety-stripe absolute inset-x-0 top-0 h-1 opacity-90" />
+        <div className="brand-stripe absolute inset-x-0 top-0 h-1 opacity-90" />
 
         <div className="w-[396px] max-w-full">
           <div className="mb-7 flex items-center gap-2.5 lg:hidden">

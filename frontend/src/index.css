@@ -1,19 +1,25 @@
 @import "tailwindcss";
 
-/* ── Design tokens (Built4U redesign) ───────────────────────────────────────
-   Hanken Grotesk for UI, JetBrains Mono for money/quantities; navy shell +
-   blue accent over a soft canvas. Loaded via <link> in index.html. */
+/* ── Design tokens (Built4U brand) ──────────────────────────────────────────
+   IBM Plex Sans for UI, IBM Plex Mono for money/quantities — the same pair the
+   marketing site uses, so figures on screen match figures on built4u-pos.com.
+   Navy shell + brand-blue accent over a soft canvas. Loaded via <link> in
+   index.html. Note IBM Plex Sans stops at 700, so font-extrabold renders as
+   bold rather than synthesising a heavier weight. */
 @theme {
-  --font-sans: "Hanken Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
-  --color-navy: #0b1220;
-  --color-navy-800: #111b2e;
+  --color-navy: #0b1122;
+  --color-navy-800: #131d33;
   --color-canvas: #f7f8fa;
 
-  /* Hardware-amber accent — safety-stripe, active-nav inset, signature highlights. */
-  --color-accent: #f59e0b;
-  --color-accent-600: #d97706;
+  /* Brand blue — the logo plate colour, and the app's primary accent. Fixed.
+     The cyan/purple pair below is the gradient device, used only on .brand-stripe. */
+  --color-accent: #2563eb;
+  --color-accent-600: #1d4ed8;
+  --color-cyan: #22d3ee;
+  --color-purple: #a855f7;
 }
 
 :root {
@@ -44,9 +50,10 @@ body {
 /* ── Signature motifs (Built4U hardware redesign) ───────────────────────────
    Reused across auth cards, modals, drawers, and the shell. */
 
-/* Diagonal amber/navy "safety stripe" — a 4px top accent on cards & panels. */
-.safety-stripe {
-  background: repeating-linear-gradient(45deg, #f59e0b 0 13px, #0b1220 13px 26px);
+/* The brand gradient hairline — the same cyan -> blue -> purple device that runs
+   across the top of built4u-pos.com. A 4px top accent on cards and panels. */
+.brand-stripe {
+  background: linear-gradient(90deg, #22d3ee 0%, #3b82f6 52%, #a855f7 100%);
 }
 
 /* Blueprint grid — layered faint white lines over dark surfaces. */
@@ -59,7 +66,7 @@ body {
   background-size: 30px 30px, 30px 30px, 150px 150px, 150px 150px;
 }
 
-/* Active nav item — amber left inset bar + tinted background. */
+/* Active nav item — brand-blue left inset bar + tinted background. */
 .nav-active {
   background: rgba(59, 130, 246, 0.15);
   box-shadow: inset 3px 0 0 var(--color-accent);
