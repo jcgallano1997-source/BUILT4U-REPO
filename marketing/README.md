@@ -37,6 +37,32 @@ bezel, because the real app is light and that is what a lit counter screen
 looks like. It has its own `--screen-*` scale; do not paint it with the page
 tokens.
 
+## Motion
+
+All of it is CSS keyframes, one inline SVG grain, and three short scripts —
+no GIFs, no video, no library, nothing downloaded.
+
+| Where | What |
+|---|---|
+| Whole page | a fixed SVG grain at 4% so the dark ground is not one dead colour |
+| Header bar | the gradient dims to a track and fills left-to-right with scroll |
+| Hero + contact | the glows drift on a ~20s `aurora` cycle |
+| Hero terminal | a beam crossing the screen, a highlight walking the four cart rows on a shared 7s cycle, a blinking caret, a sheen on the pay button, and a bobbing stock badge |
+| Ticker | the capability list slides on a 52s loop and **pauses on hover** so a name can be read |
+| Hardware tiles | a glow that follows the pointer, positioned from `--mx`/`--my` |
+| Promise block | pulses travelling the circuit traces; `pathLength="100"` normalises every path so one dash animation fits all of them |
+| Stat band | `3,000+` counts up the first time it scrolls into view |
+
+**`prefers-reduced-motion` switches the whole lot off** in one block at the end
+of the stylesheet — the beam, row highlight, caret and sheen are removed
+outright rather than merely paused, and the count-up never starts, so the
+number is simply the value in the markup. If you add motion, add it to that
+block too.
+
+One layout constraint worth keeping: `overflow-x:hidden` belongs on `html`,
+**not** `body`. On `body` it makes the scroll container ambiguous — `scrollY`
+reads 0 and the progress bar never moves.
+
 Type: **Archivo** 700/800 for headings, **IBM Plex Sans** for body, **IBM Plex
 Mono** for labels, item codes and figures. All three come from Google Fonts; if
 that request fails the page falls back to system sans and still reads fine.

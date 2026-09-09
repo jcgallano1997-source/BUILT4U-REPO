@@ -56,10 +56,10 @@
   --display:Archivo,'Helvetica Neue',Arial,sans-serif;
 }
 *{box-sizing:border-box}
-html{scroll-behavior:smooth;background:var(--bg)}
+html{scroll-behavior:smooth;background:var(--bg);overflow-x:hidden}
 body{margin:0;background:var(--bg);color:var(--ink);
   font-family:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
-  -webkit-font-smoothing:antialiased;text-wrap:pretty;overflow-x:hidden}
+  -webkit-font-smoothing:antialiased;text-wrap:pretty}
 a{color:var(--cyan);text-decoration:none}
 a:hover{color:var(--cyan-dim)}
 h1,h2,h3{font-family:var(--display);margin:0;color:var(--ink)}
@@ -238,7 +238,7 @@ section.pad{padding:96px 0 0}
   display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:48px;align-items:center;overflow:hidden}
 .promise::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--grad)}
 /* The circuit trace from the back of the calling card. */
-.promise .circuit{position:absolute;right:-30px;bottom:-24px;width:400px;opacity:.55;pointer-events:none;color:var(--brand-lt)}
+.promise .circuit{position:absolute;right:-58px;bottom:-40px;width:380px;opacity:.48;pointer-events:none;color:var(--brand-lt)}
 .promise>*{position:relative}
 .promise .q{font-family:var(--display);font-weight:600;font-size:clamp(19px,2.2vw,26px);line-height:1.36;letter-spacing:-.025em;margin-top:20px;color:var(--ink)}
 .promise .who{display:flex;align-items:center;gap:12px;margin-top:26px}
@@ -340,12 +340,146 @@ footer{background:var(--bg-2);color:var(--muted);border-top:1px solid var(--line
   .float{display:none}
   details .a{padding-right:0}
 }
+
+/* ── Texture & motion ───────────────────────────────────────────────────────
+   Flat dark reads as empty. Everything below adds depth or life without
+   adding a single downloaded byte: one inline SVG grain, CSS keyframes, and
+   a few pointer-driven custom properties. All of it is switched off wholesale
+   under prefers-reduced-motion at the bottom of this block. */
+
+/* A fine grain over the whole page, so the ground catches light instead of
+   sitting as one dead colour. Fixed, never scrolls, never takes a click. */
+body::after{content:'';position:fixed;inset:0;z-index:100;pointer-events:none;opacity:.55;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E")}
+
+/* Scroll progress rides the gradient bar already at the top of the header —
+   the bar dims to a track and the bright gradient fills across it. */
+header::before{opacity:.38}
+.prog{position:absolute;top:0;left:0;right:0;height:3px;overflow:hidden;z-index:2}
+.prog i{display:block;height:100%;background:var(--grad);
+  transform:scaleX(var(--p,0));transform-origin:0 50%;transition:transform .1s linear}
+
+/* The hero and contact glows breathe rather than sitting still. */
+@keyframes aurora{
+  0%,100%{transform:translate3d(0,0,0) scale(1);opacity:1}
+  50%{transform:translate3d(-2.5%,1.5%,0) scale(1.09);opacity:.8}}
+.hero .glow{animation:aurora 19s ease-in-out infinite}
+.demo::after{animation:aurora 24s ease-in-out infinite reverse}
+
+/* ── The terminal, running ──────────────────────────────────────────────────
+   A beam crossing the screen, a highlight walking the cart rows, a blinking
+   caret in the scan field, and a sheen on the pay button. The point is that
+   the screen reads as a live till, not a screenshot. One 7s cycle, shared. */
+.mock{animation:mockGlow 9s ease-in-out infinite}
+@keyframes mockGlow{
+  0%,100%{box-shadow:0 50px 100px -50px #000,0 0 70px -30px rgba(37,99,235,.35)}
+  50%{box-shadow:0 50px 100px -50px #000,0 0 96px -26px rgba(34,211,238,.42)}}
+
+.screen{position:relative}
+.screen::after{content:'';position:absolute;left:0;right:0;top:0;height:32%;z-index:3;pointer-events:none;
+  background:linear-gradient(180deg,transparent,rgba(37,99,235,.08) 55%,rgba(34,211,238,.20));
+  border-bottom:1px solid rgba(34,211,238,.40);
+  animation:beam 7s cubic-bezier(.45,0,.55,1) infinite}
+@keyframes beam{
+  0%{transform:translateY(-40%);opacity:0}
+  10%{opacity:1}78%{opacity:1}
+  100%{transform:translateY(330%);opacity:0}}
+
+.li{position:relative}
+.li::after{content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(90deg,rgba(37,99,235,.15),rgba(34,211,238,.06) 62%,transparent);
+  box-shadow:inset 2px 0 0 var(--brand);opacity:0;animation:walk 7s ease-in-out infinite}
+.screen .li:nth-child(3)::after{animation-delay:.55s}
+.screen .li:nth-child(4)::after{animation-delay:1.1s}
+.screen .li:nth-child(5)::after{animation-delay:1.65s}
+@keyframes walk{0%,100%{opacity:0}5%{opacity:1}17%{opacity:1}25%{opacity:0}}
+
+.scan .ph{position:relative}
+.scan .ph::after{content:'';position:absolute;right:-9px;top:50%;transform:translateY(-50%);
+  width:1.5px;height:15px;background:var(--brand);animation:caret 1.1s steps(1) infinite}
+@keyframes caret{0%,50%{opacity:1}50.01%,100%{opacity:0}}
+
+.tag{animation:tagPulse 7s ease-in-out infinite}
+@keyframes tagPulse{
+  0%,58%,100%{box-shadow:0 0 0 0 rgba(37,99,235,0)}
+  64%{box-shadow:0 0 0 4px rgba(37,99,235,.30)}
+  74%{box-shadow:0 0 0 0 rgba(37,99,235,0)}}
+
+.pay .a{position:relative;overflow:hidden}
+.pay .a::after{content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(105deg,transparent 36%,rgba(255,255,255,.32) 50%,transparent 64%);
+  transform:translateX(-130%);animation:sheen 7s ease-in-out infinite}
+@keyframes sheen{0%,52%{transform:translateX(-130%)}76%,100%{transform:translateX(130%)}}
+
+.float{animation:bob 6.5s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+
+/* ── Capability ticker ──────────────────────────────────────────────────────
+   The vocabulary of what the system actually does, moving past. The list is
+   duplicated in the markup so translating by -50% loops seamlessly; hovering
+   pauses it so a name can actually be read. */
+.ticker{position:relative;overflow:hidden;background:var(--bg-2);padding:15px 0;
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent)}
+.ticker ul{display:flex;margin:0;padding:0;list-style:none;width:max-content;
+  animation:slide 52s linear infinite}
+.ticker:hover ul{animation-play-state:paused}
+.ticker li{display:flex;align-items:center;gap:16px;padding:0 16px;white-space:nowrap;
+  font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.ticker li::after{content:'';width:5px;height:5px;border-radius:50%;background:var(--cyan);opacity:.5;flex:none}
+@keyframes slide{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ── Hardware tiles ─────────────────────────────────────────────────────────
+   An icon each, and a glow that follows the pointer across the tile — the
+   position comes from --mx/--my, set on pointermove. */
+.tiles6>div{position:relative;overflow:hidden}
+.tiles6>div::before{content:'';position:absolute;width:300px;height:300px;border-radius:50%;
+  left:var(--mx,50%);top:var(--my,50%);transform:translate(-50%,-50%);pointer-events:none;
+  background:radial-gradient(circle,rgba(37,99,235,.22),transparent 62%);
+  opacity:0;transition:opacity .3s}
+.tiles6>div:hover::before{opacity:1}
+.tiles6>div>*{position:relative}
+.tiles6 .ic{width:34px;height:34px;border-radius:9px;background:var(--brand-soft);
+  border:1px solid rgba(37,99,235,.28);color:var(--brand-lt);display:grid;place-items:center;
+  margin-bottom:15px;transition:color .2s,transform .2s,border-color .2s}
+.tiles6>div:hover .ic{color:var(--cyan);border-color:rgba(34,211,238,.45);transform:translateY(-2px)}
+
+/* ── Small polish ───────────────────────────────────────────────────────── */
+.compare>div{transition:background .2s}
+.compare>div:hover{background:var(--bg-3)}
+.step .n{filter:drop-shadow(0 0 16px rgba(37,99,235,.5))}
+.band .s b{transition:color .2s}
+
+/* The circuit trace carries a travelling pulse, and its nodes blink. */
+.promise .circuit .pulse{stroke:var(--cyan);stroke-width:2;fill:none;
+  stroke-dasharray:7 100;filter:drop-shadow(0 0 5px var(--cyan));
+  animation:trace 6s linear infinite}
+.promise .circuit .pulse.b{animation-delay:2.4s}
+.promise .circuit .pulse.c{animation-delay:4.1s}
+@keyframes trace{from{stroke-dashoffset:107}to{stroke-dashoffset:0}}
+.promise .circuit .node{animation:pulse 3.4s ease-in-out infinite}
+.promise .circuit .node.b{animation-delay:1.2s}
+
+@media (prefers-reduced-motion:reduce){
+  .hero .glow,.demo::after,.mock,.screen::after,.li::after,.scan .ph::after,.tag,
+  .pay .a::after,.float,.ticker ul,.promise .circuit .pulse,.promise .circuit .node{
+    animation:none!important}
+  .screen::after,.li::after,.pay .a::after,.scan .ph::after{display:none}
+  .promise .circuit .pulse{display:none}
+  .prog i{transition:none}
+}
+@media(max-width:720px){
+  .ticker li{font-size:11px;gap:13px;padding:0 13px}
+  .ticker ul{animation-duration:38s}
+}
 </style>
 </head>
 <body>
 <script>document.documentElement.className+=' js'</script>
 
 <header id="nav">
+  <div class="prog"><i></i></div>
   <div class="wrap nav">
     <a class="brand" href="#top">
       <span class="mark"><svg viewBox="0 0 64 64" width="30" height="30" aria-hidden="true"><g transform="translate(13,8) scale(0.066)" fill="#ffffff">
@@ -467,7 +601,7 @@ footer{background:var(--bg-2);color:var(--muted);border-top:1px solid var(--line
 
 <section class="band">
   <div class="wrap">
-    <div class="s" data-reveal><b>3,000+</b><p>items per branch, tested — searchable by code, name or barcode</p></div>
+    <div class="s" data-reveal><b data-count="3000" data-suffix="+">3,000+</b><p>items per branch, tested — searchable by code, name or barcode</p></div>
     <div class="s" data-reveal><b>Box &rarr; piece</b><p>Receive by the box, sell by the piece, with the maths done for you</p></div>
     <div class="s" data-reveal><b>One afternoon</b><p>Typical cashier training before your first day live</p></div>
   </div>
@@ -506,6 +640,54 @@ footer{background:var(--bg-2);color:var(--muted);border-top:1px solid var(--line
   </div>
 </section>
 
+<!-- The vocabulary of what the system does, moving past. The list is repeated
+     verbatim so a -50% translate loops seamlessly; the copy is hidden from
+     assistive tech so the names are not announced twice. -->
+<section class="ticker" aria-label="What Built4U handles">
+  <ul>
+    <li>Barcode scanning</li>
+    <li>Box &rarr; piece</li>
+    <li>Utang &amp; customer credit</li>
+    <li>Split payments</li>
+    <li>Shift &amp; cash count</li>
+    <li>Purchase orders</li>
+    <li>Goods receiving</li>
+    <li>Stock transfers</li>
+    <li>Moving-average cost</li>
+    <li>Low-stock alerts</li>
+    <li>Stocktake</li>
+    <li>Vouchers &amp; loyalty</li>
+    <li>Thermal receipts</li>
+    <li>Cash drawer</li>
+    <li>Multi-branch</li>
+    <li>Roles &amp; permissions</li>
+    <li>Audit log</li>
+    <li>Scheduled report email</li>
+    <li>Bulk item import</li>
+    <li>Cloud backup</li>
+    <li aria-hidden="true">Barcode scanning</li>
+    <li aria-hidden="true">Box &rarr; piece</li>
+    <li aria-hidden="true">Utang &amp; customer credit</li>
+    <li aria-hidden="true">Split payments</li>
+    <li aria-hidden="true">Shift &amp; cash count</li>
+    <li aria-hidden="true">Purchase orders</li>
+    <li aria-hidden="true">Goods receiving</li>
+    <li aria-hidden="true">Stock transfers</li>
+    <li aria-hidden="true">Moving-average cost</li>
+    <li aria-hidden="true">Low-stock alerts</li>
+    <li aria-hidden="true">Stocktake</li>
+    <li aria-hidden="true">Vouchers &amp; loyalty</li>
+    <li aria-hidden="true">Thermal receipts</li>
+    <li aria-hidden="true">Cash drawer</li>
+    <li aria-hidden="true">Multi-branch</li>
+    <li aria-hidden="true">Roles &amp; permissions</li>
+    <li aria-hidden="true">Audit log</li>
+    <li aria-hidden="true">Scheduled report email</li>
+    <li aria-hidden="true">Bulk item import</li>
+    <li aria-hidden="true">Cloud backup</li>
+  </ul>
+</section>
+
 <section class="dark" id="hardware">
   <div class="wrap">
     <div class="head-row" data-reveal>
@@ -516,12 +698,12 @@ footer{background:var(--bg-2);color:var(--muted);border-top:1px solid var(--line
       <p class="sub">Built4U runs in a web browser, so a normal PC or laptop is enough. Send us a photo of your counter setup and we&rsquo;ll tell you straight whether it works as is.</p>
     </div>
     <div class="tiles6">
-      <div data-reveal><div class="k">01 / TERMINAL</div><b>Any PC or laptop</b><p>Runs in Chrome or Edge on the machine you already have. Nothing to install at the counter.</p></div>
-      <div data-reveal><div class="k">02 / SCANNING</div><b>Standard USB scanner</b><p>The kind that types the barcode for you. Scan, and the item drops straight into the cart.</p></div>
-      <div data-reveal><div class="k">03 / PRINTING</div><b>Thermal receipt printer</b><p>Network or USB thermal printers, with your store name, logo and footer on every slip.</p></div>
-      <div data-reveal><div class="k">04 / DRAWER</div><b>Cash drawer that kicks</b><p>Wired through the receipt printer, the way most counters are already set up.</p></div>
-      <div data-reveal><div class="k">05 / PAYMENTS</div><b>Cash, GCash, card</b><p>Record how each sale was paid, split it across two methods, or charge the balance to an account.</p></div>
-      <div data-reveal><div class="k">06 / MOBILE</div><b>The owner&rsquo;s phone</b><p>The dashboard opens in a phone browser. Check today&rsquo;s sales from anywhere.</p></div>
+      <div data-reveal><span class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="2.5" y="4" width="19" height="12.5" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 20.5h8M12 16.5v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><div class="k">01 / TERMINAL</div><b>Any PC or laptop</b><p>Runs in Chrome or Edge on the machine you already have. Nothing to install at the counter.</p></div>
+      <div data-reveal><span class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3.5 6v12M7 6v12M10.5 6v12M14 6v12M17.5 6v12M20.5 6v12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><div class="k">02 / SCANNING</div><b>Standard USB scanner</b><p>The kind that types the barcode for you. Scan, and the item drops straight into the cart.</p></div>
+      <div data-reveal><span class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 8V3.5h10V8" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><rect x="3" y="8" width="18" height="7" rx="1.8" stroke="currentColor" stroke-width="1.8"/><path d="M7 13h10v7.5H7z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span><div class="k">03 / PRINTING</div><b>Thermal receipt printer</b><p>Network or USB thermal printers, with your store name, logo and footer on every slip.</p></div>
+      <div data-reveal><span class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="2.5" y="7" width="19" height="11" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M2.5 12.5h19M10 15.5h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><div class="k">04 / DRAWER</div><b>Cash drawer that kicks</b><p>Wired through the receipt printer, the way most counters are already set up.</p></div>
+      <div data-reveal><span class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2.2" stroke="currentColor" stroke-width="1.8"/><path d="M2.5 9.5h19M6 15h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><div class="k">05 / PAYMENTS</div><b>Cash, GCash, card</b><p>Record how each sale was paid, split it across two methods, or charge the balance to an account.</p></div>
+      <div data-reveal><span class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="6.5" y="2.5" width="11" height="19" rx="2.2" stroke="currentColor" stroke-width="1.8"/><path d="M10.5 18.5h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><div class="k">06 / MOBILE</div><b>The owner&rsquo;s phone</b><p>The dashboard opens in a phone browser. Check today&rsquo;s sales from anywhere.</p></div>
     </div>
   </div>
 </section>
@@ -568,8 +750,14 @@ footer{background:var(--bg-2);color:var(--muted);border-top:1px solid var(--line
           <circle cx="190" cy="126" r="10"/>
           <circle cx="314" cy="182" r="9"/>
         </g>
-        <g fill="currentColor" opacity=".9">
-          <circle cx="270" cy="126" r="3"/><circle cx="190" cy="126" r="3"/>
+        <!-- Pulses travelling the same traces. pathLength normalises every
+             path to 100 units so one dash animation fits all of them. -->
+        <path class="pulse" pathLength="100" d="M0 40h140l24 24h96"/>
+        <path class="pulse b" pathLength="100" d="M104 126h156"/>
+        <path class="pulse c" pathLength="100" d="M190 136v46h124"/>
+        <g fill="currentColor">
+          <circle class="node" cx="270" cy="126" r="3"/>
+          <circle class="node b" cx="190" cy="126" r="3"/>
         </g>
       </svg>
       <div>
@@ -741,6 +929,52 @@ footer{background:var(--bg-2);color:var(--muted);border-top:1px solid var(--line
     // observer never fires (throttled tab, headless renderer, odd browser),
     // show everything rather than leaving a blank page.
     setTimeout(showAll, 1500);
+  }
+
+
+  // Scroll progress, drawn across the header's gradient bar.
+  var prog = document.querySelector('.prog i');
+  if (prog) {
+    var setProg = function(){
+      var h = document.documentElement.scrollHeight - window.innerHeight;
+      var y = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+      prog.style.setProperty('--p', h > 0 ? String(Math.min(y / h, 1)) : '0');
+    };
+    setProg();
+    window.addEventListener('scroll', setProg, {passive:true});
+    window.addEventListener('resize', setProg);
+  }
+
+  // Glow that follows the pointer across a hardware tile. The tile's CSS reads
+  // --mx/--my; with no pointer they stay at the tile's centre.
+  Array.prototype.forEach.call(document.querySelectorAll('.tiles6 > div'), function(tile){
+    tile.addEventListener('pointermove', function(e){
+      var r = tile.getBoundingClientRect();
+      tile.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+      tile.style.setProperty('--my', (e.clientY - r.top) + 'px');
+    });
+  });
+
+  // Count the headline stat up when it first comes into view. If there is no
+  // observer, or motion is reduced, the number is simply left as authored —
+  // it is never blanked, so it cannot end up stuck at zero.
+  var stat = document.querySelector('[data-count]');
+  if (stat && !reduce && 'IntersectionObserver' in window) {
+    var countUp = function(){
+      var to = +stat.getAttribute('data-count'),
+          suffix = stat.getAttribute('data-suffix') || '', t0 = 0;
+      var step = function(ts){
+        if (!t0) t0 = ts;
+        var k = Math.min((ts - t0) / 1300, 1);
+        stat.textContent = Math.round(to * (1 - Math.pow(1 - k, 3))).toLocaleString('en-US') + suffix;
+        if (k < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    };
+    var so = new IntersectionObserver(function(en){
+      if (en[0].isIntersecting) { so.disconnect(); countUp() }
+    }, {threshold:.6});
+    so.observe(stat);
   }
 
 })();
