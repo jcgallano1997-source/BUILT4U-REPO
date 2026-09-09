@@ -212,6 +212,72 @@ section.pad{padding:96px 0 0}
 .compare .rule{height:1px;background:var(--line)}
 .compare p.yes{margin:10px 0 0;color:var(--ink);font-weight:500}
 
+/* ── The counter, wired ─────────────────────────────────────────────────────
+   A schematic of a real till, drawn in the same trace-and-node language as the
+   calling card. One 12s loop runs the actual sequence a sale takes: scan →
+   terminal → print → drawer. The six tiles below still carry the words; this
+   gives the section something to look at. Hidden below 640px, where 900 units
+   of viewBox would shrink the devices past legibility. */
+.counter{margin-top:38px;background:var(--bg-3);border:1px solid var(--line);border-radius:16px;
+  padding:26px 28px 22px;overflow:hidden}
+.counter svg{width:100%;height:auto;display:block}
+.counter .legend{display:flex;flex-wrap:wrap;gap:18px;margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+.counter .legend span{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:10.5px;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+.counter .legend i{width:6px;height:6px;border-radius:50%;background:var(--cyan);opacity:.6;flex:none}
+
+/* Static chrome of the drawing. */
+.counter .case{fill:var(--bg-4);stroke:rgba(255,255,255,.16);stroke-width:1.5}
+.counter .screen-bg{fill:#070C18}
+.counter .lbl{fill:#7B8AA6;font-family:var(--mono);font-size:11px;letter-spacing:.1em}
+.counter .wire{stroke:rgba(255,255,255,.14);stroke-width:1.5;fill:none}
+.counter .node{fill:rgba(255,255,255,.22)}
+
+/* Each device lights in turn. */
+.counter .lit{opacity:0}
+.counter .beam{animation:cBeam 12s ease-in-out infinite}
+@keyframes cBeam{0%{opacity:0;transform:translateY(0)}
+  3%{opacity:1}14%{opacity:1;transform:translateY(26px)}17%,100%{opacity:0;transform:translateY(26px)}}
+
+.counter .row{animation:cRow 12s ease-in-out infinite}
+.counter .row.b{animation-delay:.5s}
+.counter .row.c{animation-delay:1s}
+@keyframes cRow{0%,20%{opacity:0}24%{opacity:1}44%{opacity:1}48%,100%{opacity:0}}
+
+.counter .slip{transform-origin:50% 0;animation:cSlip 12s ease-in-out infinite}
+@keyframes cSlip{0%,45%{transform:scaleY(0);opacity:0}
+  47%{opacity:1}70%{transform:scaleY(1);opacity:1}
+  91%{transform:scaleY(1);opacity:1}96%,100%{transform:scaleY(0);opacity:0}}
+
+.counter .drawer-front{animation:cDrawer 12s ease-in-out infinite}
+@keyframes cDrawer{0%,72%{transform:translateX(0)}
+  79%{transform:translateX(34px)}88%{transform:translateX(34px)}94%,100%{transform:translateX(0)}}
+.counter .cash{animation:cCash 12s ease-in-out infinite}
+@keyframes cCash{0%,74%{opacity:0}80%,88%{opacity:1}93%,100%{opacity:0}}
+
+/* Pulses along the traces. pathLength normalises each run to 100. */
+.counter .pulse{stroke:var(--cyan);stroke-width:2.4;fill:none;stroke-linecap:round;
+  stroke-dasharray:9 100;filter:drop-shadow(0 0 4px var(--cyan));opacity:0}
+.counter .pulse.p1{animation:cTrace 12s linear infinite}
+.counter .pulse.p2{animation:cTrace2 12s linear infinite}
+.counter .pulse.p3{animation:cTrace3 12s linear infinite}
+@keyframes cTrace{0%,9%{stroke-dashoffset:109;opacity:0}11%{opacity:1}
+  23%{stroke-dashoffset:0;opacity:1}25%,100%{stroke-dashoffset:0;opacity:0}}
+@keyframes cTrace2{0%,37%{stroke-dashoffset:109;opacity:0}39%{opacity:1}
+  49%{stroke-dashoffset:0;opacity:1}51%,100%{stroke-dashoffset:0;opacity:0}}
+@keyframes cTrace3{0%,66%{stroke-dashoffset:109;opacity:0}68%{opacity:1}
+  76%{stroke-dashoffset:0;opacity:1}78%,100%{stroke-dashoffset:0;opacity:0}}
+
+@media(max-width:640px){ .counter{display:none} }
+@media (prefers-reduced-motion:reduce){
+  .counter .beam,.counter .row,.counter .slip,.counter .drawer-front,
+  .counter .cash,.counter .pulse{animation:none!important}
+  .counter .lit{opacity:1}
+  .counter .slip{transform:scaleY(1)}
+  .counter .pulse{display:none}
+  .counter .cash{opacity:1}
+}
+
 /* ── Hardware band ──────────────────────────────────────────────────────── */
 .dark{position:relative;margin-top:104px;background:var(--bg-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line);overflow:hidden}
 .dark::after{content:'';position:absolute;inset:0;pointer-events:none;
@@ -868,6 +934,76 @@ header::before{opacity:.38}
       </div>
       <p class="sub">Built4U runs in a web browser, so a normal PC or laptop is enough. Send us a photo of your counter setup and we&rsquo;ll tell you straight whether it works as is.</p>
     </div>
+    <div class="counter" data-reveal>
+      <svg viewBox="0 0 900 230" role="img" aria-label="A counter setup: barcode scanner, terminal, receipt printer and cash drawer, wired together.">
+        <!-- traces -->
+        <g class="wire">
+          <path d="M150 148h40v-48h40"/>
+          <path d="M430 100h50V72h40"/>
+          <path d="M660 72h22v80h18"/>
+        </g>
+        <g class="node">
+          <circle cx="190" cy="100" r="3"/><circle cx="480" cy="72" r="3"/><circle cx="682" cy="152" r="3"/>
+        </g>
+        <path class="pulse p1" pathLength="100" d="M150 148h40v-48h40"/>
+        <path class="pulse p2" pathLength="100" d="M430 100h50V72h40"/>
+        <path class="pulse p3" pathLength="100" d="M660 72h22v80h18"/>
+
+        <!-- scanner -->
+        <rect class="case" x="40" y="120" width="110" height="56" rx="11"/>
+        <g class="lit beam"><rect x="56" y="134" width="78" height="2.5" rx="1.25" fill="#22D3EE"/></g>
+        <g stroke="#5C6A85" stroke-width="2" stroke-linecap="round">
+          <path d="M58 152v14M66 152v14M74 152v14M84 152v14M92 152v14M102 152v14M112 152v14M120 152v14"/>
+        </g>
+        <text class="lbl" x="40" y="196">SCANNER</text>
+
+        <!-- terminal -->
+        <rect class="case" x="230" y="30" width="200" height="112" rx="12"/>
+        <rect class="screen-bg" x="242" y="42" width="176" height="88" rx="6"/>
+        <g class="lit row"><rect x="254" y="56" width="90" height="7" rx="3.5" fill="#3B82F6"/><rect x="372" y="56" width="34" height="7" rx="3.5" fill="#22D3EE"/></g>
+        <g class="lit row b"><rect x="254" y="74" width="110" height="7" rx="3.5" fill="#3B82F6"/><rect x="380" y="74" width="26" height="7" rx="3.5" fill="#22D3EE"/></g>
+        <g class="lit row c"><rect x="254" y="92" width="72" height="7" rx="3.5" fill="#3B82F6"/><rect x="366" y="92" width="40" height="7" rx="3.5" fill="#22D3EE"/></g>
+        <rect x="254" y="112" width="152" height="9" rx="4.5" fill="#131D33"/>
+        <rect class="case" x="308" y="142" width="44" height="22" rx="4"/>
+        <rect class="case" x="278" y="164" width="104" height="10" rx="5"/>
+        <text class="lbl" x="230" y="196">TERMINAL</text>
+
+        <!-- printer, with the slip it prints -->
+        <rect class="case" x="520" y="30" width="140" height="84" rx="12"/>
+        <rect x="536" y="46" width="108" height="8" rx="4" fill="#131D33"/>
+        <rect x="548" y="100" width="84" height="5" rx="2.5" fill="#070C18"/>
+        <g class="lit slip">
+          <path d="M548 104h84v74l-10.5 -7-10.5 7-10.5 -7-10.5 7-10.5 -7-10.5 7-10.5 -7-10.5 7z" fill="#F1F4F9"/>
+          <g fill="#5A6779">
+            <rect x="558" y="116" width="44" height="4" rx="2"/>
+            <rect x="558" y="128" width="64" height="3" rx="1.5"/>
+            <rect x="558" y="138" width="52" height="3" rx="1.5"/>
+            <rect x="558" y="152" width="30" height="4" rx="2"/>
+          </g>
+        </g>
+        <text class="lbl" x="520" y="196">PRINTER</text>
+
+        <!-- cash drawer -->
+        <rect class="case" x="700" y="120" width="160" height="62" rx="10"/>
+        <g class="lit cash">
+          <rect x="716" y="132" width="30" height="18" rx="3" fill="#34D399" opacity=".55"/>
+          <rect x="752" y="132" width="30" height="18" rx="3" fill="#34D399" opacity=".4"/>
+          <rect x="788" y="132" width="30" height="18" rx="3" fill="#34D399" opacity=".28"/>
+        </g>
+        <g class="drawer-front">
+          <rect class="case" x="700" y="152" width="160" height="30" rx="8"/>
+          <rect x="758" y="164" width="44" height="6" rx="3" fill="#5C6A85"/>
+        </g>
+        <text class="lbl" x="700" y="212">CASH DRAWER</text>
+      </svg>
+      <div class="legend">
+        <span><i></i>Scan</span>
+        <span><i></i>Ring up</span>
+        <span><i></i>Print the receipt</span>
+        <span><i></i>Kick the drawer</span>
+      </div>
+    </div>
+
     <div class="tiles6">
       <div data-reveal><span class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="2.5" y="4" width="19" height="12.5" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 20.5h8M12 16.5v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><div class="k">01 / TERMINAL</div><b>Any PC or laptop</b><p>Runs in Chrome or Edge on the machine you already have. Nothing to install at the counter.</p></div>
       <div data-reveal><span class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3.5 6v12M7 6v12M10.5 6v12M14 6v12M17.5 6v12M20.5 6v12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><div class="k">02 / SCANNING</div><b>Standard USB scanner</b><p>The kind that types the barcode for you. Scan, and the item drops straight into the cart.</p></div>

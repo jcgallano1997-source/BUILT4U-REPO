@@ -50,6 +50,7 @@ no GIFs, no video, no library, nothing downloaded.
 | Hero terminal | a beam crossing the screen, a highlight walking the four cart rows on a shared 7s cycle, a blinking caret, a sheen on the pay button, and a bobbing stock badge |
 | Conversion block | a 9s loop: a box of ten arrives, ten pieces pop out on staggered delays, the last three dim as sold, and the on-hand figure swaps 10 → 7. Same item and price as the hero terminal, so the two agree |
 | Feature spotlight | six capabilities cross-fading on a 27s cycle, 4.5s each, with a progress dot filling per slide |
+| Counter schematic | a 12s loop running the sequence a sale actually takes — scanner beam, terminal rows, receipt printing with a torn edge, drawer sliding open on cash — with pulses travelling the traces between devices. Hidden below 640px, where 900 units of viewBox shrink the devices past legibility; the six tiles carry the content there |
 | Hardware tiles | a glow that follows the pointer, positioned from `--mx`/`--my` |
 | Promise block | pulses travelling the circuit traces; `pathLength="100"` normalises every path so one dash animation fits all of them |
 | Stat band | `3,000+` counts up the first time it scrolls into view |
