@@ -9,23 +9,46 @@ Aimed at Philippine hardware / construction-supply stores, with one goal —
 
 ## Design system
 
+Matches the calling card, the banner and the desktop system's login screen: a
+near-black navy ground with soft cyan/purple glows.
+
 | Token | Value | Used for |
 |---|---|---|
-| Paper | `#F6F3EE` | page background |
-| Paper 2 | `#EFEBE4` | stat band, promise block |
-| Ink | `#16130F` | text, dark CTA section, footer |
-| Dark | `#1E1B17` | terminal mockup, hardware section |
-| Accent | `#E2521D` | buttons, eyebrows, highlights |
-| Green | `#2F6B4F` | ticks, in-stock states |
-| Brand blue | `#2563eb` | **logo plate only — fixed, never re-coloured** |
+| `--bg` | `#070B16` | page ground |
+| `--bg-2` | `#0B1122` | raised bands — stat band, hardware, promise, footer |
+| `--bg-3` / `--bg-4` | `#0E1628` / `#131D33` | cards, terminal bezel, account panel |
+| `--ink` → `--dim` | `#F3F6FC` `#AEBBD4` `#8494B2` `#7B8AA6` `#5C6A85` | five text steps, brightest first |
+| `--brand` | `#2563eb` | **the logo plate, and the primary button — fixed** |
+| `--cyan` | `#22D3EE` | eyebrows, small-caps labels, link and hover states |
+| `--purple` | `#A855F7` | the far end of the gradient; glows only |
+| `--grad` | `#22D3EE → #3B82F6 → #A855F7` | the signature device (see below) |
+| `--green` | `#34D399` | ticks, shift-open, in-stock states |
+| `--screen-*` | `#FBFCFE` … `#0F172A` | the **light** palette inside the POS mockups |
+
+**The gradient is the signature.** It runs as a 3px bar across the top of the
+page (`header::before`), as a 2px hairline on the terminal mock, account card
+and promise block, through the words "should too." in the H1 and the step
+numbers, and as the credit-usage bar. Used anywhere else it stops being a
+signature. Gradient-filled text carries an `@supports` fallback to flat cyan —
+without it, engines that cannot clip a background to glyphs render the words
+invisible.
+
+**Screens stay light.** The hero terminal and the reorder panel keep a light UI
+inside a dark bezel, because the real app is light and that is what a lit
+counter screen looks like. They have their own `--screen-*` scale; do not paint
+them with the page tokens.
 
 Type: **Archivo** 700/800 for headings, **IBM Plex Sans** for body, **IBM Plex
 Mono** for labels, item codes and figures. All three come from Google Fonts; if
 that request fails the page falls back to system sans and still reads fine.
 
 Everything is real CSS classes in one `<style>` block at the top — no framework,
-no inline-style soup. Light sections use a `96px` top rhythm, and full-bleed
-dark blocks (`.dark`, `.demo`, `footer`) break up the page.
+no inline-style soup. Sections use a `96px` top rhythm, and the raised `--bg-2`
+bands (`.band`, `.dark`, `.promise`, `footer`) break up the run of page-ground
+sections.
+
+Every text/background pair on the page clears WCAG AA (4.5:1 body, 3:1 large).
+If you darken a text token, re-check it.
 
 The scroll reveal is decoration only. If `IntersectionObserver` never fires
 (throttled tab, headless renderer, odd browser) a 1.5s fail-safe drops the
@@ -91,8 +114,9 @@ The mark in the nav and the favicon come from `favicon.svg` — the same file th
 app uses, so both carry one identity.
 
 **Brand blue `#2563eb` is fixed.** The logo sits on its own blue plate and must
-not be re-coloured or placed on a coloured tile; the site's orange (`#E2521D`)
-is an accent for buttons and highlights only, never for the mark.
+not be re-coloured or placed on a coloured tile. The cyan/purple gradient is a
+section device — never run it through the mark, and never tint the plate with
+it.
 
 The logo SVG is inlined in three places in `index.html` — the nav `.mark`, the
 `.promise .who .av` avatar, and the footer `.mark`. To update it, replace
