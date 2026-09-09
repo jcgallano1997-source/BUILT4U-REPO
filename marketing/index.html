@@ -201,9 +201,6 @@ section.pad{padding:96px 0 0}
 .head{max-width:720px}
 .head-row{display:flex;align-items:flex-end;justify-content:space-between;gap:40px;flex-wrap:wrap}
 .head-row .t{max-width:620px}
-.link-arrow{font-size:14.5px;font-weight:600;color:var(--ink);display:inline-flex;align-items:center;gap:7px;padding-bottom:6px;
-  background-image:var(--grad);background-repeat:no-repeat;background-size:100% 1.5px;background-position:0 100%}
-.link-arrow:hover{color:var(--cyan)}
 
 /* ── Compare ────────────────────────────────────────────────────────────── */
 .compare{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-top:40px}
@@ -214,70 +211,6 @@ section.pad{padding:96px 0 0}
 .compare p{margin:10px 0 18px;font-size:15px;line-height:1.55;color:var(--muted)}
 .compare .rule{height:1px;background:var(--line)}
 .compare p.yes{margin:10px 0 0;color:var(--ink);font-weight:500}
-
-/* ── Feature cards ──────────────────────────────────────────────────────── */
-.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:44px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:26px;
-  transition:border-color .18s,transform .18s,background .18s}
-.card:hover{border-color:rgba(37,99,235,.55);background:var(--surface-2);transform:translateY(-2px)}
-.card .top{display:flex;align-items:center;justify-content:space-between}
-.card .ico{width:36px;height:36px;border-radius:9px;background:var(--brand-soft);border:1px solid rgba(37,99,235,.28);
-  color:var(--brand-lt);display:grid;place-items:center;flex:none;transition:color .18s}
-.card:hover .ico{color:var(--cyan)}
-.card .num{font-family:var(--mono);font-size:11px;color:var(--dim)}
-.card h3{font-weight:700;font-size:18px;letter-spacing:-.02em;margin-top:18px}
-.card p{margin-top:9px;font-size:14.5px;line-height:1.58;color:var(--muted)}
-.also{margin-top:22px;border:1px dashed var(--line-2);border-radius:14px;padding:20px 24px;font-size:14.5px;line-height:1.7;color:var(--muted);background:var(--surface)}
-.also b{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);display:block;margin-bottom:8px;font-weight:600}
-
-/* ── Split sections ─────────────────────────────────────────────────────── */
-.split{display:grid;gap:56px;align-items:center}
-.split.a{grid-template-columns:minmax(0,.86fr) minmax(0,1fr)}
-.split.b{grid-template-columns:minmax(0,1fr) minmax(0,.86fr);margin-top:96px}
-.ticks{display:grid;gap:13px;margin-top:26px}
-.ticks div{display:flex;gap:11px;align-items:flex-start}
-.ticks i{width:19px;height:19px;border-radius:50%;background:var(--green-soft);color:var(--green);display:grid;place-items:center;flex:none;margin-top:2px}
-.ticks span{font-size:15px;line-height:1.5;color:var(--body)}
-
-/* The reorder panel is a lit screen too — same rule as the hero mock. */
-.panel{background:#fff;border:1px solid var(--line-2);border-radius:14px;overflow:hidden;color:var(--screen-ink);
-  box-shadow:0 40px 80px -50px #000,0 0 60px -30px rgba(37,99,235,.3)}
-.panel .ph{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--screen-line);flex-wrap:wrap}
-.panel .ph b{font-family:var(--display);font-weight:700;font-size:14px;letter-spacing:-.02em}
-.panel .ph .chip{font-family:var(--mono);font-size:10px;background:#DBEAFE;color:#1D4ED8;padding:3px 7px;border-radius:4px}
-.panel .ph .loc{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--screen-faint)}
-.tr{display:grid;grid-template-columns:1.9fr .8fr .7fr .6fr .9fr;gap:10px;padding:12px 18px;border-bottom:1px solid var(--screen-line);align-items:center}
-.tr.th{padding:9px 18px;background:var(--screen-2);font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;color:var(--screen-muted);text-transform:uppercase;border-bottom:0}
-.tr .r{text-align:right}
-.tr .nm{font-size:13px;font-weight:600}
-.tr .sku{font-family:var(--mono);font-size:10px;color:var(--screen-faint);margin-top:2px}
-.tr .mo{font-family:var(--mono);font-size:12.5px;color:var(--screen-muted)}
-.tr .lo{color:#B45309;font-weight:600}
-.tr .hi{color:#047857;font-weight:600}
-.tr .sug{background:var(--brand);color:#fff;padding:3px 7px;border-radius:4px;font-family:var(--mono);font-size:11px}
-.panel .pf{display:flex;align-items:center;gap:10px;padding:14px 18px;border-top:1px solid var(--screen-line);background:var(--screen);flex-wrap:wrap}
-.panel .pf span{font-size:12.5px;color:var(--screen-muted)}
-.panel .pf b{margin-left:auto;background:var(--brand);color:#fff;font-size:12.5px;font-weight:600;padding:8px 14px;border-radius:6px}
-
-/* Account card — the one data panel that stays dark, lifted off the page. */
-.acct{position:relative;background:var(--bg-3);border:1px solid var(--line-2);border-radius:14px;padding:26px 28px;color:var(--ink);
-  box-shadow:0 40px 80px -50px #000,0 0 60px -34px rgba(168,85,247,.4);overflow:hidden}
-.acct::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--grad)}
-.acct .r1{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
-.acct .k{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--faint);text-transform:uppercase}
-.acct .n{font-family:var(--display);font-weight:800;font-size:21px;letter-spacing:-.03em;margin-top:4px}
-.acct .badge{font-family:var(--mono);font-size:10px;letter-spacing:.06em;background:var(--green-soft);color:var(--green);padding:5px 9px;border-radius:5px;flex:none}
-.acct .two{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:22px}
-.acct .box{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
-.acct .box b{display:block;font-family:var(--display);font-weight:800;font-size:25px;letter-spacing:-.03em;margin-top:5px}
-.acct .bar{height:6px;border-radius:100px;background:rgba(255,255,255,.09);margin-top:16px;overflow:hidden}
-.acct .bar i{display:block;width:43%;height:100%;background:var(--grad);border-radius:100px}
-.acct .note{font-family:var(--mono);font-size:10px;color:var(--faint);margin-top:8px;letter-spacing:.05em}
-.acct .list{margin-top:22px;border-top:1px solid var(--line);padding-top:16px;display:grid;gap:11px}
-.acct .list div{display:flex;align-items:center;gap:12px}
-.acct .list .j{font-family:var(--mono);font-size:11px;color:var(--faint);width:78px;flex:none}
-.acct .list .d{font-size:13.5px;flex:1;min-width:0;color:var(--body)}
-.acct .list .a{font-family:var(--mono);font-size:13px}
 
 /* ── Hardware band ──────────────────────────────────────────────────────── */
 .dark{position:relative;margin-top:104px;background:var(--bg-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line);overflow:hidden}
@@ -375,10 +308,8 @@ footer{background:var(--bg-2);color:var(--muted);border-top:1px solid var(--line
 .f-bot a:hover{color:var(--cyan)}
 
 @media(max-width:1000px){
-  .hero-grid,.split.a,.split.b,.faq-grid,.demo .wrap{grid-template-columns:1fr;gap:44px}
-  .split.b{margin-top:64px}
-  .split.b .acct{order:2}
-  .cards,.compare,.tiles6,.steps{grid-template-columns:repeat(2,1fr)}
+  .hero-grid,.faq-grid,.demo .wrap{grid-template-columns:1fr;gap:44px}
+  .compare,.tiles6,.steps{grid-template-columns:repeat(2,1fr)}
   .promise{grid-template-columns:1fr;padding:36px 30px;gap:30px}
   .promise .facts{border-left:0;border-top:1px solid var(--line);padding-left:0;padding-top:26px;
     grid-template-columns:repeat(3,1fr)}
@@ -399,7 +330,7 @@ footer{background:var(--bg-2);color:var(--muted);border-top:1px solid var(--line
   .band .wrap{grid-template-columns:1fr}
   .band .s{padding:20px 0}
   .band .s+.s{border-left:0;border-top:1px solid var(--line)}
-  .cards,.compare,.tiles6,.steps,.tiles,.acct .two,.promise .facts{grid-template-columns:1fr}
+  .compare,.tiles6,.steps,.tiles,.promise .facts{grid-template-columns:1fr}
   .compare>div,.tiles6>div{padding:24px 22px}
   .dark{margin-top:68px}
   .dark .wrap{padding-top:60px;padding-bottom:60px}
@@ -407,8 +338,6 @@ footer{background:var(--bg-2);color:var(--muted);border-top:1px solid var(--line
   .demo .wrap{padding-top:60px;padding-bottom:60px}
   .f-top{grid-template-columns:1fr;gap:28px}
   .float{display:none}
-  .tr{grid-template-columns:1.7fr .8fr .7fr;gap:8px}
-  .hide-sm{display:none}
   details .a{padding-right:0}
 }
 </style>
@@ -427,8 +356,6 @@ footer{background:var(--bg-2);color:var(--muted);border-top:1px solid var(--line
     </a>
     <nav class="nav-links" id="links">
       <a href="#why">Why Built4U</a>
-      <a href="#features">Features</a>
-      <a href="#inventory">Inventory</a>
       <a href="#setup">Getting started</a>
       <a href="#faq">FAQ</a>
     </nav>
@@ -456,7 +383,7 @@ footer{background:var(--bg-2);color:var(--muted);border-top:1px solid var(--line
           <a class="btn btn-accent" href="#contact">Contact us
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </a>
-          <a class="btn btn-line" href="#features">See what&rsquo;s inside</a>
+          <a class="btn btn-line" href="#hardware">See what it runs on</a>
         </div>
         <div class="hero-meta">
           <span>3,000+ items per branch</span><s>/</s><span>Keeps your scanner</span><s>/</s><span>We load your item list</span>
@@ -574,176 +501,6 @@ footer{background:var(--bg-2);color:var(--muted);border-top:1px solid var(--line
         <div class="rule"></div>
         <div class="k good">BUILT4U</div>
         <p class="yes">Moving-average costing updates as supplier prices rise, so the margin you see is honest.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="pad" id="features">
-  <div class="wrap">
-    <div class="head-row" data-reveal>
-      <div class="t">
-        <div class="eyebrow">What&rsquo;s inside</div>
-        <h2 class="h2">One system, from the counter to the back office.</h2>
-        <p class="lede">Everything below is included — not modules you unlock later.</p>
-      </div>
-      <a class="link-arrow" href="#contact">Talk to us about it
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </a>
-    </div>
-
-    <div class="cards">
-      <div class="card" data-reveal>
-        <div class="top"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><rect x="2.5" y="4" width="19" height="12" rx="2" stroke="currentColor" stroke-width="1.9"/><path d="M8 20h8M12 16v4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg></span><span class="num">01</span></div>
-        <h3>Point of sale</h3>
-        <p>Barcode scanning, split payments, price override with manager approval, held sales and discounts — built for speed at a busy counter.</p>
-      </div>
-      <div class="card" data-reveal>
-        <div class="top"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M3 8l9-5 9 5v8l-9 5-9-5V8z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/><path d="M3 8l9 5 9-5M12 13v8" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></svg></span><span class="num">02</span></div>
-        <h3>Buy by box, sell by piece</h3>
-        <p>Set the conversion once. Receive a box of 100, sell singles, and stock, cost and margin all follow without anyone doing arithmetic.</p>
-      </div>
-      <div class="card" data-reveal>
-        <div class="top"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h9" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><circle cx="18" cy="18" r="3" stroke="currentColor" stroke-width="1.9"/></svg></span><span class="num">03</span></div>
-        <h3>Inventory</h3>
-        <p>Thousands of items across categories, locations and units. Low-stock alerts, stocktake and adjustments, each with an audit trail.</p>
-      </div>
-      <div class="card" data-reveal>
-        <div class="top"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M16 20v-1.5A3.5 3.5 0 0012.5 15h-5A3.5 3.5 0 004 18.5V20" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><circle cx="10" cy="8" r="3.4" stroke="currentColor" stroke-width="1.9"/><path d="M19 11h3M20.5 9.5v3" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg></span><span class="num">04</span></div>
-        <h3>Customer credit</h3>
-        <p>Track utang per customer, take partial payments, and see aging so nothing quietly goes uncollected. Supplier payables work the same way.</p>
-      </div>
-      <div class="card" data-reveal>
-        <div class="top"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><rect x="3" y="7" width="18" height="12" rx="2" stroke="currentColor" stroke-width="1.9"/><path d="M3 11h18M7 15h4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><path d="M7 7V5.5A1.5 1.5 0 018.5 4h7A1.5 1.5 0 0117 5.5V7" stroke="currentColor" stroke-width="1.9"/></svg></span><span class="num">05</span></div>
-        <h3>Shift &amp; cash control</h3>
-        <p>Cashiers open and close a shift with a denomination count, and cash taken in or out mid-shift is recorded. You see if the drawer is short, and whose shift it was.</p>
-      </div>
-      <div class="card" data-reveal>
-        <div class="top"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M2.5 7.5h11v9h-11z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/><path d="M13.5 10.5h4l4 3.5v2.5h-8z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/><circle cx="7" cy="18" r="1.8" stroke="currentColor" stroke-width="1.9"/><circle cx="17.5" cy="18" r="1.8" stroke="currentColor" stroke-width="1.9"/></svg></span><span class="num">06</span></div>
-        <h3>Purchasing &amp; receiving</h3>
-        <p>Purchase orders with approval routing, deliveries received against the PO, and costs updated as stock arrives.</p>
-      </div>
-      <div class="card" data-reveal>
-        <div class="top"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M7 8V3.5h10V8" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/><rect x="3" y="8" width="18" height="7" rx="1.8" stroke="currentColor" stroke-width="1.9"/><path d="M7 13h10v7.5H7z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></svg></span><span class="num">07</span></div>
-        <h3>Receipts &amp; cash drawer</h3>
-        <p>Prints to a standard thermal printer and kicks the drawer — with your store name, logo and footer message on every slip.</p>
-      </div>
-      <div class="card" data-reveal>
-        <div class="top"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><rect x="2.5" y="5" width="19" height="14" rx="2.2" stroke="currentColor" stroke-width="1.9"/><path d="M2.5 9.5h19M6 15h4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg></span><span class="num">08</span></div>
-        <h3>Cash, GCash, card or charge</h3>
-        <p>Accept the ways people actually pay, split one sale across two of them, and send the balance to a customer&rsquo;s account when they&rsquo;re short.</p>
-      </div>
-      <div class="card" data-reveal>
-        <div class="top"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M3 17l5-5 4 3 5-6 4 4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 21h18" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg></span><span class="num">09</span></div>
-        <h3>Reports that answer questions</h3>
-        <p>Profit and margin, sales by cashier or by hour, dead stock, reorder suggestions, inventory valuation — on screen, exported to PDF or Excel, or emailed to whoever needs them.</p>
-      </div>
-      <div class="card" data-reveal>
-        <div class="top"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><rect x="6.5" y="2.5" width="11" height="19" rx="2.2" stroke="currentColor" stroke-width="1.9"/><path d="M10.5 18.5h3" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg></span><span class="num">10</span></div>
-        <h3>Your numbers, anywhere</h3>
-        <p>Open the dashboard on your phone and see today&rsquo;s sales, transactions, average basket and the last seven days — without ringing the store.</p>
-      </div>
-      <div class="card" data-reveal>
-        <div class="top"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.9"/><rect x="14" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.9"/><rect x="3" y="15" width="7" height="5" rx="1.5" stroke="currentColor" stroke-width="1.9"/><path d="M14 17.5h7M18.5 15l2.5 2.5-2.5 2.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="num">11</span></div>
-        <h3>More than one branch</h3>
-        <p>Each branch keeps its own stock and cash, with transfers between them and one place to see everything.</p>
-      </div>
-      <div class="card" data-reveal>
-        <div class="top"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 3l7.5 3v5.5c0 5-3.2 8.4-7.5 10-4.3-1.6-7.5-5-7.5-10V6L12 3z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="num">12</span></div>
-        <h3>Staff &amp; permissions</h3>
-        <p>Roles decide who can discount, adjust stock or view cost prices. Sensitive actions are logged against a name, so questions have answers.</p>
-      </div>
-    </div>
-
-    <div class="also" data-reveal>
-      <b>Also included</b>
-      Bulk item import from your existing spreadsheet &middot; barcode lookup &middot; stocktake &middot; stock transfers between branches &middot; supplier records &middot; customer purchase history &middot; vouchers and loyalty points &middot; scheduled report email &middot; full audit log &middot; automatic cloud backup
-    </div>
-  </div>
-</section>
-
-<section class="pad" id="inventory">
-  <div class="wrap">
-    <div class="split a" data-reveal>
-      <div>
-        <div class="eyebrow">Inventory</div>
-        <h2 class="h2-sm">Know what&rsquo;s on the shelf before the customer asks.</h2>
-        <p class="lede">Every delivery, transfer, sale and adjustment updates one count. Items running low surface themselves — with the supplier, the last cost and a suggested quantity already attached.</p>
-        <div class="ticks">
-          <div><i><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></i><span>Stocktake by category or location, with the variance recorded against a name</span></div>
-          <div><i><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></i><span>Moving-average cost and margin on every line, updated as prices move</span></div>
-          <div><i><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></i><span>Dead stock and reorder reports you can export, or have emailed every week</span></div>
-        </div>
-      </div>
-      <div class="panel">
-        <div class="ph">
-          <b>Reorder suggestions</b>
-          <span class="chip">14 ITEMS</span>
-          <span class="loc">MAIN BRANCH</span>
-        </div>
-        <div class="tr th"><span>Item</span><span>Location</span><span class="r">On hand</span><span class="r hide-sm">Min</span><span class="r hide-sm">Suggest</span></div>
-        <div class="tr">
-          <div><div class="nm">Deck Screw 3&quot;, per kilo</div><div class="sku">HW-4188</div></div>
-          <span class="mo">RACK C-07</span>
-          <span class="mo r lo">4</span>
-          <span class="mo r hide-sm">18</span>
-          <span class="r hide-sm"><span class="sug">+36</span></span>
-        </div>
-        <div class="tr">
-          <div><div class="nm">PVC Elbow 90&deg;, 1/2&quot;</div><div class="sku">PL-2077</div></div>
-          <span class="mo">BIN P-21</span>
-          <span class="mo r lo">11</span>
-          <span class="mo r hide-sm">40</span>
-          <span class="r hide-sm"><span class="sug">+120</span></span>
-        </div>
-        <div class="tr">
-          <div><div class="nm">Portland Cement, 40kg</div><div class="sku">CN-9001 &middot; by the bag</div></div>
-          <span class="mo">BODEGA 2</span>
-          <span class="mo r lo">6</span>
-          <span class="mo r hide-sm">24</span>
-          <span class="r hide-sm"><span class="sug">+48</span></span>
-        </div>
-        <div class="tr" style="border-bottom:0">
-          <div><div class="nm">THHN Wire 3.5mm</div><div class="sku">EL-3305 &middot; per meter</div></div>
-          <span class="mo">REEL 2</span>
-          <span class="mo r hi">210m</span>
-          <span class="mo r hide-sm">150m</span>
-          <span class="mo r hide-sm">&mdash;</span>
-        </div>
-        <div class="pf"><span>Draft purchase order &middot; est. &#8369;18,420.00</span><b>Send for approval</b></div>
-      </div>
-    </div>
-
-    <div class="split b" data-reveal>
-      <div class="acct">
-        <div class="r1">
-          <div>
-            <div class="k">Account 1042</div>
-            <div class="n">Dela Cruz Construction</div>
-          </div>
-          <span class="badge">CONTRACTOR &middot; 30 DAYS</span>
-        </div>
-        <div class="two">
-          <div class="box"><div class="k">Balance</div><b>&#8369;64,180</b></div>
-          <div class="box"><div class="k">Credit limit</div><b>&#8369;150,000</b></div>
-        </div>
-        <div class="bar"><i></i></div>
-        <div class="note">43% USED &middot; 2 INVOICES OVER 30 DAYS</div>
-        <div class="list">
-          <div><span class="j">SITE 118</span><span class="d">Molino townhouse</span><span class="a">&#8369;32,041.80</span></div>
-          <div><span class="j">SITE 121</span><span class="d">Warehouse extension</span><span class="a">&#8369;20,906.20</span></div>
-          <div><span class="j">SITE 124</span><span class="d">Perimeter fence, Imus</span><span class="a">&#8369;11,232.00</span></div>
-        </div>
-      </div>
-      <div>
-        <div class="eyebrow">Accounts</div>
-        <h2 class="h2-sm">Your best customers rarely pay in cash.</h2>
-        <p class="lede">Open an account at the counter in under a minute. Set the credit limit, the price tier and who is allowed to charge on it. Balances and aging come out of the same system that rang up the sale.</p>
-        <div class="ticks">
-          <div><i><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></i><span>Purchase history per customer, so a disputed charge takes a minute to settle</span></div>
-          <div><i><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></i><span>Partial payments, so a contractor can pay what they have today</span></div>
-          <div><i><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></i><span>Supplier payables tracked the same way, on the other side of the ledger</span></div>
-        </div>
       </div>
     </div>
   </div>
@@ -927,8 +684,6 @@ footer{background:var(--bg-2);color:var(--muted);border-top:1px solid var(--line
     </div>
     <div class="f-col">
       <div class="k">Product</div>
-      <a href="#features">Features</a>
-      <a href="#inventory">Inventory</a>
       <a href="#hardware">What it runs on</a>
       <a href="#setup">Getting started</a>
     </div>
@@ -947,7 +702,7 @@ footer{background:var(--bg-2);color:var(--muted);border-top:1px solid var(--line
   </div>
   <div class="wrap f-bot">
     <span>&copy; <span id="yr">2026</span> Built4U POS &middot; Made in the Philippines</span>
-    <span style="display:flex;gap:20px"><a href="#why">Why Built4U</a><a href="#features">Features</a><a href="#contact">Contact</a></span>
+    <span style="display:flex;gap:20px"><a href="#why">Why Built4U</a><a href="#hardware">What it runs on</a><a href="#contact">Contact</a></span>
   </div>
 </footer>
 

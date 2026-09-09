@@ -16,7 +16,7 @@ near-black navy ground with soft cyan/purple glows.
 |---|---|---|
 | `--bg` | `#070B16` | page ground |
 | `--bg-2` | `#0B1122` | raised bands — stat band, hardware, promise, footer |
-| `--bg-3` / `--bg-4` | `#0E1628` / `#131D33` | cards, terminal bezel, account panel |
+| `--bg-3` / `--bg-4` | `#0E1628` / `#131D33` | hardware tiles, terminal bezel, floating stat |
 | `--ink` → `--dim` | `#F3F6FC` `#AEBBD4` `#8494B2` `#7B8AA6` `#5C6A85` | five text steps, brightest first |
 | `--brand` | `#2563eb` | **the logo plate, and the primary button — fixed** |
 | `--cyan` | `#22D3EE` | eyebrows, small-caps labels, link and hover states |
@@ -26,17 +26,16 @@ near-black navy ground with soft cyan/purple glows.
 | `--screen-*` | `#FBFCFE` … `#0F172A` | the **light** palette inside the POS mockups |
 
 **The gradient is the signature.** It runs as a 3px bar across the top of the
-page (`header::before`), as a 2px hairline on the terminal mock, account card
-and promise block, through the words "should too." in the H1 and the step
-numbers, and as the credit-usage bar. Used anywhere else it stops being a
-signature. Gradient-filled text carries an `@supports` fallback to flat cyan —
-without it, engines that cannot clip a background to glyphs render the words
-invisible.
+page (`header::before`), as a 2px hairline on the terminal mock and the promise
+block, and through the words "should too." in the H1 and the step numbers. Used
+anywhere else it stops being a signature. Gradient-filled text carries an
+`@supports` fallback to flat cyan — without it, engines that cannot clip a
+background to glyphs render the words invisible.
 
-**Screens stay light.** The hero terminal and the reorder panel keep a light UI
-inside a dark bezel, because the real app is light and that is what a lit
-counter screen looks like. They have their own `--screen-*` scale; do not paint
-them with the page tokens.
+**The screen stays light.** The hero terminal keeps a light UI inside a dark
+bezel, because the real app is light and that is what a lit counter screen
+looks like. It has its own `--screen-*` scale; do not paint it with the page
+tokens.
 
 Type: **Archivo** 700/800 for headings, **IBM Plex Sans** for body, **IBM Plex
 Mono** for labels, item codes and figures. All three come from Google Fonts; if
