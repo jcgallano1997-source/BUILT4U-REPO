@@ -1,0 +1,87 @@
+# Build check on every push and pull request.
+#
+# Why this exists: all three services in render.yaml run `autoDeploy: true`, so
+# whatever lands on main goes straight to production. Until this workflow, a
+# commit that did not compile was deployed anyway and only failed in Render's
+# build log, after the fact.
+#
+# ── Why the tests do NOT run here ──────────────────────────────────────────
+# The 15 *IT classes are @SpringBootTest against a real Oracle ADB: the default
+# `local` profile needs DB_USERNAME, DB_PASSWORD and a wallet at TNS_ADMIN, and
+# there is no H2 or Testcontainers fallback. Running them in CI would mean
+# putting production database credentials into GitHub secrets and pointing a
+# public runner at the schema holding live stock — @Transactional rollback is
+# not a good enough reason to take that risk.
+#
+# To get the suite running here, it needs a test datasource that is not
+# production: Testcontainers with gvenzl/oracle-free is the usual route for an
+# Oracle-dialect project. That is a real piece of work, not a config tweak.
+# Until then this catches what it honestly can — compile errors and type errors,
+# which is the bulk of what actually breaks a deploy.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# A new push supersedes an in-flight run on the same branch.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend compiles
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      # Compiles main and test sources without running anything, so a broken
+      # test class is still caught.
+      - name: Compile
+        working-directory: backend
+        run: ./mvnw --batch-mode --no-transfer-progress test-compile
+
+  frontend:
+    name: Frontend builds
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      # --legacy-peer-deps mirrors the install in render.yaml; without it CI
+      # would pass on a dependency tree Render never builds.
+      - name: Install
+        working-directory: frontend
+        run: npm ci --legacy-peer-deps
+
+      # `npm run build` is `tsc -b && vite build`, so this type-checks too.
+      - name: Build
+        working-directory: frontend
+        run: npm run build
+
+  marketing:
+    name: Marketing site is well-formed
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The page is hand-edited HTML with an inline JSON-LD block. A trailing
+      # comma in that block is invisible in the browser and silently costs the
+      # rich results it exists for, so parse it rather than trust it.
+      - name: Validate JSON-LD and required tags
+        run: node .github/scripts/check-marketing.mjs
