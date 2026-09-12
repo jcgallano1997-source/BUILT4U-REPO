@@ -1,7 +1,11 @@
 const sharp = require('sharp');
 const fs = require('fs');
-const SRC = 'C:/CLAUDE CODE/NEW_POS/marketing/favicon.svg';
-const OUT = 'C:/CLAUDE CODE/NEW_POS/brand';
+const path = require('path');
+// Resolved from this file, not from an absolute path: the repo has already been
+// checked out under two different names, and a hardcoded C:\ path silently
+// writes nothing (or writes somewhere stale) on every machine but one.
+const SRC = path.join(__dirname, '..', 'marketing', 'favicon.svg');
+const OUT = __dirname;
 const BLUE = '#2563eb';
 fs.mkdirSync(OUT, { recursive: true });
 

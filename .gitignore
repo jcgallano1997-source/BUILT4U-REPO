@@ -33,3 +33,7 @@ npm-debug.log*
 .vscode/
 .DS_Store
 Thumbs.db
+
+# ---- Brand tooling ----
+# Fonts og-card.js downloads on first run (~1.3 MB, fetched from google/fonts).
+brand/.fonts/

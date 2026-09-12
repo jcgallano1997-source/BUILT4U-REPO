@@ -1,0 +1,9 @@
+{
+  "name": "built4u-brand",
+  "private": true,
+  "description": "Raster exports of the Built4U mark and the og:image card. Run from the repo root: node brand/export.js / node brand/og-card.js",
+  "dependencies": {
+    "fontkit": "^2.0.4",
+    "sharp": "^0.35.4"
+  }
+}
