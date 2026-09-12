@@ -4,7 +4,14 @@
 > the checkboxes as phases complete. Committed to git so it survives across sessions
 > (if the chat/token context is lost, read this first).
 >
-> Last updated: **2026-08-19** · Current position: **Live data loaded (3,066 items) and email delivery working on the real domain. Hosting decided — Cloudflare Pages + an OCI VM in Singapore — and blocked only on OCI Ampere capacity (see §6). Migrations now V1–V29.**
+> Last updated: **2026-09-12** · Current position: **Live data loaded (3,066 items) and email delivery working on the real domain. The marketing site is live on Render at built4u-pos.com. Backend hosting is unconfirmed — §6 still describes a Cloudflare Pages + OCI plan that the marketing deploy has overtaken; see the dated note under §6 DNS. Migrations now V1–V29.**
+>
+> Marketing-site SEO groundwork landed 2026-09-12: canonical tag, Open Graph and
+> Twitter cards, a generated 1200x630 `og-image.png`, JSON-LD (Organization,
+> WebSite, SoftwareApplication, FAQPage), `robots.txt` and `sitemap.xml`, plus an
+> analytics block that stays inert until an ID is pasted in. See
+> `marketing/README.md`. Still open: no lead-capture form on the page, no
+> pricing, no testimonials, and no analytics ID set.
 
 ---
 
@@ -302,6 +309,18 @@ Driven by real use of the app once it held 3,000 real items:
 ### DNS
 - Stale Render records removed (`api` CNAME); root + `www` still point at the dead Render app and
   need a decision once Pages is up.
+
+> **Out of date as of 2026-09-12.** `built4u-pos.com` is serving live from Render
+> right now, not from a dead app — responses carry an `rndr-id` header behind
+> Cloudflare's CDN, and `render.yaml` defines `built4u-pos-marketing` as a static
+> site with `autoDeploy: true`. So the marketing site is on Render and working.
+>
+> What that means for the *backend* is not recorded anywhere, and cannot be read
+> off the public site. Before trusting §6, confirm on the Render dashboard
+> whether `built4u-pos-api` is deployed, and whether the OCI plan is still live
+> or was dropped when marketing went up. Note that the free tier's 15-minute
+> idle sleep applies only to the API service — a static site is CDN-served and
+> never spins down.
 
 ### Blocked
 - **OCI Ampere A1 is out of capacity in Singapore.** Options, best first: upgrade to Pay As You Go
