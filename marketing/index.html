@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-PH">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -13,14 +13,207 @@
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<!-- One page, one address. Without this, built4u-pos.com, www.built4u-pos.com
+     and any ?fbclid= link Facebook appends all look like separate pages to a
+     search engine, splitting whatever ranking the page earns. -->
+<link rel="canonical" href="https://built4u-pos.com/">
+<meta property="og:site_name" content="Built4U POS">
 <meta property="og:title" content="Built4U POS — Point of sale for hardware &amp; construction supply">
 <meta property="og:description" content="Buy by box, sell by piece. Track utang. Know your real cost. Built for Philippine hardware stores.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://built4u-pos.com/">
-<meta property="og:image" content="https://built4u-pos.com/icon-512.png">
+<!-- 1200x630 (1.91:1). The old square icon was letterboxed or cropped by every
+     platform, so a shared link showed a floating logo and no message.
+     Regenerate with `node brand/og-card.js` — never edit the PNG by hand. -->
+<meta property="og:image" content="https://built4u-pos.com/og-image.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Built4U POS — buy by the box, sell by the piece. Point of sale and inventory for Philippine hardware stores.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Built4U POS — Point of sale for hardware &amp; construction supply">
+<meta name="twitter:description" content="Buy by box, sell by piece. Track utang. Know your real cost. Built for Philippine hardware stores.">
+<meta name="twitter:image" content="https://built4u-pos.com/og-image.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- ── Structured data ───────────────────────────────────────────────────────
+     Tells search engines what this page is rather than making them infer it.
+     The FAQ entries are the five on the page, verbatim — if you edit a question
+     or answer below, edit it here too or the markup stops matching the page,
+     which Google treats as a violation rather than a mistake.
+
+     Deliberately absent: `offers` on the SoftwareApplication and any
+     `aggregateRating`. Prices are not public yet and there are no published
+     reviews; inventing either to win a rich result would be fabrication. Add
+     `offers` the day pricing goes on the page. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://built4u-pos.com/#org",
+      "name": "Built4U Solutions",
+      "url": "https://built4u-pos.com/",
+      "logo": "https://built4u-pos.com/icon-512.png",
+      "image": "https://built4u-pos.com/og-image.png",
+      "description": "Point of sale, inventory and customer credit for Philippine hardware stores, construction supply and building materials.",
+      "email": "customer_service@built4u-pos.com",
+      "telephone": "+63-992-286-2068",
+      "address": {
+        "@type": "PostalAddress",
+        "addressRegion": "Cavite",
+        "addressCountry": "PH"
+      },
+      "areaServed": { "@type": "Country", "name": "Philippines" },
+      "sameAs": ["https://www.facebook.com/profile.php?id=61582125780879"],
+      "contactPoint": [{
+        "@type": "ContactPoint",
+        "contactType": "sales",
+        "telephone": "+63-992-286-2068",
+        "email": "customer_service@built4u-pos.com",
+        "areaServed": "PH",
+        "availableLanguage": ["en", "fil"],
+        "hoursAvailable": {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],
+          "opens": "08:00",
+          "closes": "18:00"
+        }
+      }]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://built4u-pos.com/#website",
+      "url": "https://built4u-pos.com/",
+      "name": "Built4U POS",
+      "inLanguage": "en-PH",
+      "publisher": { "@id": "https://built4u-pos.com/#org" }
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://built4u-pos.com/#software",
+      "name": "Built4U POS",
+      "applicationCategory": "BusinessApplication",
+      "applicationSubCategory": "Point of Sale",
+      "operatingSystem": "Web browser (Chrome, Edge)",
+      "url": "https://built4u-pos.com/",
+      "image": "https://built4u-pos.com/og-image.png",
+      "description": "Point of sale and inventory built for Philippine hardware stores — thousands of SKUs, buy by box and sell by piece, supplier deliveries, and customers who pay on credit.",
+      "inLanguage": "en-PH",
+      "publisher": { "@id": "https://built4u-pos.com/#org" },
+      "featureList": [
+        "Barcode point of sale with split payments and held sales",
+        "Box-to-piece unit conversion with moving-average costing",
+        "Customer credit (utang) with partial payments and aging",
+        "Shift and cash drawer control with denomination counts",
+        "Purchase orders, goods receiving and supplier payables",
+        "Multi-branch inventory, stock transfers and stocktake",
+        "Profit, margin and dead-stock reports"
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://built4u-pos.com/#faq",
+      "isPartOf": { "@id": "https://built4u-pos.com/#website" },
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Do I need to buy new hardware?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Usually not. Built4U runs in a web browser on a normal PC or laptop, and works with standard USB barcode scanners and network thermal printers. If you already have a counter setup, it most likely works as is." }
+        },
+        {
+          "@type": "Question",
+          "name": "What happens if the internet goes down?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Being straight with you: the system needs a connection, so a long outage stops sales. Most stores keep a mobile hotspot as backup. Offline mode is on the roadmap — ask us where it stands." }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I bring my existing data in?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes. Send whatever you have — spreadsheets, exports, or lists — and we handle the import, including cleaning up duplicates and inconsistent units." }
+        },
+        {
+          "@type": "Question",
+          "name": "Who can see what?",
+          "acceptedAnswer": { "@type": "Answer", "text": "You decide. Cashiers can be limited to selling, while discounts, stock adjustments, cost prices and reports stay with you. Sensitive actions are recorded against the staff member’s name." }
+        },
+        {
+          "@type": "Question",
+          "name": "How much does it cost?",
+          "acceptedAnswer": { "@type": "Answer", "text": "It depends on how many branches you run and how much setup help you need. Message us and we’ll quote you plainly — no lock-in contract." }
+        }
+      ]
+    }
+  ]
+}
+</script>
+
+<!-- ── Analytics ─────────────────────────────────────────────────────────────
+     Nothing loads until an ID is filled in, so the page ships with no third
+     party attached and no cookie banner owed. Paste an ID and that one tool
+     starts; leave it empty and not a byte is requested.
+
+       CF_BEACON  Cloudflare Web Analytics token — cookieless, so it needs no
+                  consent notice under the Data Privacy Act. Start here.
+       GA4_ID     G-XXXXXXXXXX from Google Analytics. Sets cookies.
+       META_PIXEL Pixel ID from Meta Events Manager. Sets cookies, and is what
+                  makes Facebook ad retargeting possible.
+
+     GA4 and Meta both set cookies: turning either on means adding a consent
+     notice. Cloudflare alone does not. -->
+<script>
+(function () {
+  var CF_BEACON  = '';
+  var GA4_ID     = '';
+  var META_PIXEL = '';
+
+  function script(src, attrs) {
+    var s = document.createElement('script');
+    s.async = true; s.src = src;
+    for (var k in attrs) s.setAttribute(k, attrs[k]);
+    document.head.appendChild(s);
+  }
+
+  if (CF_BEACON) {
+    script('https://static.cloudflareinsights.com/beacon.min.js',
+      { 'data-cf-beacon': '{"token":"' + CF_BEACON + '"}' });
+  }
+
+  if (GA4_ID) {
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function () { window.dataLayer.push(arguments); };
+    window.gtag('js', new Date());
+    window.gtag('config', GA4_ID);
+    script('https://www.googletagmanager.com/gtag/js?id=' + GA4_ID);
+  }
+
+  if (META_PIXEL) {
+    /* eslint-disable */
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+    n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
+    (window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    /* eslint-enable */
+    window.fbq('init', META_PIXEL);
+    window.fbq('track', 'PageView');
+  }
+
+  // Every contact route is an outbound link, so a click on one is the closest
+  // thing this page has to a conversion. Recorded only if a tool is switched on.
+  document.addEventListener('click', function (ev) {
+    var a = ev.target.closest && ev.target.closest('a[href^="tel:"],a[href^="mailto:"],a[href*="wa.me"],a[href*="facebook.com"]');
+    if (!a) return;
+    var how = a.href.indexOf('tel:') === 0 ? 'call'
+            : a.href.indexOf('mailto:') === 0 ? 'email'
+            : a.href.indexOf('wa.me') > -1 ? 'whatsapp' : 'facebook';
+    if (window.gtag) window.gtag('event', 'contact_click', { method: how });
+    if (window.fbq) window.fbq('track', 'Contact', { method: how });
+  }, true);
+})();
+</script>
 <style>
 /* ── Built4U Solutions design system ────────────────────────────────────────
    Matches the calling card, the banner and the desktop system's login: a

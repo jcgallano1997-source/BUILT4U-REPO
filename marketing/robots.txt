@@ -1,0 +1,7 @@
+# built4u-pos.com
+# Everything here is public sales copy — there is nothing to hold back.
+
+User-agent: *
+Allow: /
+
+Sitemap: https://built4u-pos.com/sitemap.xml
